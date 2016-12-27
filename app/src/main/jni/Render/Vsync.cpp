@@ -126,6 +126,7 @@ namespace Baofeng
 				{
 					while (targetSeconds - Timer::GetSeconds() > 0)
 					{
+						sleep(1);
 					}
 				}
 				else

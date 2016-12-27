@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.0" android:versionCode="1" package="com.mj.b4815" android:installLocation="preferExternal">
+  <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="24" />
+  <uses-feature android:glEsVersion="0x00020000" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.BLUETOOTH" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+  <uses-permission android:name="android.permission.GET_TASKS" />
+  <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+  <application android:icon="@drawable/app_icon" android:label="@string/app_name" android:debuggable="true" android:isGame="true" android:banner="@drawable/app_banner">
+    <activity android:name="com.baofeng.mojing.unity.MojingActivity" android:label="@string/app_name" android:screenOrientation="landscape" android:launchMode="singleTask" android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+      </intent-filter>
+      <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+    </activity>
+    <meta-data android:name="IMMERSIVE_MODE" android:value="true" />
+    <meta-data android:name="DEVELOPER_MERCHANT_ID" android:value="C3845343263589043" />
+    <meta-data android:name="DEVELOPER_APP_ID" android:value="\03908657356234505" />
+    <meta-data android:name="DEVELOPER_APP_KEY" android:value="faadffa1383206111ae162969b340ad9" />
+    <meta-data android:name="DEVELOPER_CHANNEL_ID" android:value="www.mojing.cn" />
+    <activity android:name="com.mojing.sdk.pay.widget.MojingPayValidationActivity" android:label="魔镜支付确认双屏" android:launchMode="singleTask" android:screenOrientation="landscape" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
+    </activity>
+    <activity android:name="com.mojing.sdk.pay.widget.MojingPayValidationSingleActivity" android:label="魔镜支付确认单屏" android:launchMode="singleTask" android:screenOrientation="user" android:theme="@android:style/Theme.Dialog">
+    </activity>
+    <service android:name="com.mojing.sdk.pay.service.AIDLService">
+      <intent-filter>
+        <action android:name="android.intent.action.AIDLService" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </service>
+  </application>
+  <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+  <uses-feature android:name="android.hardware.touchscreen.multitouch" android:required="false" />
+  <uses-feature android:name="android.hardware.touchscreen.multitouch.distinct" android:required="false" />
+</manifest>
