@@ -1,0 +1,128 @@
+ECLIPSE ANDROID PROJECT IMPORT SUMMARY
+======================================
+
+Ignored Files:
+--------------
+The following files were *not* copied into the new Gradle project; you
+should evaluate whether these are still needed in your project and if
+so manually move them:
+
+* .externalToolBuilders\
+* .externalToolBuilders\eclipse_prebuilder.bat.launch
+* .vs\
+* .vs\MojingSDK\
+* .vs\MojingSDK\v14\
+* .vs\MojingSDK\v14\.suo
+* Debug\
+* Debug\MoJingSDK.log
+* Depend\
+* Depend\Depend.ini
+* Depend\DependInfo\
+* Depend\DependInfo\Bin\
+* Depend\DependInfo\Bin\3rdPart\
+* Depend\DependInfo\Bin\3rdPart\Sqlite3\
+* Depend\DependInfo\Bin\3rdPart\Sqlite3\Sqlite3.DevT.1041.zip
+* Depend\DependInfo\Bin\3rdPart\Sqlite3\armeabi-v7a\
+* Depend\DependInfo\Bin\3rdPart\Sqlite3\armeabi-v7a\libsqlite.so
+* Depend\DependInfo\Bin\3rdPart\Sqlite3\sqlite3.h
+* Depend\DependInfo\Bin\3rdPart\curl\
+* Depend\DependInfo\Bin\3rdPart\curl\armeabi-v7a\
+* Depend\DependInfo\Bin\3rdPart\curl\armeabi-v7a\libcurl.so
+* Depend\DependInfo\Bin\3rdPart\curl\curl.DevT.1040.zip
+* Depend\DependInfo\Bin\Core\
+* Depend\DependInfo\Bin\Core\Log\
+* Depend\DependInfo\Bin\Core\Log\Log.DevT.1009.zip
+* Depend\DependInfo\Bin\Core\Log\armeabi-v7a\
+* Depend\DependInfo\Bin\Core\Log\armeabi-v7a\libmdklog.so
+* Depend\DependInfo\Bin\Core\Log\x86\
+* Depend\DependInfo\Bin\Core\Log\x86\libmdklog.so
+* Depend\DependInfo\Bin\Core\VrService\
+* Depend\DependInfo\Bin\Core\VrService\VrService.DevT.996.zip
+* Depend\DependInfo\Bin\Core\VrService\src\
+* Depend\DependInfo\Bin\Core\VrService\src\com\
+* Depend\DependInfo\Bin\Core\VrService\src\com\baofeng\
+* Depend\DependInfo\Bin\Core\VrService\src\com\baofeng\mojing\
+* Depend\DependInfo\Bin\Core\VrService\src\com\baofeng\mojing\service\
+* Depend\DependInfo\Bin\Core\VrService\src\com\baofeng\mojing\service\IServiceResponse.java
+* Depend\DependInfo\Bin\Core\VrService\src\com\baofeng\mojing\service\MojingSDKAIDLService.java
+* Depend\DependInfo\Bin\Profile\
+* Depend\DependInfo\Bin\Profile\GlassesConfig.json
+* Depend\DependInfo\Bin\Profile\InputMap_mojing_default.json
+* Depend\DependInfo\Bin\Profile\InputMap_mojing_default_for_unreal.json
+* Depend\DependInfo\Bin\Profile\MobileConfig.json
+* Depend\DependInfo\Bin\Profile\Profile.DevT.1031.zip
+* Depend\UpdateFromSVN.py
+* Depend\UsingDepend.bat
+* JenkinsBuildConfig\
+* JenkinsBuildConfig\config.xml
+* MoJingSDK-Debug.log
+* MojingSDK-Debug.vgdbsettings
+* MojingSDK-Release.vgdbsettings
+* MojingSDK.VC.db
+* MojingSDK.sdf
+* MojingSDK.sln
+* MojingSDK.v12.suo
+* MojingSDK.vcxproj
+* MojingSDK.vcxproj.filters
+* MojingSDK.xcodeproj\
+* MojingSDK.xcodeproj\project.pbxproj
+* MojingSDK.xcodeproj\project.xcworkspace\
+* MojingSDK.xcodeproj\project.xcworkspace\contents.xcworkspacedata
+* MojingSDKTests\
+* MojingSDKTests\Info.plist
+* Publish\
+* Publish\Publish.bat
+* Tools\
+* Tools\AutoBuildVersion.exe
+* Tools\CopyMojingSDKLog.bat
+* Tools\EncProfile.exe
+* Tools\InputMapManager\
+* Tools\InputMapManager\InputMapManger.exe
+* Tools\InputMapManager\Newtonsoft.Json.dll
+* Tools\MobileConfig.dat
+* Tools\MobileConfig.dat.2.txt
+* Tools\MobileConfig.dat.txt
+* Tools\MojingSDK.txt
+* Tools\Unstall.bat
+* Tools\eclipse_prebuilder.bat
+* Tools\log\
+* Tools\log\MojingSDK_API.log
+* Tools\log\MojingSensor.log
+* Tools\效率测试.exe
+* UpgradeLog.htm
+* VisualGDBCache\
+* VisualGDBCache\MoJingSDK-Debug\
+* VisualGDBCache\MoJingSDK-Debug\DeploymentStatus.xml
+* build.xml
+* custom_rules.xml
+* gcc_Debug.h
+* gcc_Release.h
+* proguard-project.txt
+* version.txt
+
+Moved Files:
+------------
+Android Gradle projects use a different directory structure than ADT
+Eclipse projects. Here's how the projects were restructured:
+
+* AndroidManifest.xml => app\src\main\AndroidManifest.xml
+* assets\ => app\src\main\assets\
+* jni\ => app\src\main\jni\
+* lint.xml => app\lint.xml
+* res\ => app\src\main\res\
+* src\ => app\src\main\java\
+
+Next Steps:
+-----------
+You can now build the project. The Gradle project needs network
+connectivity to download dependencies.
+
+Bugs:
+-----
+If for some reason your project does not build, and you determine that
+it is due to a bug or limitation of the Eclipse to Gradle importer,
+please file a bug at http://b.android.com with category
+Component-Tools.
+
+(This import summary is for your information only, and can be deleted
+after import once you are satisfied with the results.)
