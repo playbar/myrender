@@ -345,6 +345,7 @@ const char*		UnitySystemLanguage();
 // Unity/DisplayManager.mm
 EAGLContext*	UnityGetMainScreenContextGLES();
 EAGLContext*	UnityGetContextEAGL();
+CAMetalDrawableRef UnityGetMetalDrawable(); // used by MojingSDK Metal
 void			UnityStartFrameRendering();
 
 // Unity/Filesystem.mm

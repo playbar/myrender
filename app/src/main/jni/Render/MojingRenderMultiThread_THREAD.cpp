@@ -150,7 +150,7 @@ namespace Baofeng
 			// 切记这句话要放到最后
 			if (m_pCurrentThread == this)
 				m_pCurrentThread = NULL;
-
+			return true;
 		}
 		// 按时间交换屏幕缓冲
 		void MojingRenderMultiThread::THREAD_TimeSwap(RenderFrame * pDisplayFrame)

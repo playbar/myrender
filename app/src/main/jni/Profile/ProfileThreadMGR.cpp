@@ -78,7 +78,8 @@ namespace Baofeng
 			AppendThreadToRun(pLoaclProfile);
 #else
 			int iRet = pLoaclProfile->Run();
-			delete pLoaclProfile;
+			// 注意：线程对象需要用Release删除
+			pLoaclProfile->Release();
 			return iRet;
 #endif
 		}
@@ -151,7 +152,7 @@ namespace Baofeng
 			{
 #ifdef REPORTER_URL_ENCRYPT
 //#ifdef _DEBUG
-//				strRet = "http://192.168.12.58:8018/logger.php";
+//				strRet = "https://192.168.12.58/logger.php";
 //#else
 				strRet = "http://mjsdk2.log.mojing.cn/logger.php";
 //#endif

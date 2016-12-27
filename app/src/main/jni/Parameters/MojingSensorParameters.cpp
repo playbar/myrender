@@ -11,7 +11,9 @@ namespace Baofeng
 			m_fMaxSampleRate(0),
 			m_fMinSampleRate(0),
 			m_fAvgSampleRate(0),
-			m_fLast50AvgSampleRate(0)
+			m_fLast50AvgSampleRate(0),
+			m_iSocket(-1),
+			m_iPort(0)
 		{
 			SetClassName(__FUNCTION__);
 		}

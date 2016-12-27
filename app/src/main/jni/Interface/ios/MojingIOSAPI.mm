@@ -271,14 +271,15 @@ bool MojingSDK_API_EnterMojingWorld_Metal(const char * GlassesName,
                                           bool bEnableMultiThread,
                                           bool bEnableTimeWarp,
                                           id<MTLDevice> device,
-                                          id<MTLCommandQueue> cmdQueue)
+                                          id<MTLCommandQueue> cmdQueue,
+                                          id<MTLCommandBuffer> cmdBuffer)
 {
     ENTER_MINIDUMP_FUNCTION;
     MOJING_FUNC_TRACE(g_APIlogger);
     MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
     if (!pStatus->IsMojingSDKEnbaled())
     {
-        MOJING_ERROR(g_APIlogger, "EnterMojingWorld with out Init SDK!");
+        MOJING_ERROR(g_APIlogger, "EnterMojingWorld without Init SDK!");
         return false;
     }
     
@@ -287,7 +288,7 @@ bool MojingSDK_API_EnterMojingWorld_Metal(const char * GlassesName,
     {
         if (pStatus->GetEngineStatus() != ENGINE_UNREAL)
         {
-            MojingRenderMetal::CreateCurrentRenderMetal(false, false, device, cmdQueue);
+            MojingRenderMetal::CreateCurrentRenderMetal(false, false, nullptr, device, cmdQueue, cmdBuffer);
         }
     }
     
@@ -317,7 +318,7 @@ bool MojingSDK_API_DrawTexture_Metal(id<CAMetalDrawable> drawable,
         MojingRenderMetal *pRender = MojingRenderMetal::GetInstance();
         if (pRender == NULL)
         {
-            MOJING_ERROR(g_APIlogger, "Render with out Mojing Word!!");
+            MOJING_ERROR(g_APIlogger, "Render without Mojing Word!!");
             return false;
         }
         
@@ -336,7 +337,7 @@ bool MojingSDK_API_DrawTexture_Metal(id<CAMetalDrawable> drawable,
     }
     return false;
 }
-#endif
+#endif // Metal
 
 float MojingSDK_API_GetMojingWorldFOV()
 {

@@ -50,9 +50,11 @@ LOCAL_SRC_FILES = 3rdPart/AES/AES.cpp 3rdPart/AES/AESPro.cpp 3rdPart/MD5/MD5.cpp
 									Tracker/MojingTemperature.cpp Tracker/MojingTracker.cpp Render/EyeTextureParam.cpp Render/LineDraw.cpp Render/MojingRenderBase.cpp \
 									Render/RenderFrame.cpp Render/RenderFrameCirular.cpp Render/RenderFrameManager.cpp Render/Vsync.cpp  \
 									Tracker/MojingWinSensor.cpp Render/GlGeometry.cpp Render/GLProgram.cpp Profile/UserSettingProfile.cpp Profile/JoystickProfile.cpp Profile/DebugSettingsProfile.cpp\
-									Interface/Unreal/MojingUnrealAPI.cpp Interface/Unity/GlStateSave.cpp Interface/Unity/UnityPlugin.cpp Interface/Unity/UnityWinAPI.cpp \
-									TextureBacker/FBO.cpp TextureBacker/Shader.cpp TextureBacker/TextBaker.cpp
-									#Interface/Windows/MojingWinAPI.cpp	Render/MultiThreadGLParam.cpp	Render/MojingRenderMultiThread_THREAD.cpp		Render/MojingRenderMultithread.cpp					
+									Interface/Unreal/MojingUnrealAPI.cpp Interface/Unity/GlStateSave.cpp Interface/Unity/UnityPlugin.cpp \
+									TextureBacker/FBO.cpp TextureBacker/Shader.cpp TextureBacker/TextBaker.cpp \
+									Interface/Unity/UnityPluginInterface/UnityPluginInterfaceBase.cpp Interface/Unity/UnityPluginInterface/UnityPluginInterfaceWin32.cpp Interface/Unity/UnityPluginInterface/UnityPluginStatus.cpp
+									#Interface/Windows/MojingWinAPI.cpp	Render/MultiThreadGLParam.cpp	Render/MojingRenderMultiThread_THREAD.cpp		Render/MojingRenderMultithread.cpp	Interface/Unity/UnityWinAPI.cpp 
+													
 							
 LOCAL_OBJ_FILES = AES.o AESPro.o MD5.o ioapi.o miniunz.o minizip.o mztools.o unzip.o zip.o sqlite3.o Base32.o CRC.o GlUtils.o MojingAlg.o MojingAllocator.o MojingAtomic.o MojingCompress.o \
 									MojingFile.o MojingFileFILE.o MojingJSON.o MojingLog.o MojingMath.o MojingRefCount.o MojingStd.o MojingString.o MojingString_FormatUtil.o MojingSysFile.o MojingSystem.o \
@@ -63,9 +65,10 @@ LOCAL_OBJ_FILES = AES.o AESPro.o MD5.o ioapi.o miniunz.o minizip.o mztools.o unz
 									RenderFrameCirular.o RenderFrameManager.o Vsync.o ActiveTimeInfoReporter.o CrashReporter.o DatabaseInfoReporter.o EventInfoReporter.o GyroTempCalibrationReporter.o \
 									InfoReporter.o MobileConfigUpdate.o MojingMerchantVerify.o PageInfoReporter.o ReporterTools.o RunInfoReporter.o LogInfoReporter.o MojingGyroTempCalibration.o MojingSensor.o \
 									MojingWinSensor.o MojingSensorCalibration.o MojingSensorFilter.o MojingSensorFusion.o MojingTemperature.o MojingTracker.o GlStateSave.o GlGeometry.o GLProgram.o \
-									UserSettingProfile.o JoystickProfile.o MojingUnrealAPI.o UnityPlugin.o UnityWinAPI.o DebugSettingsProfile.o \
-									FBO.o Shader.o TextBaker.o
-									#MojingWinAPI.o MojingRenderMultithread.o MojingRenderMultiThread_THREAD.o MultiThreadGLParam.o
+									UserSettingProfile.o JoystickProfile.o MojingUnrealAPI.o UnityPlugin.o DebugSettingsProfile.o \
+									FBO.o Shader.o TextBaker.o \
+									UnityPluginInterfaceBase.o UnityPluginInterfaceWin32.o UnityPluginStatus.o
+									#MojingWinAPI.o MojingRenderMultithread.o MojingRenderMultiThread_THREAD.o MultiThreadGLParam.o UnityWinAPI.o 
 							 
 
 LOCAL_MODULE   = libmojing.dll

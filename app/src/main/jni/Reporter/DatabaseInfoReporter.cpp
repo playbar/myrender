@@ -382,7 +382,9 @@ namespace Baofeng
 				if (!GetReportImmediate())
 				{
 #ifdef _DEBUG
+#ifndef MJ_OS_WIN32
 					MOJING_TRACE(g_APIlogger, "Report message from database. Interval = " << GetReportInterval());
+#endif
 #endif
 					ReportMsgFromDB();
 				}
@@ -523,7 +525,7 @@ namespace Baofeng
 				return false;
 			}
 			sqlite3_free(errmsg);
-			if (GetInstallID() == "UNKNOWN")
+			if (0 == strcmp(GetInstallID() , "UNKNOWN"))
 			{
 				SetInstallID(CreateInstallID(GetPlatformBase()->GetUserID(), szUniqueID));
 			}
@@ -658,7 +660,7 @@ namespace Baofeng
 			if (iRet != SQLITE_OK || nrow == 0)
 			{
 				sprintf(szSQL, "INSERT INTO tb_Save VALUES(?, '%s', '%s', %d, %lld, %lld, %lld, '%s')", GetPlatformBase()->GetAppID(), GetPlatformBase()->GetPackageName(),
-					GetRunCount(), GetCurrentRunTime(), GetLastRunTime(), GetCurrentExitTime(), GetInstallID().ToCStr());
+					GetRunCount(), GetCurrentRunTime(), GetLastRunTime(), GetCurrentExitTime(), GetInstallID()/*.ToCStr()*/);
 			}
 			else
 			{
@@ -807,7 +809,7 @@ namespace Baofeng
 			if (iRet != SQLITE_OK || nrow == 0)
 			{
 				sprintf(szSQL, "INSERT INTO tb_Save VALUES(?, '%s', '%s', %d, %lld, %d, %lld, '%s')", GetPlatformBase()->GetAppID(), szPageName,
-					info.count, info.date, info.time, info.exitdate, GetInstallID().ToCStr());
+					info.count, info.date, info.time, info.exitdate, GetInstallID()/*.ToCStr()*/);
 			}
 			else
 			{

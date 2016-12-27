@@ -113,6 +113,24 @@ namespace Baofeng
 				{
 					bool bSetOptSucc = true;
                     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+					if (strstr(GetURL(), "https"))
+					{
+						MOJING_TRACE(g_APIlogger, "Curl use openssl. url :" << GetURL());
+						/*
+						char pCaPath[260] = { "/sdcard/mojing.cn.crt" };
+						if (pCaPath)
+						{
+							curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+							curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1);
+							curl_easy_setopt(curl, CURLOPT_CAINFO, pCaPath);
+						}
+						else
+						{
+						*/
+							curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+							curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+						//}
+					}
 					if (GetFunction() == IPF_POST)
 					{
 						curl_easy_setopt(curl, CURLOPT_URL, GetURL());
@@ -204,7 +222,7 @@ namespace Baofeng
 						curl_easy_setopt(curl, CURLOPT_URL, sUrl.ToCStr());
 						curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackString);
 						curl_easy_setopt(curl, CURLOPT_WRITEDATA, &pRespString);
-                        //MOJING_TRACE(g_APIlogger, "Get! url = " << GetParametData());
+						//MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr()/*GetParametData()*/);
 					}
 					//MOJING_TRACE(g_APIlogger, "Curl perform start...");
 					if (bSetOptSucc)

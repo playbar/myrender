@@ -2,7 +2,7 @@
 #include "../Base/MojingTypes.h"
 #include "../Base/MojingString.h"
 #include "../Base/MojingMath.h"
-
+#include <vector>
 #define DISTORTION_PARAMETES_COUNT 7
 #define UNREAL_DISTORTION_PARAMETES_COUNT 9 // 增加两个元素，下标7为目标点的X坐标，下标8为目标点的Y坐标
 namespace Baofeng
@@ -159,6 +159,13 @@ namespace Baofeng
 			// TimeWarp.
 			// float	eyeTextureFov;<--畸变中没有使用的变量
 		};
+
+		struct Mesh_820
+		{
+			std::vector<float> vertices_left;
+			std::vector<float> vertices_right;
+			std::vector<unsigned int> indices;
+		};
 		class Distortion
 		{
 			float m_KR[21];
@@ -189,7 +196,7 @@ namespace Baofeng
 			void * BuildDistortionBuffer(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/);
 			/*0   1    2    3    4    5    6    7   8   9*/
 			/*X , Y , Rx , Ry , Gx , Gy , Bx , By , A , 0*/
-			void * BuildDistortionBuffer_V2(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/);
+			void * BuildDistortionBuffer_V2(Mesh_820& mesh, int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/);
 			void * BuildDistortionBufferOverlay(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/, unsigned int OverlayWidth, unsigned int OverlayHeight);
 			int UNREAL_BuildDistortionMesh(int eyeBlocksWide /* = 40*/, int eyeBlocksHigh/* = 40*/, void* fppVertex, void* fppIndex);
 			int UNITY_BuildDistortionMesh(int eyeBlocksWide /* = 40*/, int eyeBlocksHigh/* = 40*/, void* fppVertex, void* fppUV, void* fppIndex);

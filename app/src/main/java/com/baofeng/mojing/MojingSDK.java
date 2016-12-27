@@ -52,6 +52,7 @@ public class MojingSDK
 	static 
 	{
 		System.loadLibrary("curl");
+		System.loadLibrary("sqlite3");
 		System.loadLibrary("mojing");
     }
 
@@ -290,6 +291,7 @@ public class MojingSDK
         return applicationName;   
     }  
 
+	public static native boolean IsUseUnityForSVR();
 	public static native void AppExit();
 	public static native String AppGetRunID();
 	public static native boolean AppResume(String uniqueID);
@@ -305,7 +307,8 @@ public class MojingSDK
 	////////////////////////////////////////////////////////////////
 	public static native void OnKeyEvent(String deviceName, int buttonId, boolean buttonDown);
 	public static native void OnAxisEvent(String deviceName, int AxisID, float value);
-	
+	public static native void OnTouchPadStatusChange(int jiDeviceID, boolean bisTouched);
+	public static native void OnTouchPadPos(int jiDeviceID, float x, float y);
 	// API FOR SENSORS
 	public static native boolean StartTracker(int nSampleFrequence);
 	public static native boolean StartGlassTracker(String glassName);
@@ -323,7 +326,7 @@ public class MojingSDK
 
 	public static native void SendSensorData(float[] sensorArr , double second);
 	public static native void StopTracker();
-
+	public static native void SendControllerData(byte[] data, int len);
 	// API FOR DISPLAY/DISTORTION
 	public static native boolean DrawTexture(int LeftTexID, int RightTexID);	
 	// public static native boolean DrawTextureWithSameOverlay(int LeftTexID, int RightTexID, int OverlayID);
@@ -365,10 +368,20 @@ public class MojingSDK
 	// Mojing5 API
 	public static native boolean IsLowPower();
 	
+	public static native int GetSocketPort();
+
+	//Motion Input Device
+	public static native int  Device_GetKeymask(int iID, int[] KeyMask);
+	public static native float Device_GetInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray, int[] KeystatusArray);
+	public static native float Device_GetFixInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray);
+	public static native float Device_GetControlFixCurrentInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray, int[] KeystatusArray);
+	
 	// Joystatic ?? 
 	public static native String GetEliminateBuiltin();
 	public static native String GetJoystickFileName();
 	public static native void NativeSetMojing2Number(int iNumber);
+	public static native void NativeSetMojing3Number(int iNumber);
+	public static native void NativeSetMojing4Number(int iNumber);
 	private static native void NativeCleanDeviceMap();
 	private static native void NativeBeginUpdateDeviceMap();
 	private static native void NativeEndUpdateDeviceMap();
@@ -405,18 +418,18 @@ public class MojingSDK
 
 	public static boolean IsSensorFromJava()
 	{
-		return MojingSDKSensorManager.getInstance().useJavaSensor();
+		return MojingSDKSensorManager.useJavaSensor();
 	}
 
 	public static int GetSensorOriginStatus()
 	{
-		if(MojingSDKServiceManager.isGlassTracker())
+		if(MojingSDKServiceManager.isServiceTracker())
 		{
 			return SENSOR_ORIGIN_EXTERNAL_DEVICE;
 		}
 		else
-		{
-			return MojingSDKSensorManager.getInstance().useJavaSensor() ? SENSOR_ORIGIN_LOCAL_JAVA : SENSOR_ORIGIN_LOCAL_NATIVE;
+		{ 
+			return MojingSDKSensorManager.useJavaSensor() ? SENSOR_ORIGIN_LOCAL_JAVA : SENSOR_ORIGIN_LOCAL_NATIVE;
 		}	
 	}
  
@@ -425,7 +438,7 @@ public class MojingSDK
 		try
 		{
 			boolean bChanged = false;
-			if(!MojingSDKServiceManager.isGlassTracker())
+			if(!MojingSDKServiceManager.isServiceTracker())
 			{
 				String json = GetUserSettings();
 				JSONObject jsonObject = new JSONObject(json);
@@ -448,8 +461,8 @@ public class MojingSDK
 			if(bChanged)
 			{
 				StopTracker();
-				MojingSDKSensorManager.getInstance().unRegister(context);
-				MojingSDKSensorManager.getInstance().register(context);
+				MojingSDKSensorManager.UnRegisterSensor(context);
+				MojingSDKSensorManager.RegisterSensor(context);
 				MojingSDKServiceManager.StartTracker();
 			}
 		} 

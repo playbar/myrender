@@ -9,6 +9,7 @@
 #define  LOG_TAG    __FILE__
 
 #define  LOGI(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, format, ##args); }
+#define  LOGV(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, format, ##args); }
 #define  LOGE(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, format, ##args); }
 #define  LOGD(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, format, ##args); }
 #endif
@@ -171,10 +172,10 @@ void LogError(const char* fmt, ...) MJ_LOG_VAARG_ATTRIBUTE(1,2);
     // Macro to do debug logging, printf-style.
     // An extra set of set of parenthesis must be used around arguments,
     // as in: MJ_LOG_DEBUG(("Value %d", 2)).
-    #define MJ_DEBUG_LOG(args)       do { OVR::LogDebug args; } while(0)
-    #define MJ_DEBUG_LOG_TEXT(args)  do { OVR::LogDebugText args; } while(0)
+#define MJ_DEBUG_LOG(args)       do { LogDebug args; } while(0)
+#define MJ_DEBUG_LOG_TEXT(args)  do { LogDebugText args; } while(0)
 
-    #define MJ_ASSERT_LOG(c, args)   do { if (!(c)) { OVR::LogAssert args; MJ_DEBUG_BREAK; } } while(0)
+#define MJ_ASSERT_LOG(c, args)   do { if (!(c)) { LogAssert args; MJ_DEBUG_BREAK; } } while(0)
 
 #else
 

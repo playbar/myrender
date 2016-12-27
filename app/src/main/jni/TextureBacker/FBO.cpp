@@ -58,13 +58,13 @@ FrambufferObject::~FrambufferObject()
 
 
 
-bool FrambufferObject::CreateFBO(GLuint m_width, GLuint m_height, int texID)
+bool FrambufferObject::CreateFBO(GLuint width, GLuint height, int texID)
 {
 	GLint maxRenderbufferSize = 0;
 
 	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
 
-	if ((maxRenderbufferSize <= (int)m_width) || (maxRenderbufferSize <= (int)m_height))
+	if ((maxRenderbufferSize <= (int)width) || (maxRenderbufferSize <= (int)height))
 	{
 		return false;
 	}
@@ -86,12 +86,12 @@ bool FrambufferObject::CreateFBO(GLuint m_width, GLuint m_height, int texID)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	checkGlErrorForSDK("glTexImage2D");
 	// 绑定rbo创建一个16-bit depthbuffer
 //	glGenRenderbuffers(1, &m_depthrbo);
 //	glBindRenderbuffer(GL_RENDERBUFFER, m_depthrbo);
-//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, m_width, m_height);
+//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 	//Texture 作为color attachment
@@ -111,8 +111,8 @@ bool FrambufferObject::CreateFBO(GLuint m_width, GLuint m_height, int texID)
 	
 	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	m_Width = m_width;
-	m_Height = m_height;
+	width = width;
+	height = height;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return true;
 }
@@ -274,17 +274,17 @@ char* FrambufferObject::GetTexData(GLuint m_texId, GLuint x, GLuint y, GLuint wi
 	return  m_BufferData;
 }
 
-//将m_texId写到绑定到FBO的m_textureid中，[x, y, m_width,m_height]为区域位置 [desX, desY]为在大图中的偏移
-void FrambufferObject::TransferFromTexture(GLuint m_texId, GLuint x, GLuint y, GLuint m_width, GLuint m_height, GLuint desX, GLuint desY)
+//将m_texId写到绑定到FBO的m_textureid中，[x, y, width,height]为区域位置 [desX, desY]为在大图中的偏移
+void FrambufferObject::TransferFromTexture(GLuint m_texId, GLuint x, GLuint y, GLuint width, GLuint height, GLuint desX, GLuint desY)
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	char *data = GetTexData(m_texId, x, y, m_width, m_height);
+	char *data = GetTexData(m_texId, x, y, width, height);
 	glBindTexture(GL_TEXTURE_2D, m_textureid);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, desX, desY, (m_width), (m_height), GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, desX, desY, (width), (height), GL_RGB, GL_UNSIGNED_BYTE, data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
     }

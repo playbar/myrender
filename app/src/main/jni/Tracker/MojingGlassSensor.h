@@ -10,33 +10,47 @@ namespace Baofeng
 {
 	namespace Mojing
 	{
-	struct SensorDataTarget
-			{
-				float  Gryo_X;
-				float  Gryo_Y;
-				float  Gryo_Z;
+#pragma  pack(push)
+#pragma  pack(1)
+		struct SensorInfoTarget
+		{
+			float  Orientation_X;
+			float  Orientation_Y;
+			float  Orientation_Z;
+			float  Orientation_W;
 
-				float  Accl_X;
-				float  Accl_Y;
-				float  Accl_Z;
+			float  AngularAccel_X;
+			float  AngularAccel_Y;
+			float  AngularAccel_Z;
 
-				float  Mag_X;
-				float  Mag_Y;
-				float  Mag_Z;
+			float  LinearAccel_X;
+			float  LinearAccel_Y;
+			float  LinearAccel_Z;
 
-				float  Temperature;
+			float  Temperature;
 
-				uint32_t  Flags;
+			uint32_t  Flags;
 
-				uint32_t TimeMS;
-			};
+			double TimeS;
+			double TimeDelta;
+		};
 
 		struct MMapedSensorData
 		{
 			sem_t semlock;
 			int cnt;
-			SensorDataTarget data;
+			SensorInfoTarget data;
 		};
+
+		struct SocketSensorData
+		{
+			uint8_t tag[2];
+			uint8_t version;
+			uint8_t zero;
+			SensorInfoTarget data;
+		};
+
+#pragma  pack(pop)
 
 		class GlassSensor : public Sensor
 		{
@@ -48,11 +62,12 @@ namespace Baofeng
 			virtual int CheckSensors()const;
 			virtual int GetMaxSampleRate();
 		public:
-			void CreateSensor();
-			void DeleteSensor();
+			//void CreateSensor();
+			//void DeleteSensor();
 			virtual int Run();
 		protected:
 			virtual void OnSensorData(MessageBodyFrame& sensorFrame);
+			virtual void OnSensorData(Quatf fOrientation, Vector3f fAngularAcceleration, Vector3f fLinearAcceleration, double dTimeInSeconds, float fTemperature);
 		protected:
 			// Sensor related:
 			ASensorEventQueue* m_pQueue;

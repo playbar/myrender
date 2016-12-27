@@ -20,6 +20,8 @@
 
 #import "MetalForwardDecls.h"
 
+struct IUnityGraphicsMetal; // unity interface
+
 // TODO: 参数冗余
 namespace Baofeng
 {
@@ -35,8 +37,10 @@ namespace Baofeng
         public:
             MojingRenderMetal(bool bEnableMultiThread,
                               bool bEnableTimeWarp,
+                              IUnityGraphicsMetal* metalGraphics,
                               MTLDeviceRef mtlDevice,
-                              MTLCommandQueueRef mtlCommandQueue);
+                              MTLCommandQueueRef mtlCommandQueue,
+                              MTLCommandBufferRef mtlCommandBuffer);
             
             void OnModifyed() override;
             void GenDistortionMesh();
@@ -44,8 +48,10 @@ namespace Baofeng
             
             static MojingRenderMetal* CreateCurrentRenderMetal(bool bEnableMultiThread,
                                                                bool bEnableTimeWarp,
+                                                               IUnityGraphicsMetal* metalGraphics,
                                                                MTLDeviceRef device,
-                                                               MTLCommandQueueRef cmdQueue);
+                                                               MTLCommandQueueRef cmdQueue,
+                                                               MTLCommandBufferRef cmdBuffer);
             static MojingRenderMetal* GetInstance();
 
             void SetEyeTextureMetal(MTLTextureRef leftEyeTexture, MTLTextureRef rightEyeTexture);
@@ -71,9 +77,11 @@ namespace Baofeng
         private:
             static MojingRenderMetal*         _instance;
             
+            IUnityGraphicsMetal*            _unityMetalInterface;
             MTLDeviceRef                    _mtlDevice;
             MTLCommandQueueRef              _mtlCommandQueue; // TODO
-            
+            MTLCommandBufferRef             _mtlCommandBuffer;
+            MTLCommandEncoderRef            _mtlCommandEncoder;
             /*
              Distortion
              */

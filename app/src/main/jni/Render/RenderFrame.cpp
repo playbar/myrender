@@ -169,7 +169,11 @@ namespace Baofeng
 					}
 					else
 					{
+#ifndef MJ_OS_WIN32
 						MOJING_ERROR(g_APIlogger , "Unsing current postion.....");
+#else
+						// Windows 不用考虑TW
+#endif
 						// 程序执行到这里表示没有办法得到预期的东西
 						Position = pTracker->getPredictionPosition(0);
 						PredictViewMatrix2 = Tracker::CalculateTimeWarpMatrix2(m_PredictView , Position);

@@ -67,7 +67,7 @@ namespace Baofeng
 
 		void Sensor::StopSensor()
 		{
-			MOJING_FUNC_TRACE(g_Sensorlogger);
+			//MOJING_FUNC_TRACE(g_Sensorlogger);
 			SetExitFlag(true);
 			int iTryCount = 0;
 			while (!IsFinished() && iTryCount++ < 200)

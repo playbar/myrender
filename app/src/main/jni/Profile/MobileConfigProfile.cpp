@@ -67,7 +67,7 @@ namespace Baofeng
 			// 注意：如果是历史上由于BUG产生的存在无名节点的情况，这个本地配置文件应该是失效的// 20151113
 			if (pJsonFromSDCard && pJsonFromSDCard->GetItemByName(""))
 			{
-				delete pJsonFromSDCard;
+				pJsonFromSDCard->Release();
 				pJsonFromSDCard = NULL;
 				// 删除掉这个文件
 				remove(LocalPath + "MobileConfig.dat");
@@ -109,9 +109,13 @@ namespace Baofeng
 			}
 
 			if (pJsonFromPacket)
-				delete pJsonFromPacket;
+			{
+				pJsonFromPacket->Release();
+			}
 			if (pJsonFromSDCard)
-				delete pJsonFromSDCard;
+			{
+				pJsonFromSDCard->Release();
+			}
 			return bRet;
 
 		}
@@ -129,7 +133,7 @@ namespace Baofeng
 			if (pJson)
 			{
 				pRet = SelectJsonNode(lpszMobileName, pJson);
-				delete pJson;
+				pJson->Release();
 			}
 			return pRet;
 		}

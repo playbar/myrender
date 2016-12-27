@@ -1,10 +1,7 @@
 ﻿#ifndef _H_GLPROGRAME_
 #define _H_GLPROGRAME_
 
-#include "../Base/GlUtils.h"
 #include "../Base/MojingTypes.h"
-#include "../Base/MojingMath.h"
-#include "../Base/MojingThreads.h"
 namespace Baofeng
 {
 	namespace Mojing

@@ -284,7 +284,7 @@ namespace Baofeng
 			int skipSamples = 10;
 			while (skipSamples >0 && !GetExitFlag())
 			{
-				while (ident = ALooper_pollAll(3, &fd, &events, NULL) >= 0)
+				while ((ident = ALooper_pollAll(3, &fd, &events, NULL)) >= 0)
 				{
 					if (ident == LOOPER_ID)
 					{

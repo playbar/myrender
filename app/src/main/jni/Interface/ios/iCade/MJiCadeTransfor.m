@@ -128,18 +128,25 @@ static MJiCadeTransfor *shareInstance = nil;
 
 - (void)registerKey :(UIViewController* )viewCon
 {
+    [self clearControllView];
     if (control != nil)
     {
         [viewCon.view addSubview:control];
         control.active = YES;
-//        control.delegate = self;
+        //        control.delegate = self;
+        __block MJiCadeTransfor *blockMJiCadeTransfor = [MJiCadeTransfor shareIcadeTransfor];
         control.valueChangedHandler = ^void(KEY_GAMEPAD keyID, BOOL pressed){
-            if(_valueChangedHandler)
+            if(blockMJiCadeTransfor.valueChangedHandler)
             {
-                _valueChangedHandler(keyID,pressed);
+                blockMJiCadeTransfor.valueChangedHandler(keyID,pressed);
             }
         };
     }
 }
 
+- (void)clearControllView
+{
+    control.active = NO;
+    [control removeFromSuperview];
+}
 @end

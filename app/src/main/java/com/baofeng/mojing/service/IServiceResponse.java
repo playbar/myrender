@@ -85,6 +85,35 @@ this.event(_arg0);
 reply.writeNoException();
 return true;
 }
+case TRANSACTION_onControllerData:
+{
+data.enforceInterface(DESCRIPTOR);
+int _arg0;
+_arg0 = data.readInt();
+byte[] _arg1;
+_arg1 = data.createByteArray();
+this.onControllerData(_arg0, _arg1);
+reply.writeNoException();
+return true;
+}
+case TRANSACTION_onControllerConnect:
+{
+data.enforceInterface(DESCRIPTOR);
+int _arg0;
+_arg0 = data.readInt();
+this.onControllerConnect(_arg0);
+reply.writeNoException();
+return true;
+}
+case TRANSACTION_onControllerDisconnect:
+{
+data.enforceInterface(DESCRIPTOR);
+int _arg0;
+_arg0 = data.readInt();
+this.onControllerDisconnect(_arg0);
+reply.writeNoException();
+return true;
+}
 }
 return super.onTransact(code, data, reply, flags);
 }
@@ -177,16 +206,68 @@ _reply.recycle();
 _data.recycle();
 }
 }
+@Override public void onControllerData(int id, byte[] data) throws android.os.RemoteException
+{
+android.os.Parcel _data = android.os.Parcel.obtain();
+android.os.Parcel _reply = android.os.Parcel.obtain();
+try {
+_data.writeInterfaceToken(DESCRIPTOR);
+_data.writeInt(id);
+_data.writeByteArray(data);
+mRemote.transact(Stub.TRANSACTION_onControllerData, _data, _reply, 0);
+_reply.readException();
+}
+finally {
+_reply.recycle();
+_data.recycle();
+}
+}
+@Override public void onControllerConnect(int id) throws android.os.RemoteException
+{
+android.os.Parcel _data = android.os.Parcel.obtain();
+android.os.Parcel _reply = android.os.Parcel.obtain();
+try {
+_data.writeInterfaceToken(DESCRIPTOR);
+_data.writeInt(id);
+mRemote.transact(Stub.TRANSACTION_onControllerConnect, _data, _reply, 0);
+_reply.readException();
+}
+finally {
+_reply.recycle();
+_data.recycle();
+}
+}
+@Override public void onControllerDisconnect(int id) throws android.os.RemoteException
+{
+android.os.Parcel _data = android.os.Parcel.obtain();
+android.os.Parcel _reply = android.os.Parcel.obtain();
+try {
+_data.writeInterfaceToken(DESCRIPTOR);
+_data.writeInt(id);
+mRemote.transact(Stub.TRANSACTION_onControllerDisconnect, _data, _reply, 0);
+_reply.readException();
+}
+finally {
+_reply.recycle();
+_data.recycle();
+}
+}
 }
 static final int TRANSACTION_sensorSuccess = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
 static final int TRANSACTION_sensorFailed = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
 static final int TRANSACTION_sensorStarted = (android.os.IBinder.FIRST_CALL_TRANSACTION + 2);
 static final int TRANSACTION_sensorStopped = (android.os.IBinder.FIRST_CALL_TRANSACTION + 3);
 static final int TRANSACTION_event = (android.os.IBinder.FIRST_CALL_TRANSACTION + 4);
+static final int TRANSACTION_onControllerData = (android.os.IBinder.FIRST_CALL_TRANSACTION + 5);
+static final int TRANSACTION_onControllerConnect = (android.os.IBinder.FIRST_CALL_TRANSACTION + 6);
+static final int TRANSACTION_onControllerDisconnect = (android.os.IBinder.FIRST_CALL_TRANSACTION + 7);
 }
 public void sensorSuccess(java.lang.String params) throws android.os.RemoteException;
 public void sensorFailed(java.lang.String params) throws android.os.RemoteException;
 public void sensorStarted(java.lang.String params) throws android.os.RemoteException;
 public void sensorStopped() throws android.os.RemoteException;
 public void event(java.lang.String data) throws android.os.RemoteException;
+public void onControllerData(int id, byte[] data) throws android.os.RemoteException;
+public void onControllerConnect(int id) throws android.os.RemoteException;
+public void onControllerDisconnect(int id) throws android.os.RemoteException;
 }

@@ -68,7 +68,7 @@ namespace Baofeng
 
 #ifdef MJ_OS_ANDROID
 			// 以下这段代码是为了将当前窗口渲染Surface更换成pbufferSurface
-			MOJING_TRACE(g_APIlogger, "$$$ Get WindowSurface " << (UInt32)eglGetCurrentSurface(EGL_DRAW));
+			MOJING_TRACE(g_APIlogger, "$$$ Get WindowSurface " << eglGetCurrentSurface(EGL_DRAW));
 #endif
 			m_eglWindowSurface = eglGetCurrentSurface(EGL_DRAW);
 			m_eglDisplay = eglGetCurrentDisplay();

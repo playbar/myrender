@@ -6,16 +6,15 @@
 #include <vector>
 #include "MojingJsonElement.h"
 
+#ifndef MojingDeviceParameters
+#define DEVICE_ABILITY_NONE		0
+#define DEVICE_ABILITY_SVR		1
+#define DEVICE_ABILITY_GVR		2
+#endif
 namespace Baofeng
 {
 	namespace Mojing
 	{
-// 		enum MACHINE_TYPE
-// 		{
-// 			MACHINE_TYPE_NONE = 0 ,
-// 			MACHINE_TYPE_A1 ,
-// 			MACHINE_TYPE_NIBIRU_3288
-// 		};
 		struct MachineListNode
 		{
 			int	   m_iID;
@@ -50,7 +49,7 @@ namespace Baofeng
 			CLASS_MEMBER_STR_J(String, m_s, Type);
 			CLASS_MEMBER(bool, m_b, IsMachine);
 			CLASS_MEMBER(bool, m_b, SensorDataFromJava);
-//			CLASS_MEMBER_J(MACHINE_TYPE, m_, IsMachine);
+			CLASS_MEMBER(int, m_i, Ability);
 			
 		};
 

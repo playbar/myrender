@@ -6,11 +6,6 @@
 #include "../MojingSDKStatus.h"
 #include "../MojingManager.h"
 
-#ifdef MJ_OS_WIN32
-#include "../3rdPart/sqlite3/sqlite3.h"
-#else
-#include <sqlite3.h>
-#endif
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -22,7 +17,7 @@ extern MojingLogger g_APIlogger;
 #endif
 
 //to be modify...
-#define  SHOW_INVALID_INFO
+//#define  SHOW_INVALID_INFO
 
 #define  API_CHAR "0p9o8i7u"
 
@@ -239,8 +234,8 @@ namespace Baofeng
 						pVerify->SaveVerifyResult(pValueObjectNode->GetBoolValue());
 					}
 				}
-				delete pJson;
-			}
+				pJson->Release();
+			}// end of if (pJson)
 		}
 
 		void MojingMerchantVerify::AppVerify(const char* szMerchantID, const char* szAppID, const char* szAppKey, const char* szPackageName)

@@ -1,6 +1,7 @@
 ﻿#include "MojingRefCount.h"
 #include "MojingAtomic.h"
-//#include "MJ_Log.h"
+#include "MojingLog.h"
+
 
 namespace Baofeng
 {

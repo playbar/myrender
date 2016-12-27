@@ -36,6 +36,7 @@ public:
 		{
 			return __system_property_get("persist.radio.imei", value);
 		}
+		return 0;
 	}
 
 	static int GetOperator(int cardID, char *operatorName, int* operatorID)

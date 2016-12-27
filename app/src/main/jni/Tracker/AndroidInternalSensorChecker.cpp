@@ -29,7 +29,7 @@ namespace Baofeng
 			int skipSamples = 10;
 			while (skipSamples > 0 && !GetExitFlag())
 			{
-				while (ident = ALooper_pollAll(3, &fd, &events, NULL) >= 0)
+				while ((ident = ALooper_pollAll(3, &fd, &events, NULL)) >= 0)
 				{
 					if (ident == LOOPER_ID)
 					{
@@ -97,12 +97,12 @@ namespace Baofeng
 			CalculateSamples(&g_SampleCheckeResult);
 		}
 
-		int AndroidInternalSensorChecker::CalculateSamples(__tagSampleCheckeResult * pSampleCheckeResult)// 返回本轮统计计算的采样数
+		void AndroidInternalSensorChecker::CalculateSamples(__tagSampleCheckeResult * pSampleCheckeResult)// 返回本轮统计计算的采样数
 		{
 			// 防止多线程的资源竞争，先把数据记录下来。
 			int iSampleCount = m_iSampleCount;
 			if (iSampleCount <= 1)
-				return 0;// 防止后面的除法出错，直接返回
+				return ;// 防止后面的除法出错，直接返回
 
 			double dAvgSampleOffset = 0;
 			double dTemperature = 0;

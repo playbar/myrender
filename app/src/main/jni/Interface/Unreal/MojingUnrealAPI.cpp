@@ -216,7 +216,7 @@ bool  Unreal_IsLowPower(void)
 void  Unreal_getProjectionMatrix(int eye, bool bVrMode, float fFOV, float fNear, float fFar,
 	float* pfProjectionMatrix, int* pfViewRect)
 {
-	MojingSDK_getProjectionMatrix(eye, bVrMode, fFOV, fNear, fFar, pfProjectionMatrix, pfViewRect);
+	MojingSDK_GetProjectionMatrix(eye, bVrMode, fFOV, fNear, fFar, pfProjectionMatrix, pfViewRect);
 }
 
 void  Unreal_AppSetContinueInterval(int interval)

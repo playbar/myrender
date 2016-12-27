@@ -9,7 +9,7 @@ namespace Baofeng
 		{
 		public:
 			RunInfoReporter();
-			~RunInfoReporter();
+			virtual ~RunInfoReporter(){};
 
 			void PostMessage();
 		private:

@@ -78,7 +78,7 @@ namespace Baofeng
 				if (Data)
 				{
 					Allocator::DestructArray(Data, Size);
-					Allocator::Free(Data);
+					MJ_FREE(Data);
 				}
 			}
 
@@ -92,7 +92,7 @@ namespace Baofeng
 				if (Data)
 				{
 					Allocator::DestructArray(Data, Size);
-					Allocator::Free(Data);
+					MJ_FREE(Data);
 					Data = 0;
 				}
 				Size = 0;
@@ -112,7 +112,7 @@ namespace Baofeng
 				{
 					if (Data)
 					{
-						Allocator::Free(Data);
+						MJ_FREE(Data);
 						Data = 0;
 					}
 					Policy.SetCapacity(0);
@@ -125,11 +125,11 @@ namespace Baofeng
 					{
 						if (Allocator::IsMovable())
 						{
-							Data = (T*)Allocator::Realloc(Data, sizeof(T)* newCapacity);
+							Data = (T*)MJ_REALLOC(Data, sizeof(T)* newCapacity);
 						}
 						else
 						{
-							T* newData = (T*)Allocator::Alloc(sizeof(T)* newCapacity);
+							T* newData = (T*)MJ_ALLOC(sizeof(T)* newCapacity);
 							UPInt i, s;
 							s = (Size < newCapacity) ? Size : newCapacity;
 							for (i = 0; i < s; ++i)
@@ -141,13 +141,13 @@ namespace Baofeng
 							{
 								Allocator::Destruct(&Data[i]);
 							}
-							Allocator::Free(Data);
+							MJ_FREE(Data);
 							Data = newData;
 						}
 					}
 					else
 					{
-						Data = (T*)Allocator::Alloc(sizeof(T)* newCapacity);
+						Data = (T*)MJ_ALLOC(sizeof(T)* newCapacity);
 						//memset(Buffer, 0, (sizeof(ValueType) * newSize)); // Do we need this?
 					}
 					Policy.SetCapacity(newCapacity);

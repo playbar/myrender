@@ -79,6 +79,7 @@ namespace Baofeng
 			m_fpDeInit = NULL;
 			m_fpWaitVSync = NULL;
 			m_bInitd = (false);
+			return true;
 		}
 
 		double C3288VSync::WaitNextVSync()

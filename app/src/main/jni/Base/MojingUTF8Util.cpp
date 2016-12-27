@@ -1,4 +1,4 @@
-#include "MojingUTF8Util.h"
+﻿#include "MojingUTF8Util.h"
 
 namespace Baofeng
 {
@@ -432,7 +432,7 @@ void    log_ucs(const UInt32* line)
 int main(int argc, const char* argv[])
 {
     {
-        const char* test8 = "Ignacio Castaño";
+        const char* test8 = "Ignacio Casta帽o";
         const UInt32    test32[] =
         {
             0x49, 0x67, 0x6E, 0x61, 0x63,

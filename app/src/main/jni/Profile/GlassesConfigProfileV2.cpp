@@ -303,9 +303,15 @@ namespace Baofeng
 			}
 
 			if (pJsonFromPacket)
-				delete pJsonFromPacket;
+			{
+				pJsonFromPacket->Release();
+				pJsonFromPacket = NULL;
+			}
 			if (pJsonFromSDCard)
-				delete pJsonFromSDCard;
+			{
+				pJsonFromSDCard->Release();
+				pJsonFromSDCard = NULL;
+			}
 
 			return bRet;
 		}
@@ -581,7 +587,7 @@ namespace Baofeng
 				char *pErrorInfo = pRet->PrintValue(0, 0);
 				strRet = pErrorInfo;
 				MJ_FREE(pErrorInfo);
-				delete pRet;
+				pRet->Release();
 			}
 			return strRet;
 		}
@@ -607,7 +613,7 @@ namespace Baofeng
 				char *pErrorInfo = pRet->PrintValue(0, 0);
 				strRet = pErrorInfo;
 				MJ_FREE(pErrorInfo);
-				delete pRet;
+				pRet->Release();
 			}
 			return strRet;
 		}
@@ -637,7 +643,7 @@ namespace Baofeng
 				char *pErrorInfo = pRet->PrintValue(0, 0);
 				strRet = pErrorInfo;
 				MJ_FREE(pErrorInfo);
-				delete pRet;
+				pRet->Release();
 			}
 			return strRet;
 		}
@@ -672,7 +678,7 @@ namespace Baofeng
 				char *pErrorInfo = pRet->PrintValue(0, 0);
 				strRet = pErrorInfo;
 				MJ_FREE(pErrorInfo);
-				delete pRet;
+				pRet->Release();
 			}
 			return strRet;
 		}
@@ -708,7 +714,7 @@ namespace Baofeng
 				char *pErrorInfo = pRet->PrintValue(0, 0);
 				strRet = pErrorInfo;
 				MJ_FREE(pErrorInfo);
-				delete pRet;
+				pRet->Release();
 			}
 			return strRet;
 		}
@@ -852,12 +858,20 @@ namespace Baofeng
 				bool bProductID = (UsingKey.GetProductID() != 0 && m_ProductMap.find(UsingKey.GetProductID()) != m_ProductMap.end());
 				bool bGlassID = (UsingKey.GetGlassID() != 0 && m_GlassMap.find(UsingKey.GetGlassID()) != m_GlassMap.end());
 				bool bAppID = (UsingKey.GetAppID() == GetAppID());
+#ifndef MJ_OS_WIN32
 				bool bPlatformID = (UsingKey.GetPlatformID() == MojingPlatformBase::GetPlatformID());
+#else
+				bool bPlatformID = true;
+#endif
 //				MOJING_TRACE(g_APIlogger, "APP_ID " << UsingKey.GetAppID() << ":" << GetAppID());
 				MOJING_TRACE(g_APIlogger, "CheckIDs " << bCheckManufacturerID << bProductID << bGlassID << bAppID << bPlatformID);
 				// 适配检查
 				if (bCheckManufacturerID && bProductID && bGlassID && bAppID && bPlatformID)
 				{// 所有ID都存在,且APP ID 和 PLATFORM ID匹配
+
+					MOJING_TRACE(g_APIlogger, "MID = " << UsingKey.GetManufacturerID() << " , PID = " << UsingKey.GetProductID() << " , GID = " << UsingKey.GetGlassID());
+
+
 					ManufacturerInfo *pManufacturer = m_ManufacturerMap[UsingKey.GetManufacturerID()];
 					ProductInfo *pProduct = m_ProductMap[UsingKey.GetProductID()];
 					GlassInfo *pGlass = m_GlassMap[UsingKey.GetGlassID()];
@@ -961,7 +975,7 @@ namespace Baofeng
 #endif
 #if 0
 						Unreal_DistortionVertexBuffer *pDistortionVertexBuffer = pDistortion->BuildUnrealDistortionVertexBuffer(32, 32);
-						pDistortionVertexBuffer->
+
 						String strTempFile = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();
 						if (strTempFile.Right(1) != "/")
 							strTempFile += "/";
@@ -1089,6 +1103,7 @@ namespace Baofeng
 						}
 					}
 				}
+				pJson->Release();
 			}
 		}
 
@@ -1109,7 +1124,7 @@ namespace Baofeng
 				MojingPlatformBase *pPlatform = MojingPlatformBase::GetPlatform();
 				if (pPlatform)
 					pProfile->UpdateFromProfile(pPlatform->GetPacketProfilePath(), pNewJson);
-				delete pNewJson;
+				pNewJson->Release();
 			}
 		}
 

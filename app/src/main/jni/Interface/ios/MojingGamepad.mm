@@ -68,10 +68,10 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MojingGamepad)
     self = [super init];
     if (self)
     {
-        mjPad = [[MJGamepad alloc] init];
+        mjPad = [MJGamepad sharedMJGamepad];
 //        iCadePad = [[MJiCadeGamePad alloc] init];
-        iCadePad = [[MJiCadeTransfor alloc] init];
-        mfiPad = [[MJGameController alloc] init];
+        iCadePad = [MJiCadeTransfor shareIcadeTransfor];
+        mfiPad = [MJGameController sharedMFIGamepad];
 //        _audioSession = [MJAudioSession sharedManager];
     }
     return self;
@@ -107,10 +107,13 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         Log_OC(LOG_LEVEL_TRACE, @"registerMJGamepad Enter", [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
         
         //System Bluetooth is enabled or not
+        
+        __block MojingGamepad *blockMjPad = [MojingGamepad sharedGamepad];
+        
         mjPad.btnCBCMEnabled.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
-            if(_buttonValueChangedHandler)
+            if(blockMjPad.buttonValueChangedHandler)
             {
-                _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_NONE, KEY_BLUETOOTH, pressed);
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_BLUETOOTH, pressed);
             }
             
             NSLog(@"BluetoothAdapter is%@", pressed? @"Enabed":@"Disabled");
@@ -120,9 +123,9 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         
         //GamePad Connect state
         mjPad.btnPadConnect.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
-            if(_buttonValueChangedHandler)
+            if(blockMjPad.buttonValueChangedHandler)
             {
-                _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_NONE, KEY_CONNECT, pressed);
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_CONNECT, pressed);
             }
             
             NSLog(@"Game Pad %@", pressed? @"connected":@"disconnected");
@@ -131,9 +134,9 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         };
         
         mjPad.buttonStart.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
-            if(_buttonValueChangedHandler)
+            if(blockMjPad.buttonValueChangedHandler)
             {
-                _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_NONE, KEY_OK, pressed);
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_OK, pressed);
             }
             
             NSLog(@"开始键%@", pressed? @"按下":@"松开");
@@ -142,9 +145,9 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         };
         
         mjPad.buttonBack.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
-            if(_buttonValueChangedHandler)
+            if(blockMjPad.buttonValueChangedHandler)
             {
-                _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_NONE, KEY_BACK, pressed);
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_BACK, pressed);
             }
             
             NSLog(@"返回键%@", pressed? @"按下":@"松开");
@@ -154,9 +157,9 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         
         //菜单
         mjPad.buttonMenu.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
-            if(_buttonValueChangedHandler)
+            if(blockMjPad.buttonValueChangedHandler)
             {
-                _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_NONE, KEY_MENU, pressed);
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_MENU, pressed);
             }
             
             NSLog(@"菜单键%@", pressed? @"按下":@"松开");
@@ -167,9 +170,9 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         
         //摇杆
         mjPad.thumbStick.valueChangedHandler = ^void(MJGamepadThumbStick *stick, float x, float y){
-            if(_axisValueChangedHandler)
+            if(blockMjPad.axisValueChangedHandler)
             {
-                _axisValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, x, y);
+                blockMjPad.axisValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, x, y);
             }
             
             //NSLog(@"摇杆坐标: (%f, %f), 长度:%f", x, y, stick.offsetToCenter);
@@ -189,7 +192,7 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
             {
                 if(keyLasted > 0)
                 {
-                    _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
+                    blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
                     keyLasted = 0;
                 }
             }
@@ -202,13 +205,13 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
                         case KEY_LEFT:
                         case KEY_RIGHT:
                         case KEY_CENTER:
-                   			 _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
+                   			 blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
                             break;
                         default:
                             break;
                     }
                     keyLasted = KEY_UP;
-                    _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, KEY_UP, YES);
+                    blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, KEY_UP, YES);
                 }
                 if(d.down)
                 {
@@ -217,13 +220,13 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
                         case KEY_LEFT:
                         case KEY_RIGHT:
                         case KEY_CENTER:
-                            _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
+                            blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
                             break;
                         default:
                             break;
                     }
                     keyLasted = KEY_DOWN;
-                    _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, KEY_DOWN, YES);
+                    blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, KEY_DOWN, YES);
                 }
                 if(d.left)
                 {
@@ -232,13 +235,13 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
                         case KEY_DOWN:
                         case KEY_RIGHT:
                         case KEY_CENTER:
-                    		_buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
+                    		blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
                             break;
                         default:
                             break;
                     }
                     keyLasted = KEY_LEFT;
-                    _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, KEY_LEFT, YES);
+                    blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, KEY_LEFT, YES);
                 }
                 if(d.right)
                 {
@@ -247,13 +250,13 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
                         case KEY_DOWN:
                         case KEY_LEFT:
                         case KEY_CENTER:
-                   			 _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
+                   			 blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
                             break;
                         default:
                             break;
                     }
                     keyLasted = KEY_RIGHT;
-                    _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, KEY_RIGHT, YES);
+                    blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, KEY_RIGHT, YES);
                     
                 }
                 if(d.center)
@@ -263,13 +266,13 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
                         case KEY_DOWN:
                         case KEY_LEFT:
                         case KEY_RIGHT:
-                    		_buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
+                    		blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, (KEY_GAMEPAD)keyLasted, NO);
                             break;
                         default:
                             break;
                     }
                     keyLasted = KEY_CENTER;
-                    _buttonValueChangedHandler(mjPad.peripheral.name, AXIS_DPAD, KEY_CENTER, YES);
+                    blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, KEY_CENTER, YES);
                 }
             }
             
@@ -290,17 +293,18 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
     
     [iCadePad registerKey:viewCon];
     
+    __block MojingGamepad *blockMjPad = [MojingGamepad sharedGamepad];
     iCadePad.valueChangedHandler = ^void(KEY_GAMEPAD keyID, BOOL pressed){
-        if(_buttonValueChangedHandler)
+        if(blockMjPad.buttonValueChangedHandler)
         {
             switch (keyID) {
                 case KEY_UP:
                 case KEY_DOWN:
                 case KEY_LEFT:
                 case KEY_RIGHT:
-                 	_buttonValueChangedHandler(@"iCade", AXIS_NONE, KEY_CENTER, !pressed);  //模拟CENTER键
+                 	blockMjPad.buttonValueChangedHandler(@"iCade", AXIS_NONE, KEY_CENTER, !pressed);  //模拟CENTER键
                 default:
-                	_buttonValueChangedHandler(@"iCade", AXIS_NONE, keyID, pressed);
+                	blockMjPad.buttonValueChangedHandler(@"iCade", AXIS_NONE, keyID, pressed);
                     break;
             }
         }
@@ -317,17 +321,18 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
     
     Log_OC(LOG_LEVEL_TRACE, @"registerMFIPad Enter", [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
     
+    __block MojingGamepad *blockMjPad = [MojingGamepad sharedGamepad];
     mfiPad.buttonValueChangedHandler = ^void(AXIS_GAMEPAD axisID, KEY_GAMEPAD keyID, BOOL pressed){
-        if(_buttonValueChangedHandler)
+        if(blockMjPad.buttonValueChangedHandler)
         {
             switch (keyID) {
                 case KEY_UP:
                 case KEY_DOWN:
                 case KEY_LEFT:
                 case KEY_RIGHT:
-                    _buttonValueChangedHandler(@"MFI", axisID, KEY_CENTER, !pressed);  //模拟CENTER键
+                    blockMjPad.buttonValueChangedHandler(@"MFI", axisID, KEY_CENTER, !pressed);  //模拟CENTER键
                 default:
-                    _buttonValueChangedHandler(@"MFI", axisID, keyID, pressed);
+                    blockMjPad.buttonValueChangedHandler(@"MFI", axisID, keyID, pressed);
                     break;
             }
         }
@@ -339,8 +344,8 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
     
     mfiPad.axisValueChangedHandler = ^void(AXIS_GAMEPAD axisID, float xValue, float yValue)
     {
-        if(_axisValueChangedHandler)
-            _axisValueChangedHandler(@"MFI", axisID, xValue, yValue);
+        if(blockMjPad.axisValueChangedHandler)
+            blockMjPad.axisValueChangedHandler(@"MFI", axisID, xValue, yValue);
         
         NSLog(@"摇杆[Pad ID=%d]坐标: (%f, %f)", axisID, xValue, yValue);
         //NSString *str = [NSString stringWithFormat:@"摇杆[Pad ID=%d]坐标: (%f, %f)", axisID, xValue, yValue];
@@ -351,9 +356,11 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
 }
 
 - (void)registMGAudioSession {
+    
+    __block MojingGamepad *blockMjPad = [MojingGamepad sharedGamepad];
     _audioSession.audioSessionHandler = ^void(KEY_GAMEPAD keyEvent, BOOL pressed) {
-        if (_buttonValueChangedHandler)
-            _buttonValueChangedHandler(@"MG", AXIS_NONE, keyEvent, pressed);
+        if (blockMjPad.buttonValueChangedHandler)
+            blockMjPad.buttonValueChangedHandler(@"MG", AXIS_NONE, keyEvent, pressed);
     };
 }
 

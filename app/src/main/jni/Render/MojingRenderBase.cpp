@@ -30,7 +30,6 @@
 #include "MojingRenderMultiThread_FB.h"
 
 #include "MojingRenderMultiThread_3288.h"
-#include "MojingRenderMultiThread_Qualcomm.h"
 
 #elif defined(MJ_OS_WIN32)
 #include <Windows.h>
@@ -167,7 +166,6 @@ namespace Baofeng
 				{
 					MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
 					MachineListNode CurrentMachineType = pDeviceParameters->GetCurrentMachine();
-					/// RK3288
 					if (CurrentMachineType.m_iRender == 1)
 					{
 						if (MojingRenderMultiThread_3288::InitRenderMultiThreadGLParam())
@@ -191,7 +189,6 @@ namespace Baofeng
 						if (MojingRenderMultiThread::InitRenderMultiThreadGLParam())
 						{
 							pRenderMultiThread = new MojingRenderMultiThread;
-//							pRenderMultiThread = new MojingRenderMultiThread_Qualcomm;
 						}
 
 					}
@@ -206,7 +203,7 @@ namespace Baofeng
 				{
 					g_MojingRenderBaseMap[iThreadID] = pRenderMultiThread;
 					RenderFrame::SetMultiThread(true);
-					MOJING_TRACE(g_APIlogger, "Create Multi-Thread-Render at thread : " << iThreadID << "/" << (int)pRenderMultiThread->GetThreadId());
+					MOJING_TRACE(g_APIlogger, "Create Multi-Thread-Render at thread : " << iThreadID << "/" << pRenderMultiThread->GetThreadId());
 				}
 				else
 				{
@@ -422,7 +419,7 @@ namespace Baofeng
 		
 		bool MojingRenderBase::DrawDistortion(RenderFrame *pDistortionFrame, EyeTextureType DrawEyes /*= TEXTURE_BOTH_EYE*/)
 		{
-			//MOJING_FUNC_TRACE(g_APIlogger);
+			// MOJING_FUNC_TRACE(g_APIlogger);
 			bool bRet = true;
 
 			GLuint LeftTexId = pDistortionFrame->GetLeftEyeTexture().GetTextureID();
@@ -689,10 +686,11 @@ namespace Baofeng
 			即M44 * V4 ，得到原始图的颜色采样坐标
 			*/
 			// 基准矩阵，将图像缩放到正好满屏
-			Matrix4f SingleEye = Matrix4f(0.5, 0.0, 0.0, 0.0,
-				0.0, 0.5, 0.0, 0.0,
-				0.5, 0.5, 1.0, 0.0,
-				0.0, 0.0, 0.0, 0.0);
+			Matrix4f SingleEye =
+				Matrix4f(	0.5, 0.0, 0.0, 0.0,
+							0.0, 0.5, 0.0, 0.0,
+							0.5, 0.5, 1.0, 0.0,
+							0.0, 0.0, 0.0, 0.0);
 
 			Matrix4f SingleEye_Scale;// 对上面的矩阵做缩放和轴旋转
 			Matrix4f ScaleToTarget;// 用来将缩放后的矩阵移动到左上角，再移动到目标位置上
@@ -702,7 +700,6 @@ namespace Baofeng
 
 			SingleEye_Scale.M[0][0] = 1 / (OverlayScale.x);
 			SingleEye_Scale.M[1][1] = 1 / (OverlayScale.y);
-
 			if (XOrigin == XA_REVERSAL)
 			{
 				SingleEye_Scale.M[0][0] = -SingleEye_Scale.M[0][0];
@@ -1210,10 +1207,10 @@ namespace Baofeng
 			// and GL_FRAMEBUFFER_SRGB_EXT is enabled.
 			//这里是扩展不不支持，需要关闭
 #ifdef MJ_OS_ANDROID
-//			if (m_HasEXT_sRGB_write_control)
-//			{
-//				glEnable(GL_FRAMEBUFFER_SRGB_EXT);
-//			}
+			if (m_HasEXT_sRGB_write_control)
+			{
+				glEnable(GL_FRAMEBUFFER_SRGB_EXT);
+			}
 #endif
 			// GL_CheckErrors("SetWarpState");
 		}
@@ -1301,7 +1298,7 @@ namespace Baofeng
 		{
 			int iRemoveLen = strlen(szKeyWord);
 			char *pPos = szInOutString;
-			while (pPos = strstr(pPos , szKeyWord))
+			while (NULL != (pPos = strstr(pPos , szKeyWord)))
 			{
 				memmove(pPos, pPos + iRemoveLen, strlen(pPos + iRemoveLen) + 1);
 			}

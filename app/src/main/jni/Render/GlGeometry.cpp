@@ -1,4 +1,4 @@
-﻿#include <Base/MojingLog.h>
+﻿
 #include "GlGeometry.h"
 #include "MojingRenderBase.h"
 #include "../MojingSDKStatus.h"
@@ -128,10 +128,10 @@ namespace Baofeng
 		/*------------------------------------------------------------------
 		2015/08/17: 建立顶点与索引缓冲区
 		------------------------------------------------------------------*/
-#define USING_NEW_MESH 1
+
 		bool GlGeometryTriangles::BuildGeometry(int iWidth /*= 0*/, int iHeight /*= 0*/ , void *pBuffer /* = NULL*/)
 		{
-			GlGeometry::BuildGeometry(iWidth /*= 0*/, iHeight /*= 0*/);
+			GlGeometry::BuildGeometry(0, 0); // just ClearBuffer
 
 			const int NUM_SLICES_PER_EYE = 1;
 			const float fovScale = 1.0f;
@@ -140,19 +140,14 @@ namespace Baofeng
 			{
 				bNeedFreeBuffer = true;
 #if USING_NEW_MESH
-				pBuffer = Manager::GetMojingManager()->GetDistortion()->BuildDistortionBuffer_V2(CELLS_COUNT, CELLS_COUNT);
+				Mesh_820 mesh;
+				pBuffer = Manager::GetMojingManager()->GetDistortion()->BuildDistortionBuffer_V2(mesh, CELLS_COUNT, CELLS_COUNT);
 #else
 				pBuffer = (iWidth == 0 && iHeight == 0) ? Manager::GetMojingManager()->GetDistortion()->BuildDistortionBuffer(CELLS_COUNT, CELLS_COUNT) :
 					Manager::GetMojingManager()->GetDistortion()->BuildDistortionBufferOverlay(CELLS_COUNT, CELLS_COUNT, iWidth, iHeight);
 #endif
 			}
 
-			//std::vector<Vector3f> vertices;
-			//std::vector<Vector2f> uvs;
-			//std::vector<int> indices;
-
-			//Manager::GetMojingManager()->GetDistortion()->BuildDistortionBuffer_V2(vertices, uvs, indices, CELLS_COUNT, CELLS_COUNT);
-			//LOGE("vertices size:%d , uvs size:%d indices size: %d", vertices.size(), uvs.size(), indices.size());
 
 			//const int magic = ((int *)pBuffer)[0];
 			const int tesselationsX = ((int *)pBuffer)[1];
@@ -162,33 +157,29 @@ namespace Baofeng
 			const float * bufferVerts = &((float *)pBuffer)[3];
 
 			const int attribCount = 10;
-			const int sliceTess = tesselationsX / NUM_SLICES_PER_EYE;
+			//const int sliceTess = tesselationsX / NUM_SLICES_PER_EYE;
 
-			this->m_VertexCount = 2 * NUM_SLICES_PER_EYE*(sliceTess + 1)*(tesselationsY + 1);
+			this->m_VertexCount = 2 * NUM_SLICES_PER_EYE*(tesselationsX + 1)*(tesselationsY + 1);
 			const int floatCount = m_VertexCount * attribCount;
 			float* pTessVertices = new float[floatCount];
 			//  0   1   2   3   4   5   6   7   8   9   
 			// [X   Y   Rx  Ry  Gx  Gy  Bx  By  A   0]
 			int	verts = 0;
-
-			std::vector<float> vertexDataLeft_qualcomm;
-			std::vector<float> vertexDataRight_qualcomm;
-
 			for (int eye = 0; eye < 2; eye++)
 			{
-				for (int slice = 0; slice < NUM_SLICES_PER_EYE; slice++)
-				{
+				//for (int slice = 0; slice < NUM_SLICES_PER_EYE; slice++)
+				//{
+				//	LOGE("--madi-- slice = %d", slice);
 					const int vertBase = verts;
 					for (int y = 0; y <= tesselationsY; y++)
 					{
 						const float	yf = (float)y / (float)tesselationsY;
-						for (int x = 0; x <= sliceTess; x++)
+						for (int x = 0; x <= tesselationsX; x++)
 						{
-							const int sx = slice * sliceTess + x;
-							const float	xf = (float)sx / (float)tesselationsX;
-							float * v = &pTessVertices[attribCount * (vertBase + y * (sliceTess + 1) + x)];
+							const float	xf = (float)x / (float)tesselationsX;
+							float * v = &pTessVertices[attribCount * (vertBase + y * (tesselationsX + 1) + x)];
 #if USING_NEW_MESH
-							const float * vSrc = bufferVerts+((y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * UNREAL_DISTORTION_PARAMETES_COUNT );
+							const float * vSrc = bufferVerts+((y*(tesselationsX + 1) * 2 + x + eye * (tesselationsX + 1)) * UNREAL_DISTORTION_PARAMETES_COUNT );
 
 							v[0] = vSrc[7];
 							v[1] = vSrc[8];
@@ -202,41 +193,42 @@ namespace Baofeng
 							v[6] = vSrc[4];
 							v[7] = vSrc[5];
 
-							v[8] = (float)x / sliceTess;
+							v[8] = (float)x / tesselationsX;
 							v[9] = 1;
 
 							if (eye == 0)
 							{
-								vertexDataLeft_qualcomm.push_back(v[0]);
-								vertexDataLeft_qualcomm.push_back(v[1]); // x,y
+								m_VertexLeft_Qualcomm.push_back(v[0]);
+								m_VertexLeft_Qualcomm.push_back(v[1]); // x,y
 
-								vertexDataLeft_qualcomm.push_back(v[2]);
-								vertexDataLeft_qualcomm.push_back(v[3]); // R
+								m_VertexLeft_Qualcomm.push_back(v[2]);
+								m_VertexLeft_Qualcomm.push_back(v[3]); // R
 
-								vertexDataLeft_qualcomm.push_back(v[4]);
-								vertexDataLeft_qualcomm.push_back(v[5]); // G
+								m_VertexLeft_Qualcomm.push_back(v[4]);
+								m_VertexLeft_Qualcomm.push_back(v[5]); // G
 
-								vertexDataLeft_qualcomm.push_back(v[6]);
-								vertexDataLeft_qualcomm.push_back(v[7]); // B
+								m_VertexLeft_Qualcomm.push_back(v[6]);
+								m_VertexLeft_Qualcomm.push_back(v[7]); // B
 
-								LOGE("left vertex[]: %f,%f,%f,%f,%f,%f,%f,%f", v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
+								//LOGE("left vertex[%d]: %f,%f,%f,%f,%f,%f,%f,%f", vertNum, v[7], v[8], v[0], v[1], v[2], v[3], v[4], v[5]);
 							}
 							else
 							{
-								vertexDataRight_qualcomm.push_back(v[0]);
-								vertexDataRight_qualcomm.push_back(v[1]); // x,y
+								m_VertexRight_Qualcomm.push_back(v[0]);
+								m_VertexRight_Qualcomm.push_back(v[1]); // x,y
 
-								vertexDataRight_qualcomm.push_back(v[2]);
-								vertexDataRight_qualcomm.push_back(v[3]); // R
+								m_VertexRight_Qualcomm.push_back(v[2]);
+								m_VertexRight_Qualcomm.push_back(v[3]); // R
 
-								vertexDataRight_qualcomm.push_back(v[4]);
-								vertexDataRight_qualcomm.push_back(v[5]); // G
+								m_VertexRight_Qualcomm.push_back(v[4]);
+								m_VertexRight_Qualcomm.push_back(v[5]); // G
 
-								vertexDataRight_qualcomm.push_back(v[6]);
-								vertexDataRight_qualcomm.push_back(v[7]); // B
+								m_VertexRight_Qualcomm.push_back(v[6]);
+								m_VertexRight_Qualcomm.push_back(v[7]); // B
 
-								LOGE("right vertex[]: %f,%f,%f,%f,%f,%f,%f,%f", v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
-							}
+								//LOGE("right vertex[%d]: %f,%f,%f,%f,%f,%f,%f,%f", vertNum, v[7], v[8], v[0], v[1], v[2], v[3], v[4], v[5]);
+						}
+
 #else
 							v[0] = -1.0 + eye + xf;	// 目标双眼[-1,+1]区间的X坐标,左眼固定于[-1 ， 0]，右眼固定于[0 ， 1]
 							v[1] = yf*2.0f - 1.0f;	// 目标双眼[-1,+1]区间的Y坐标
@@ -269,21 +261,9 @@ namespace Baofeng
 #endif
 						}
 					}
-					verts += (tesselationsY + 1)*(sliceTess + 1);
-				}
+					verts += (tesselationsY + 1)*(tesselationsX + 1);
+				//}
 			}
-			FILE* fLeft = fopen("/sdcard/vertexDataLeft_qualcomm.bin", "wb" );
-			FILE* fRight = fopen("/sdcard/vertexDataRight_qualcomm.bin", "wb");
-			if ( fLeft != NULL && fRight != NULL )
-			{
-				fwrite(vertexDataLeft_qualcomm.data(), sizeof(vertexDataLeft_qualcomm[0]), vertexDataLeft_qualcomm.size(), fLeft);
-				fwrite(vertexDataRight_qualcomm.data(), sizeof(vertexDataRight_qualcomm[0]), vertexDataRight_qualcomm.size(), fRight);
-				fflush( fLeft );
-				fflush( fRight );
-				fclose( fLeft );
-				fclose( fRight );
-			}
-
 			if (bNeedFreeBuffer)
 				free(pBuffer);
 
@@ -292,12 +272,10 @@ namespace Baofeng
 
 			int	index = 0;
 			verts = 0;
-			std::vector<unsigned int> indexDataLeft_qualcomm;
-			std::vector<unsigned int> indexDataRight_qualcomm;
 			for (int eye = 0; eye < 2; eye++)
 			{
-				for (int slice = 0; slice < NUM_SLICES_PER_EYE; slice++)
-				{
+				//for (int slice = 0; slice < NUM_SLICES_PER_EYE; slice++)
+				//{
 					const int vertBase = verts;
 					// The order of triangles doesn't matter for tiled rendering,
 					// but when we can do direct rendering to the screen, we want the
@@ -310,12 +288,12 @@ namespace Baofeng
 					// 下面的代码用于绘制各个矩形，使用六个顶点将一个矩形切分成两个三角形；
 					// 并且分别采用了从左上到右下和从右上到左下两种分割矩形的方式分割不同象限中的矩形。
 					// 以下注释所描述的三角形方向和象限均是以左上角为原点坐标
-					for (int x = 0; x < sliceTess; x++)
+					for (int y = 0; y < tesselationsY; y++)
 					{
-						for (int y = 0; y < tesselationsY; y++)
+						for (int x = 0; x < tesselationsX; x++)
 						{
 							// flip the triangulation in opposite corners
-							if ((slice*sliceTess + x < tesselationsX / 2) ^ (y < (tesselationsY / 2)))
+							if (( x < tesselationsX / 2) ^ (y < (tesselationsY / 2)))
 							{
 								// 第一三象限，斜边从左上角到右下角,0与3、2与4重叠
 								/*
@@ -325,13 +303,13 @@ namespace Baofeng
 								|     \ |
 								5 - - - 24
 								*/
-								pTessIndices[index + 0] = vertBase + y * (sliceTess + 1) + x;
-								pTessIndices[index + 1] = vertBase + y * (sliceTess + 1) + x + 1;
-								pTessIndices[index + 2] = vertBase + (y + 1) * (sliceTess + 1) + x + 1;
+								pTessIndices[index + 0] = vertBase + y * (tesselationsX + 1) + x;
+								pTessIndices[index + 1] = vertBase + y * (tesselationsX + 1) + x + 1;
+								pTessIndices[index + 2] = vertBase + (y + 1) * (tesselationsX + 1) + x + 1;
 
-								pTessIndices[index + 3] = vertBase + y * (sliceTess + 1) + x;
-								pTessIndices[index + 4] = vertBase + (y + 1) * (sliceTess + 1) + x + 1;
-								pTessIndices[index + 5] = vertBase + (y + 1) * (sliceTess + 1) + x;
+								pTessIndices[index + 3] = vertBase + y * (tesselationsX + 1) + x;
+								pTessIndices[index + 4] = vertBase + (y + 1) * (tesselationsX + 1) + x + 1;
+								pTessIndices[index + 5] = vertBase + (y + 1) * (tesselationsX + 1) + x;
 							}
 							else
 							{
@@ -343,73 +321,38 @@ namespace Baofeng
 								| /     |
 								23- - - 5
 								*/
-								pTessIndices[index + 0] = vertBase + y * (sliceTess + 1) + x;
-								pTessIndices[index + 1] = vertBase + y * (sliceTess + 1) + x + 1;
-								pTessIndices[index + 2] = vertBase + (y + 1) * (sliceTess + 1) + x;
+								pTessIndices[index + 0] = vertBase + y * (tesselationsX + 1) + x;
+								pTessIndices[index + 1] = vertBase + y * (tesselationsX + 1) + x + 1;
+								pTessIndices[index + 2] = vertBase + (y + 1) * (tesselationsX + 1) + x;
 
-								pTessIndices[index + 3] = vertBase + (y + 1) * (sliceTess + 1) + x;
-								pTessIndices[index + 4] = vertBase + y * (sliceTess + 1) + x + 1;
-								pTessIndices[index + 5] = vertBase + (y + 1) * (sliceTess + 1) + x + 1;
+								pTessIndices[index + 3] = vertBase + (y + 1) * (tesselationsX + 1) + x;
+								pTessIndices[index + 4] = vertBase + y * (tesselationsX + 1) + x + 1;
+								pTessIndices[index + 5] = vertBase + (y + 1) * (tesselationsX + 1) + x + 1;
 							}
+
 							if (eye == 0)
 							{
-								indexDataLeft_qualcomm.push_back(pTessIndices[index + 0]);
-								indexDataLeft_qualcomm.push_back(pTessIndices[index + 1]);
-								indexDataLeft_qualcomm.push_back(pTessIndices[index + 2]);
-								indexDataLeft_qualcomm.push_back(pTessIndices[index + 3]);
-								indexDataLeft_qualcomm.push_back(pTessIndices[index + 4]);
-								indexDataLeft_qualcomm.push_back(pTessIndices[index + 5]);
+								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 0]);
+								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 1]);
+								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 2]);
+								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 3]);
+								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 4]);
+								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 5]);
 							}
 							else
 							{
-								indexDataRight_qualcomm.push_back(pTessIndices[index + 0]);
-								indexDataRight_qualcomm.push_back(pTessIndices[index + 1]);
-								indexDataRight_qualcomm.push_back(pTessIndices[index + 2]);
-								indexDataRight_qualcomm.push_back(pTessIndices[index + 3]);
-								indexDataRight_qualcomm.push_back(pTessIndices[index + 4]);
-								indexDataRight_qualcomm.push_back(pTessIndices[index + 5]);
+								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 0]);
+								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 1]);
+								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 2]);
+								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 3]);
+								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 4]);
+								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 5]);
 							}
-							if (eye == 0)
-							{
-								LOGE("left index[%d], %hu,%hu,%hu,%hu,%hu,%hu", index,
-									 pTessIndices[index],
-									 pTessIndices[index + 1],
-									 pTessIndices[index + 2],
-									 pTessIndices[index + 3],
-									 pTessIndices[index + 4],
-									 pTessIndices[index + 5]
-								);
-							}
-							else
-							{
-								LOGE("right index[%d], %hu,%hu,%hu,%hu,%hu,%hu", index,
-									 pTessIndices[index],
-									 pTessIndices[index + 1],
-									 pTessIndices[index + 2],
-									 pTessIndices[index + 3],
-									 pTessIndices[index + 4],
-									 pTessIndices[index + 5]
-								);
-							}
-
-
 							index += 6;
 						}
 					}
-					verts += (tesselationsY + 1)*(sliceTess + 1);
-				}
-			}
-
-			fLeft = fopen("/sdcard/indexDataLeft_qualcomm.bin", "wb" );
-			fRight = fopen("/sdcard/indexDataRight_qualcomm.bin", "wb");
-			if ( fLeft != NULL && fRight != NULL )
-			{
-				fwrite(indexDataLeft_qualcomm.data(), sizeof(indexDataLeft_qualcomm[0]), indexDataLeft_qualcomm.size(), fLeft);
-				fwrite(indexDataRight_qualcomm.data(), sizeof(indexDataRight_qualcomm[0]), indexDataRight_qualcomm.size(), fRight);
-				fflush( fLeft );
-				fflush( fRight );
-				fclose( fLeft );
-				fclose( fRight );
+					verts += (tesselationsY + 1)*(tesselationsX + 1);
+				//}
 			}
 
 			if (0 == this->m_VertexBuffer || !glIsBuffer(this->m_VertexBuffer))

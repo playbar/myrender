@@ -26,8 +26,8 @@
 #define ICADEDIC_VALUEKEY @"keycode"
 #define ICADEDIC_PRESSKEY @"press"
 
-static const char *ON_STATES  = "wdxayhujikol";
-static const char *OFF_STATES = "eczqtrfnmpgv";
+//static const char *ON_STATES  = "wdxayhujikol";
+//static const char *OFF_STATES = "eczqtrfnmpgv";
 
 @interface iCadeReaderView()
 
@@ -80,6 +80,11 @@ static const char *OFF_STATES = "eczqtrfnmpgv";
     } else {
         [self resignFirstResponder];
     }
+}
+
+- (UIKeyboardType)keyboardType
+{
+    return UIKeyboardTypeASCIICapable;
 }
 
 - (UIView*) inputView {

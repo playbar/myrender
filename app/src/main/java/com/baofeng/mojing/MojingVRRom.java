@@ -2,9 +2,9 @@ package com.baofeng.mojing;
 
 public class MojingVRRom
 {
-//static{
-//		System.loadLibrary("mojingvrrom");
-//		}
+static{
+		System.loadLibrary("mojingvrrom");
+		}
 	/*
 	modelType: 0 skybox, 1 sphere
 	textureType: 0 skybox

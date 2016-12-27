@@ -26,6 +26,8 @@ extern "C" {
 		jstring userID, jstring channelID, jint nWidth, jint nHeight, jfloat xdpi, jfloat ydpi, jstring ProfilePath);
 	
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetEngineVersion(JNIEnv *env, jclass, jstring jstrEngineVersion);
+	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseUnityForSVR(JNIEnv *env, jclass);
+
 	/*
 	* Class:     com_baofeng_mojing_App
 	* Method:    Init/Exit/AppResume/AppPause/AppPageStart/AppPageEnd/AppSetEvent
@@ -76,14 +78,13 @@ extern "C" {
 	*/
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv *, jclass, jfloatArray jViewMatrix);
 	JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_getPredictionHeadView(JNIEnv *jEnv, jclass, jfloatArray jViewMatrix, jdouble time);
-
+	JNIEXPORT jdouble JNICALL Java_com_baofeng_mojing_MojingSDK_getLastSensorState(JNIEnv *jEnv, jclass, jfloatArray jArray);
 	/*
 	* Class:     com_baofeng_mojing_MojingSDK
 	* Method:    getLastHeadEulerAngles
 	* Signature: ([F)V
 	*/	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadEulerAngles(JNIEnv *, jclass, jfloatArray jEulerAngles);
 
-	/*
 	/*
 	* Class:     com_baofeng_mojing_MojingSDK
 	* Method:    getLastHeadUnitQuarternion
@@ -100,6 +101,8 @@ extern "C" {
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_StopTracker(JNIEnv *, jclass);
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SendSensorData(JNIEnv *jEnv, jclass, jfloatArray jSensortMatrix, jdouble dLastSampleTime);
+
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SendControllerData(JNIEnv *jEnv, jclass, jbyteArray jControllerData, jint dataLen);
 
 	// 进入魔镜世界
 	JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSurfaceView_EnterMojingWorld(JNIEnv *env, jclass, jstring GlassesName, jboolean  bEnableMultiThread, jboolean  bEnableTimeWarp);
@@ -143,13 +146,13 @@ extern "C" {
 	/************************************************************************/
 	/* 厂商-产品-镜片-APP管理                                               */
 	/************************************************************************/
-	JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GetManufacturerList(JNIEnv *jEnv, jclass, jstring strLanguageCodeByISO639);
-	JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GetProductList(JNIEnv *jEnv, jclass, jstring strManufacturerKey, jstring strLanguageCodeByISO639);
-	JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GetGlassList(JNIEnv *jEnv, jclass, jstring strProductKey, jstring strLanguageCodeByISO639);
-	JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GetGlassInfo(JNIEnv *jEnv, jclass, jstring strGlassKey, jstring strLanguageCodeByISO639); 
-	JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GenerationGlassKey(JNIEnv *jEnv, jclass, jstring strProductQRCode, jstring strGlassQRCode);
+	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetManufacturerList(JNIEnv *jEnv, jclass, jstring strLanguageCodeByISO639);
+	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetProductList(JNIEnv *jEnv, jclass, jstring strManufacturerKey, jstring strLanguageCodeByISO639);
+	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetGlassList(JNIEnv *jEnv, jclass, jstring strProductKey, jstring strLanguageCodeByISO639);
+	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetGlassInfo(JNIEnv *jEnv, jclass, jstring strGlassKey, jstring strLanguageCodeByISO639);
+	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GenerationGlassKey(JNIEnv *jEnv, jclass, jstring strProductQRCode, jstring strGlassQRCode);
 	// 获取需要排除掉的手机内部数据列表
-	JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GetEliminateBuiltin(JNIEnv *jEnv, jclass);
+	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetEliminateBuiltin(JNIEnv *jEnv, jclass);
 
 	JNIEXPORT
 	// 取得状态函数
@@ -196,6 +199,29 @@ extern "C" {
 
 	// 获取光感数据
 	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsLowPower(JNIEnv *, jclass);
+
+	JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_GetSocketPort(JNIEnv *, jclass);
+
+	// 体感手柄接口
+	JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetKeymask(JNIEnv *env, jclass, jint iID, jintArray KeyMask);
+	JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+		jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
+		jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
+		jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
+		jfloatArray PositionArray,/*设备的空间位置，以米为单位，默认是0,0,0。*/
+		jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/);
+	JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetFixInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+		jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
+		jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
+		jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
+		jfloatArray PositionArray/*设备的空间位置，以米为单位，默认是0,0,0。*/);
+
+    JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetControlFixCurrentInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+        jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
+        jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
+        jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
+        jfloatArray PositionArray,/*设备的空间位置，以米为单位，默认是0,0,0。*/
+        jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/);
 
 	/************************************************************************/
 	/* 以下是SDK私有接口，禁止发布于MojingSDK                               */

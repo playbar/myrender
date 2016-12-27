@@ -1,4 +1,4 @@
-#include <map>
+ï»¿#include <map>
 #include "../../MojingAPI.h"
 #include "../../MojingManager.h"
 #include "../../Parameters/MojingParameters.h"
@@ -50,7 +50,7 @@ void MojingVRRomAPI_SetRectModelPosition(int iModelKey, float* pPosition)
 	{
 		Model *pModel = it->second;
 
-		if (pModel->GetClassName() == "RectangleModel")
+		if (0 == strcmp(pModel->GetClassName() , "RectangleModel"))
 		{
 			RectangleModel *pRectangleModel = (RectangleModel *)pModel;
 
@@ -173,7 +173,7 @@ bool MojingVRRomAPI_DrawDistortion(int iTextureBothEye, float * pM16A, float * p
 	glDepthMask(GL_FALSE);	// don't write to depth, even if Unity has depth on window
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	glEnable(GL_SCISSOR_TEST);// ÔÊĞíÇøÓò¼ô²Ã
+	glEnable(GL_SCISSOR_TEST);// å…è®¸åŒºåŸŸå‰ªè£
 	glDisable(GL_BLEND);
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);

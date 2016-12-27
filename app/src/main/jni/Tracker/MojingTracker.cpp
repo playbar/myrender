@@ -91,13 +91,14 @@ namespace Baofeng
 			}
 			return strRet;
 		}
-		Matrix4f Tracker::CalculateTimeWarpMatrix2( Quatf inFrom, Quatf inTo)
+
+		Quatf   Tracker::CalculateTimeWarpMatrix(Quatf inFrom, Quatf inTo)
 		{
-			// FIXME: this is a horrible hack to fix a zero quaternion that's passed in
 			bool fromValid = inFrom.LengthSq() > 0.95f;
 			bool toValid = inTo.LengthSq() > 0.95f;
 			if (!fromValid)
 			{
+				MOJING_ERROR(g_APIlogger, "Invalid Srouce view rotate");
 				if (toValid)
 				{
 					inFrom = inTo;
@@ -109,6 +110,7 @@ namespace Baofeng
 			}
 			if (!toValid)
 			{
+				MOJING_ERROR(g_APIlogger, "Invalid Targer view rotate");
 				if (fromValid)
 				{
 					inTo = inFrom;
@@ -119,10 +121,21 @@ namespace Baofeng
 				}
 			}
 
-			Matrix4f		lastSensorMatrix = Matrix4f(inTo);
-			Matrix4f		lastViewMatrix = Matrix4f(inFrom);
-
-			return (lastSensorMatrix.Inverted() * lastViewMatrix).Inverted();
+			Quatf qFix = (inFrom * inTo.Inverted()).Inverted();
+			// qFix.z *= -1;
+			return qFix;
+		}
+		Matrix4f Tracker::CalculateTimeWarpMatrix2( Quatf inFrom, Quatf inTo)
+		{
+			// FIXME: this is a horrible hack to fix a zero quaternion that's passed in
+			
+			Matrix4f mRet = Matrix4f(CalculateTimeWarpMatrix(inFrom , inTo));
+			return mRet;
+// 
+// 			Matrix4f		lastSensorMatrix_To = Matrix4f(inTo);
+// 			Matrix4f		lastViewMatrix_From = Matrix4f(inFrom);
+// 
+//			return (lastSensorMatrix_To.Inverted() * lastViewMatrix_From); // .Inverted();
 		}
 
 		void Tracker::SetYaw()
@@ -164,7 +177,7 @@ namespace Baofeng
 				m_pSensorfusion->Initialize(pSensor, pParameters, lpszModel);
 				if (GetDataFromExternal() && szGlassName == NULL)
 				{
-					MOJING_TRACE(g_Sensorlogger, "Use sensor data from Java(mobile).");
+					MOJING_TRACE(g_Sensorlogger, "Use sensor data from SDK_Java.");
 					m_bSensorfusionInit = true;
 					m_nSkipSamples = 10;
 					memset(&m_sensorFrame, 0, sizeof(MessageBodyFrame));
@@ -180,7 +193,7 @@ namespace Baofeng
 					}
 					else
 					{
-						MOJING_TRACE(g_Sensorlogger, "Use sensor data from Native(mobile).");
+						MOJING_TRACE(g_Sensorlogger, "Use sensor data from SDK_Native.");
 					}
 					if (!pSensor->StartSensor(nSampleFrequence/*, pRecordPath*/))
 					{
@@ -203,7 +216,7 @@ namespace Baofeng
 					{// 由于陀螺仪故障导致完全无法获取数据，这种情况下要通知调用方初始化失败 
 						pSensor->StopSensor();
 						pStatus->SetTrackerStatus(TRACKER_STOP);
-						MOJING_ERROR(g_APIlogger, "Can not get any data in 2 Secs");
+						MOJING_ERROR(g_APIlogger, "Can not get any data in 5 Secs");
 						// Sensor data failed maybe temporary so recover RefCount
 						AtomicOps<int>::ExchangeAdd_NoSync(&RefCount, -1);
 						return false;
@@ -248,7 +261,6 @@ namespace Baofeng
 		void Tracker::StopTrack()
 		{
 			MOJING_FUNC_TRACE(g_Sensorlogger);
-			m_bSensorfusionInit = false;
 			MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 			if (pStatus->GetTrackerStatus() != TRACKER_START)
 			{
@@ -257,6 +269,7 @@ namespace Baofeng
 			int count = AtomicOps<int>::ExchangeAdd_NoSync(&RefCount, -1);
 			if (count < 0)// ==0表示已经退出过了，不要在下面+1
 			{
+				m_bSensorfusionInit = false;
 				AtomicOps<int>::ExchangeAdd_NoSync(&RefCount, 1);
 				MOJING_TRACE(g_Sensorlogger, "Stop Tracker without Start Tracker first! ");
 				pStatus->SetTrackerStatus(TRACKER_STOP);
@@ -264,6 +277,7 @@ namespace Baofeng
 			else if (count == 1)
 			{
 				// It really need stop
+				m_bSensorfusionInit = false;
 				pStatus->SetTrackerStatus(TRACKER_STOP_NOW);
 				if (m_pSensorfusion)
 				{
@@ -309,6 +323,29 @@ namespace Baofeng
 
 			// Convert sensor.Recorded to view matrix
 			mHeadView = Matrix4f(m_pLastSensorState.Predicted.Transform.Orientation);
+		}
+
+		double Tracker::getLastSensorState(float* fArray)
+		{
+			if (m_pSensorfusion && m_pSensorfusion->m_bHasData)
+			{
+				SensorState sstate = m_pSensorfusion->GetPredictionForTime(0);
+				fArray[0] = sstate.Predicted.Transform.Orientation.x;
+				fArray[1] = sstate.Predicted.Transform.Orientation.y;
+				fArray[2] = sstate.Predicted.Transform.Orientation.z;
+				fArray[3] = sstate.Predicted.Transform.Orientation.w;
+				fArray[4] = sstate.Predicted.AngularAcceleration.x;
+				fArray[5] = sstate.Predicted.AngularAcceleration.y;
+				fArray[6] = sstate.Predicted.AngularAcceleration.z;
+				fArray[7] = sstate.Predicted.LinearAcceleration.x;
+				fArray[8] = sstate.Predicted.LinearAcceleration.y;
+				fArray[9] = sstate.Predicted.LinearAcceleration.z;
+				//__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", \
+					"getLastSensorState, Orientation (%f / %f / %f / %f), AngularAcceleration(%f / %f / %f), LinearAcceleration(%f / %f / %f)\n", \
+					fArray[0], fArray[1],fArray[2], fArray[3],fArray[4], fArray[5],fArray[6], fArray[7],fArray[8],fArray[9]);		
+				return sstate.Predicted.TimeInSeconds;
+			}
+			return 0;
 		}
 
 		Quatf Tracker::getPredictionPosition(const double& absoluteTimeSeconds , double * pdOutSensotTime /*= NULL*/)

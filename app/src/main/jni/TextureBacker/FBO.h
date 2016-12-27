@@ -13,7 +13,7 @@ namespace Baofeng
             FrambufferObject();
             virtual ~FrambufferObject();
         public:
-            bool CreateFBO(GLuint m_width, GLuint m_height, int texID = 0);
+            bool CreateFBO(GLuint width, GLuint height, int texID = 0);
             void UseFBO();
             void EndFBO();
             void DestroyFBO();

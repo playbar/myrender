@@ -12,12 +12,6 @@
 #include "ReporterTools.h"
 #include "DatabaseInfoReporter.h"
 
-#ifdef MJ_OS_WIN32
-#include "../3rdPart/sqlite3/sqlite3.h"
-#else
-#include <sqlite3.h>
-#endif
-
 namespace Baofeng
 {
 	namespace Mojing
@@ -31,12 +25,12 @@ namespace Baofeng
 			static void InternetInfoPostCallBack(const unsigned char* lpszRespString, unsigned int uiSize, int RespCode, void * pCallBackParam);
 		public:
 			InfoReporter();
-			virtual ~InfoReporter();
+			virtual ~InfoReporter(){};
 			void Post();
 			void SaveToDB();
 
 			CLASS_MEMBER_STR(String, m_str, ClassName);	
-			CLASS_INTERFACE(String, m_, ReportMsg);		
+			CLASS_INTERFACE_STR(String, m_, ReportMsg);
 			CLASS_INTERFACE(int, m_, ReportType);
 			CLASS_INTERFACE(MessageType, m_, MessageType);
 		private:

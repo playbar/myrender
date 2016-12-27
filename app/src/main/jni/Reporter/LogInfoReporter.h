@@ -9,7 +9,7 @@ namespace Baofeng
 		{
 		public:
 			LogInfoReporter();
-			~LogInfoReporter();
+			virtual ~LogInfoReporter(){};
 			void PostMessage(int iLogType, const char* szTypeName, const char* szLogContent, int64_t date, bool pd);
 			void SaveMessage(int iLogType, const char* szTypeName, const char* szLogContent, int64_t date, bool pd);
 

@@ -27,7 +27,9 @@ namespace Baofeng
 
 		FileProfile::~FileProfile()
 		{
-			delete m_pJson;
+			if (m_pJson != NULL)
+				m_pJson->Release();
+			m_pJson = NULL;
 		}
 
 		int FileProfile::Run()

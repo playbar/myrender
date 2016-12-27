@@ -14,6 +14,7 @@
 #include "GlGeometryMetal.h"
 #include "RenderFrameMetal.h"
 #include "MojingRenderMetal.h"
+#include "../../Base/MojingTypes.h"
 #include "../VerifyFailedInfo.h"
 #include "../VersionLow.h"
 #include "../../MojingManager.h"
@@ -21,6 +22,8 @@
 #include "../../Parameters/MojingDisplayParameters.h"
 #include "../../Parameters/MojingParameters.h"
 #include "../../MojingSDKStatus.h"
+
+#import "../../Interface/Unity/Unity/IUnityGraphicsMetal.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
@@ -34,6 +37,9 @@
 extern MojingLogger g_APIlogger;
 #endif
 
+
+#define USE_UNITY_COMMANDBUFFER 1
+
 namespace Baofeng
 {
     namespace Mojing
@@ -44,8 +50,10 @@ namespace Baofeng
         MojingRenderMetal* MojingRenderMetal::CreateCurrentRenderMetal(
                                                                        bool bEnableMultiThread,
                                                                        bool bEnableTimeWarp,
+                                                                       IUnityGraphicsMetal* metalGraphics,
                                                                        MTLDeviceRef device,
-                                                                       MTLCommandQueueRef cmdQueue)
+                                                                       MTLCommandQueueRef cmdQueue,
+                                                                       MTLCommandBufferRef cmdBuffer)
         {
             if(_instance != nullptr)
             {
@@ -53,7 +61,7 @@ namespace Baofeng
             }
             else
             {
-                _instance = new MojingRenderMetal(bEnableMultiThread, bEnableTimeWarp, device, cmdQueue);
+                _instance = new MojingRenderMetal(bEnableMultiThread, bEnableTimeWarp,metalGraphics, device, cmdQueue, cmdBuffer);
                 
                 
                 return _instance;
@@ -93,28 +101,68 @@ namespace Baofeng
             // create warpmesh
             GenDistortionMesh();
 
-            
             g_bIsModifyed = false;
         }
         
         MojingRenderMetal::MojingRenderMetal(bool bEnableMultithread,
                                              bool bEnableTimewarp,
+                                             IUnityGraphicsMetal* metalGraphics,
                                              MTLDeviceRef mtlDevice,
-                                             MTLCommandQueueRef cmdQueue)
+                                             MTLCommandQueueRef cmdQueue,
+                                             MTLCommandBufferRef cmdBuffer)
         :
         _enableMultithread(bEnableMultithread),
         _enableTimewarp(bEnableTimewarp),
         _leftOverlayRect(vector_float4{0,0,0,0}),
         _rightOverlayRect(vector_float4{0,0,0,0})
-//        _line(mtlDevice),
-//        _renderFrame(mtlDevice, 3)
         
         {
-            _mtlDevice = mtlDevice;
-            _mtlCommandQueue = cmdQueue;
+            _unityMetalInterface = metalGraphics;
+
+            {
+                if (mtlDevice)
+                {
+                    _mtlDevice = mtlDevice;
+                }
+                else
+                {
+                    if (_unityMetalInterface)
+                    {
+                        _mtlDevice = _unityMetalInterface->MetalDevice();
+                    }
+                    else
+                    {
+                        NSLog(@"Error: metal device nust not be null");
+                    }
+                }
+                
+                ///
+                if (cmdQueue)
+                {
+                    _mtlCommandQueue = cmdQueue;
+                }
+                else
+                {
+                    _mtlCommandQueue = [_mtlDevice newCommandQueue]; // create new cmd queue
+                    NSLog(@"MetalRender: create cmdQueue %p use mtlDevice %p", _mtlCommandQueue, _mtlDevice);
+                }
+                
+                ///
+                if (cmdBuffer)
+                {
+                    _mtlCommandBuffer = cmdBuffer;
+                }
+                else
+                {
+                    // We create cmdBuffer in render loop
+                }
+                
+                
+            }
             
-            _line = new GeometryLineMetal(mtlDevice);
-            _renderFrame = new RenderFrameMetal(mtlDevice, 3);
+            _mtlCommandEncoder = nullptr;
+            
+            _line = new GeometryLineMetal(_mtlDevice);
             
             NSString* distortionShader = @
             "#include <metal_stdlib>\n"
@@ -269,7 +317,7 @@ namespace Baofeng
             
             NSError* errors = nil;
             
-            id<MTLLibrary> mtlLibrary = [mtlDevice newLibraryWithSource:distortionShader options:nil error:&errors];
+            id<MTLLibrary> mtlLibrary = [_mtlDevice newLibraryWithSource:distortionShader options:nil error:&errors];
             if (errors != nil)
             {
                 NSLog(@"get error when compile shader: %@", errors.description);
@@ -299,7 +347,7 @@ namespace Baofeng
             /*
              Overlay
              */
-            mtlLibrary = [mtlDevice newLibraryWithSource:overlayShader options:nil error:&errors];
+            mtlLibrary = [_mtlDevice newLibraryWithSource:overlayShader options:nil error:&errors];
             
             if (errors != nil)
             {
@@ -321,7 +369,7 @@ namespace Baofeng
             /*
              Center line
              */
-            mtlLibrary = [mtlDevice newLibraryWithSource:lineShader options:nil error:&errors];
+            mtlLibrary = [_mtlDevice newLibraryWithSource:lineShader options:nil error:&errors];
             
             if (errors != nil)
             {
@@ -345,16 +393,9 @@ namespace Baofeng
             SetupOverlayPipeline();
             SetupLinestripPipeline();
 
-            if (!_enableTimewarp)
-            {
-                SetupUniforms();
-                SetupLinestripUniforms();
-            }
-            else
-            {
-                // TODO
-//                _semaphore = dispatch_semaphore_create(3);
-            }
+            SetupUniforms();
+            SetupLinestripUniforms();
+
             
         }
         
@@ -394,8 +435,17 @@ namespace Baofeng
             pipelineDescriptor.vertexDescriptor = vertexDescriptor;
             
             pipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-            
+
+#ifdef USE_UNITY_COMMANDBUFFER
+//            pipelineDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+//            pipelineDescriptor.stencilAttachmentPixelFormat = MTLPixelFormatStencil8;
+#else
             pipelineDescriptor.depthAttachmentPixelFormat = MTLPixelFormatInvalid;
+#endif
+            
+
+
+            
             
             
             _distortionPipelineState = [_mtlDevice newRenderPipelineStateWithDescriptor:pipelineDescriptor
@@ -429,7 +479,13 @@ namespace Baofeng
             pipelineDescriptor.vertexDescriptor = vertexDescriptor;
             
             pipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+
+#ifdef USE_UNITY_COMMANDBUFFER
+//            pipelineDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+//            pipelineDescriptor.stencilAttachmentPixelFormat = MTLPixelFormatStencil8;
+#else
             pipelineDescriptor.depthAttachmentPixelFormat = MTLPixelFormatInvalid;
+#endif
             
             NSError *error = nil;
             _linestripPipelineState = [_mtlDevice newRenderPipelineStateWithDescriptor:pipelineDescriptor
@@ -486,8 +542,13 @@ namespace Baofeng
             pipelineDescriptor.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorSourceAlpha;
             pipelineDescriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
             pipelineDescriptor.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-            
+
+#ifdef USE_UNITY_COMMANDBUFFER
+//            pipelineDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+//            pipelineDescriptor.stencilAttachmentPixelFormat = MTLPixelFormatStencil8;
+#else
             pipelineDescriptor.depthAttachmentPixelFormat = MTLPixelFormatInvalid;
+#endif
             
             NSError *error = nil;
             _overlayPipelineState = [_mtlDevice newRenderPipelineStateWithDescriptor:pipelineDescriptor
@@ -700,12 +761,6 @@ namespace Baofeng
             }
             
             Uniforms_overlay uniforms;
-            uniforms.Texm = simd::float4x4{
-                simd::float4{0.5, 0, 0, 0},
-                simd::float4{0, 0.5, 0, 0},
-                simd::float4{-0.5, -0.5, -1, -1},
-                simd::float4{0, 0, 0, 0}
-            };
             
             /*
              Left
@@ -739,12 +794,25 @@ namespace Baofeng
                 }
             };
             
-            uniforms.mvp = simd::float4x4{
-                simd::float4{1.0f, 0.0f, 0.0f, 0.0f},
-                simd::float4{0.0f, 1.0f, 0.0f, 0.0f},
-                simd::float4{0.0f, 0.0f, 0.0f, 0.0f},
-                simd::float4{0.0f, 0.0f, 0.0f, 1.0f}
-            };
+//            if (_unityMetalInterface)
+//            {
+//                uniforms.mvp = simd::float4x4{
+//                    simd::float4{1.0f, 0.0f, 0.0f, 0.0f},
+//                    simd::float4{0.0f, 1.0f, 0.0f, 0.0f},
+//                    simd::float4{0.0f, 0.0f, 0.0f, 0.0f},
+//                    simd::float4{0.0f, 0.0f, 0.0f, 1.0f}
+//                };
+//            }
+//            else
+            {
+                uniforms.mvp = simd::float4x4{
+                    simd::float4{1.0f, 0.0f, 0.0f, 0.0f},
+                    simd::float4{0.0f, 1.0f, 0.0f, 0.0f},
+                    simd::float4{0.0f, 0.0f, 0.0f, 0.0f},
+                    simd::float4{0.0f, 0.0f, 0.0f, 1.0f}
+                };
+            }
+            
             if (left)
             {
                 memcpy([_overlayUniformBufferLeft contents], &uniforms, sizeof(Uniforms_overlay));
@@ -866,12 +934,6 @@ namespace Baofeng
         
         void MojingRenderMetal::UpdateRenderPass(CAMetalDrawableRef drawable)
         {
-            // TODO: 场景重新加载会有问题
-//            static bool needUpdate = true;
-//            if (needUpdate)
-//            {
-//                NSLog(@"UpdateRenderPass once \n");
-            
                 /*
                  Distortion RenderPass
                  */
@@ -880,11 +942,8 @@ namespace Baofeng
                 _distortionRenderPass.colorAttachments[0].loadAction = MTLLoadActionClear;
                 _distortionRenderPass.colorAttachments[0].storeAction = MTLStoreActionStore;
                 _distortionRenderPass.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
-                
-//                needUpdate = false;
-//            }
 
-            _distortionRenderPass.colorAttachments[0].texture = drawable.texture;
+            _distortionRenderPass.colorAttachments[0].texture = drawable.texture; // the metal layer to draw on
             
         }
         
@@ -896,8 +955,10 @@ namespace Baofeng
                                                MTLTextureRef overlayTextureRight
                                             )
         {
+            
             if (drawable == nullptr)
             {
+                NSLog(@"Error: drawable is null");
                 return false;
             }
             
@@ -924,37 +985,30 @@ namespace Baofeng
                 
             }
             
-            if (_enableTimewarp)
-            {
-//                dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
-//                // TODO: call here, ok?
-//                _renderFrame.Update();
-            }
-            
-//            NSLog(@"--UNityMetal-- drawable:%p",drawable);
             UpdateRenderPass(drawable);
             
             /* 
              Distortion Mesh
              */
-            id<MTLCommandBuffer> _cmdBuffer = [_mtlCommandQueue commandBuffer];
-//            NSLog(@"--UnityMetal-- cmdBuffer: %p", _cmdBuffer);
-            id<MTLRenderCommandEncoder> commandEncoder;
-
-            if (_enableMultithread)
+            /// when use custom encoder we have to end unity's encoder
+            if (_unityMetalInterface != nullptr)
             {
-                [_cmdBuffer enqueue];
-                commandEncoder = [[_cmdBuffer parallelRenderCommandEncoderWithDescriptor:_distortionRenderPass] renderCommandEncoder];
+                _unityMetalInterface->EndCurrentCommandEncoder();
+                _mtlCommandBuffer = _unityMetalInterface->CurrentCommandBuffer();
             }
             else
             {
-                commandEncoder = [_cmdBuffer renderCommandEncoderWithDescriptor:_distortionRenderPass];
+                _mtlCommandBuffer = [_mtlCommandQueue commandBuffer];
             }
-//            NSLog(@"--UnityMetal-- cmdEncoder: %p", commandEncoder);
+
+
+            id<MTLRenderCommandEncoder> commandEncoder;
+            
+            commandEncoder = [_mtlCommandBuffer renderCommandEncoderWithDescriptor:_distortionRenderPass];
+            
+
             [commandEncoder pushDebugGroup:@"Distortion pass"];
             commandEncoder.label = @"distortion";
-            
-//            [commandEncoder setViewport:MTLViewport{0,0,[drawable layer].drawableSize.width, [drawable layer].drawableSize.height}];
             
             [commandEncoder setVertexBuffer:_mesh->vertexBuffer offset:0 atIndex:0];
             
@@ -991,7 +1045,7 @@ namespace Baofeng
                                 indexBufferOffset:[_mesh->indexBuffer length] / (sizeof(UInt16))];
             
             /*
-             Layout
+             Overlay
              */
             if ((overlayTextureLeft != nullptr || overlayTextureRight != nullptr) &&
                 (_leftOverlayRect.z > 0 && _leftOverlayRect.w > 0 &&
@@ -999,7 +1053,6 @@ namespace Baofeng
                )
             {
                 SetupOverlayUniforms(true, _leftOverlayRect); // TODO: remove from Update
-                
                 [commandEncoder setVertexBuffer:_mesh->vertexBuffer offset:0 atIndex:0];
                 [commandEncoder setVertexBuffer:_overlayUniformBufferLeft offset:0 atIndex:1];
                 
@@ -1032,15 +1085,6 @@ namespace Baofeng
                 }
             }
 
-            if (_enableTimewarp)
-            {
-//                __block dispatch_semaphore_t dispatchSemaphore = _semaphore;
-//                
-//                [_cmdBuffer addCompletedHandler:^(id <MTLCommandBuffer> cmdb){
-//                    dispatch_semaphore_signal(dispatchSemaphore);
-//                }];
-            }
-            
             [commandEncoder setVertexBuffer:_line->vertexBuffer offset:0 atIndex:0];
             
             [commandEncoder setVertexBuffer:_linestripUniformBuffer offset:0 atIndex:1];
@@ -1052,14 +1096,22 @@ namespace Baofeng
             [commandEncoder drawPrimitives:MTLPrimitiveTypeLineStrip vertexStart:0 vertexCount:2];
             
             [commandEncoder popDebugGroup]; //
+            
+
             [commandEncoder endEncoding];
+
+            if (!_unityMetalInterface)
+            {
+                [_mtlCommandBuffer presentDrawable: drawable];
+                [_mtlCommandBuffer commit];
+            }
+            else
+            {
+                // Unity manage the command buffer
+            }
             
+ 
             
-            
-            
-        
-            [_cmdBuffer presentDrawable: drawable];
-            [_cmdBuffer commit];
             return true;
         
         } // end of DrawDistortion

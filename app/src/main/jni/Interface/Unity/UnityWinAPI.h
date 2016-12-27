@@ -36,24 +36,23 @@ extern "C"
 	UNITY_EXPORT void Unity_getLastHeadView(float* pfViewMatrix);
 	UNITY_EXPORT void Unity_getLastHeadQuarternion(float &w, float &x, float &y, float &z);
 	UNITY_EXPORT void Unity_StopTracker(void);
-	UNITY_EXPORT void Unity_SetOverlay(int iLeftOverlayTextureID, int iRightOverlayTextureID, float fLeft, float fTop, float fWidth, float fHeight);
-	UNITY_EXPORT void Unity_SetOverlay3D(int iEyeType , int iTextureID, /*float fLeft, float fTop, */float fWidth, float fHeight, float fDistanceInMetre);
-	UNITY_EXPORT void Unity_SetTextureID(int iLeftTextureID, int iRightTextureID);
+	UNITY_EXPORT void Unity_SetOverlay(void* iLeftOverlayTextureID, void* iRightOverlayTextureID, float fLeft, float fTop, float fWidth, float fHeight);
+	UNITY_EXPORT void Unity_SetOverlay3D(int iEyeType, void* iTextureID, float fWidth, float fHeight, float fDistanceInMetre);
+	UNITY_EXPORT void Unity_SetTextureID(void* iLeftTextureID, void* iRightTextureID);
 	UNITY_EXPORT void Unity_ResetSensorOrientation();
 	UNITY_EXPORT void Unity_ResetSensorOrientation2();
 	UNITY_EXPORT void Unity_ResetTracker(void);
 	UNITY_EXPORT int  Unity_GetTextureSize(void);
-	UNITY_EXPORT bool Unity_SetMojingWorld(const char * szGlassesName, bool bMultithreading, bool bTimeWarp);
+	UNITY_EXPORT bool Unity_SetMojingWorld(const char * szGlassesName, bool bTimeWarp , void * pAndroidActivity);
 	UNITY_EXPORT void Unity_SetEnableTimeWarp(bool bEnable);
 	UNITY_EXPORT bool Unity_IsInMojingWorld(const char * szGlassesName);
-	UNITY_EXPORT bool Unity_EnterMojingWorld(const char * szGlassesName);
+	UNITY_EXPORT bool Unity_EnterMojingWorld(const char * szGlassesName, bool bTimewarp, void* pOtherParams);
 	UNITY_EXPORT bool Unity_ChangeMojingWorld(const char * szGlassesName);
 	UNITY_EXPORT bool Unity_IsGlassesNeedDistortion(void);
 	UNITY_EXPORT void Unity_SetCenterLine(int iWdith, int iColR = 255, int iColG = 255, int iColB = 255, int iColA = 255);
 	UNITY_EXPORT int  Unity_GetMojingWorldDistortionMesh(const char * szGlassesName, int iScreenWidth, int iScreenHeight, int iWidthCells, int iHeightCells,
 		float *pFOV, float *pGlassesSeparationInMeter,
 		float * pVerts, float * pUV, int * pIndices);
-	UNITY_EXPORT bool Unity_LeaveMojingWorld();
 
 	UNITY_EXPORT void UnitySetGraphicsDevice (void* device, int deviceType, int eventType);
 	UNITY_EXPORT void UnityRenderEvent(int eventID);
@@ -82,7 +81,7 @@ extern "C"
 	UNITY_EXPORT void Unity_AppPageStart(const char* szPageName);
 	UNITY_EXPORT void Unity_AppPageEnd(const char* szPageName);
 	UNITY_EXPORT void Unity_AppSetEvent(const char* szEventName, const char* szEventChannelID, const char* szEventInName, float eInData, const char* szEventOutName, float eOutData);
-	UNITY_EXPORT void Unity_AppReprotLog(int iLogType, const char* szTypeName, const char* szLogContent);
+	UNITY_EXPORT void Unity_AppReportLog(int iLogType, const char* szTypeName, const char* szLogContent);
 	UNITY_EXPORT const char* Unity_AppGetRunID();
 }
 #endif /* defined(__MojingSDK_UNITY_WINAPI__) */

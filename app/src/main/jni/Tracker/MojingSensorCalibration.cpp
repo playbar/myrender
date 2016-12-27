@@ -83,7 +83,7 @@ namespace Baofeng
 			// read the temperature tables and prepare the interpolation structures
 			GyroCalibration.GetAllTemperatureReports(&TemperatureReports);
 
-			MJ_ASSERT(result);
+			// MJ_ASSERT(result);
 			for (int i = 0; i < 3; i++)
 				Interpolators[i].Initialize(TemperatureReports, i);
 

@@ -81,7 +81,7 @@ namespace Baofeng
 		void MojingRenderMultiThread_3288::SetEyeTexID(int leftEye, int rightEye)
 		{
 			RenderFrame *pFR;
-			if (pFR = m_FrameManager.GetCurrentModleFrame())
+			if (NULL != (pFR = m_FrameManager.GetCurrentModleFrame()))
 			{// 注意：这里要处理来自外部的Eye Texture
 				if (HasEXT_multiview_ovr)
 				{

@@ -18,7 +18,8 @@ LOCAL_PATH:= $(call my-dir)
 COMMON_CFLAGS	= -DANDROID_NDK
 #COMMON_CFLAGS	+= -Wall
 COMMON_CFLAGS	+= -Wextra
-COMMON_CFLAGS	+= -Wlogical-op		# not part of -Wall or -Wextra
+COMMON_CFLAGS	+= -Winvalid-offsetof
+#COMMON_CFLAGS	+= -Wlogical-op		# not part of -Wall or -Wextra
 #COMMON_CFLAGS	+= -Weffc++			# too many issues to fix for now
 COMMON_CFLAGS	+= -Wno-strict-aliasing		# TODO: need to rewrite some code
 COMMON_CFLAGS	+= -Wno-unused-parameter
@@ -57,45 +58,36 @@ LOCAL_MODULE := libmdklog
 LOCAL_SRC_FILES := 3rdPart/log4cplus/$(TARGET_ARCH_ABI)/libmdklog.so		   
 include $(PREBUILT_SHARED_LIBRARY)
 
+#sqlite3
+include $(CLEAR_VARS)
+LOCAL_MODULE := libsqlite3
+LOCAL_SRC_FILES := 3rdPart/sqlite3/$(TARGET_ARCH_ABI)/libsqlite3.so		   
+include $(PREBUILT_SHARED_LIBRARY)
+
 #libktx
-include $(CLEAR_VARS)
-LOCAL_MODULE := ktx
+#include $(CLEAR_VARS)
+#LOCAL_MODULE := ktx
 
-LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
-LOCAL_ARM_NEON  := true				# compile with neon support enabled
+#LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
+#LOCAL_ARM_NEON  := true				# compile with neon support enabled
 
-LOCAL_CFLAGS    := $(COMMON_CFLAGS)
-LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
+#LOCAL_CFLAGS    := $(COMMON_CFLAGS)
+#LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/ktx/include
+#LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/ktx/include
 
-LOCAL_SRC_PATH := 3rdPart/ktx/lib
-LOCAL_SRC_FILES :=	$(LOCAL_SRC_PATH)/checkheader.c \
-					$(LOCAL_SRC_PATH)/errstr.c \
-					$(LOCAL_SRC_PATH)/etcdec.cxx \
-					$(LOCAL_SRC_PATH)/etcunpack.cxx \
-					$(LOCAL_SRC_PATH)/hashtable.c \
-					$(LOCAL_SRC_PATH)/loader.c \
-					$(LOCAL_SRC_PATH)/swap.c \
-					$(LOCAL_SRC_PATH)/writer.c \
+#LOCAL_SRC_PATH := 3rdPart/ktx/lib
+#LOCAL_SRC_FILES :=	$(LOCAL_SRC_PATH)/checkheader.c \
+#					$(LOCAL_SRC_PATH)/errstr.c \
+#					$(LOCAL_SRC_PATH)/etcdec.cxx \
+#					$(LOCAL_SRC_PATH)/etcunpack.cxx \
+#					$(LOCAL_SRC_PATH)/hashtable.c \
+#					$(LOCAL_SRC_PATH)/loader.c \
+#					$(LOCAL_SRC_PATH)/swap.c \
+#					$(LOCAL_SRC_PATH)/writer.c \
 
-include $(BUILD_STATIC_LIBRARY)
+#include $(BUILD_STATIC_LIBRARY)
 
-#qualcomm
-include $(CLEAR_VARS)
-LOCAL_MODULE := qualcomm
-
-LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
-LOCAL_ARM_NEON  := true				# compile with neon support enabled
-
-LOCAL_CFLAGS    := $(COMMON_CFLAGS)
-LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
-
-LOCAL_SRC_PATH := 3rdPart/qualcomm
-LOCAL_SRC_FILES := $(LOCAL_SRC_PATH)/svrCpuTimer.cpp \
-					$(LOCAL_SRC_PATH)/svrGpuTimer.cpp
-
-include $(BUILD_STATIC_LIBRARY)
 
 ##################################################################################
 # libmojing
@@ -153,7 +145,10 @@ MOJING_SRC_FILES += Interface/Android/MojingAndroidAPI.cpp \
 					Interface/Unreal/MojingUnrealAPI.cpp \
 					Interface/Unity/GlStateSave.cpp \
 					Interface/Unity/UnityPlugin.cpp \
-					Interface/Unity/UnityDaydreamAPI.cpp
+					Interface/Unity/UnityPluginInterface/UnityPluginStatus.cpp \
+					Interface/Unity/UnityPluginInterface/UnityPluginInterfaceBase.cpp \
+					Interface/Unity/UnityPluginInterface/UnityPluginInterfaceQ820.cpp \
+#					Interface/Unity/UnityDaydreamAPI.cpp
 
 # Parameters
 MOJING_SRC_FILES += Parameters/MojingDeviceParameters.cpp \
@@ -181,7 +176,8 @@ MOJING_SRC_FILES += Profile/FileProfile.cpp \
 				   Profile/ProfileV2/GlassInfo.cpp \
 				   Profile/ProfileV2/ManufacturerInfo.cpp \
 				   Profile/ProfileV2/ProductInfo.cpp \
-				   Profile/UserSettingProfile.cpp 
+				   Profile/UserSettingProfile.cpp \
+				   Profile/UnrealJoystickProfile.cpp  
 
 # Render
 MOJING_SRC_FILES += Render/RenderFrame.cpp \
@@ -197,10 +193,7 @@ MOJING_SRC_FILES += Render/RenderFrame.cpp \
 				   Render/MojingRenderMultithread.cpp \
 				   Render/MojingRenderMultiThread_THREAD.cpp \
 				   Render/MultiThreadGLParam.cpp \
-				   Render/MojingRenderMultiThread_FB.cpp \
-				   Render/MojingRenderMultiThread_Qualcomm.cpp \
-				   3rdPart/Qualcomm/svrCpuTimer.cpp \
-				   3rdPart/Qualcomm/svrGpuTimer.cpp
+				   Render/MojingRenderMultiThread_FB.cpp
 			   
 # Reporter
 MOJING_SRC_FILES += Reporter/ActiveTimeInfoReporter.cpp \
@@ -225,7 +218,8 @@ MOJING_SRC_FILES += Tracker/AndroidInternalSensorChecker.cpp \
 					Tracker/MojingSensorFilter.cpp \
 					Tracker/MojingSensorFusion.cpp \
 					Tracker/MojingTemperature.cpp \
-					Tracker/MojingTracker.cpp 
+					Tracker/MojingTracker.cpp \
+					Tracker/MojingControllerSocket.cpp 
 
 # TextureBacker
 MOJING_SRC_FILES += TextureBacker/FBO.cpp TextureBacker/Shader.cpp TextureBacker/TextBaker.cpp
@@ -239,18 +233,18 @@ LOCAL_ARM_NEON  := true				# compile with neon support enabled
 
 LOCAL_CFLAGS    := $(COMMON_CFLAGS)
 LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
-
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/log4cplus/include
 LOCAL_SRC_FILES := $(MOJING_SRC_FILES)
 LOCAL_SRC_FILES += Render/MojingRenderMultiThread_3288.cpp \
 				   	3rdPart/3288VSync/C3288VSync.cpp \
 				   	3rdPart/3288Overlay/C3288Overlay.cpp \
-				   	3rdPart/3288Overlay/RenderOverlay3288.cpp
+				   	3rdPart/3288Overlay/RenderOverlay3288.cpp\
+					3rdPart/Qualcomm/CSVRApi.cpp
 
+LOCAL_LDLIBS    := -llog -lGLESv2 -lEGL -landroid -lz
+LOCAL_STATIC_LIBRARIES := breakpad_client
+LOCAL_SHARED_LIBRARIES := libcurl libsqlite3
 
-LOCAL_LDLIBS    := -llog -lGLESv2 -lEGL -landroid -lz -lsqlite
-LOCAL_STATIC_LIBRARIES := breakpad_client ktx
-LOCAL_SHARED_LIBRARIES := libcurl
 include $(BUILD_SHARED_LIBRARY)
 
 ##################################################################################
@@ -260,6 +254,24 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libOverlay
 LOCAL_SRC_FILES := 3rdPart/3288Overlay/lib/libOverlay.so	   
 include $(PREBUILT_SHARED_LIBRARY)
+
+
+##################################################################################
+# libsvrapi
+##################################################################################
+# include $(CLEAR_VARS)
+# LOCAL_MODULE := libsvrapi
+# LOCAL_SRC_FILES := 3rdPart/Qualcomm/lib/libsvrapi.so
+# include $(PREBUILT_SHARED_LIBRARY)
+
+
+##################################################################################
+# libqvrservice_client
+##################################################################################
+# include $(CLEAR_VARS)
+# LOCAL_MODULE := libqvrservice_client
+# LOCAL_SRC_FILES := 3rdPart/Qualcomm/lib/libqvrservice_client.so
+# include $(PREBUILT_SHARED_LIBRARY)
 
 ##################################################################################
 # libmojingvrrom

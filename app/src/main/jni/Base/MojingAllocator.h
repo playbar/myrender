@@ -2,7 +2,9 @@
 #define MJ_Allocator_h
 
 #include "MojingTypes.h"
-
+#include <pthread.h>// pthread_mutex_ XXXX
+#include <map>
+using namespace std;
 //-----------------------------------------------------------------------------------
 
 // ***** Disable template-unfriendly MS VC++ warnings
@@ -30,37 +32,37 @@
 #   else
     // Useful on MSVC
     MJ_FORCE_INLINE void* operator new     (UPInt n, void *ptr) { MJ_UNUSED(n); return ptr; }
-    MJ_FORCE_INLINE void  operator delete  (void *, void *)     { }
+	MJ_FORCE_INLINE void  operator delete  (void *, void *)     { }
 #   endif
 
 #endif // __PLACEMENT_NEW_INLINE
 
 
 
-//------------------------------------------------------------------------
-// ***** Macros to redefine class new/delete operators
+	//------------------------------------------------------------------------
+	// ***** Macros to redefine class new/delete operators
 
-// Types specifically declared to allow disambiguation of address in
-// class member operator new.
+	// Types specifically declared to allow disambiguation of address in
+	// class member operator new.
 
 #define MJ_MEMORY_REDEFINE_NEW_IMPL(class_name, check_delete)                          \
-    void*   operator new(UPInt sz)                                                      \
-    { void *p = MJ_ALLOC_DEBUG(sz, __FILE__, __LINE__); return p; }                                              \
-    void*   operator new(UPInt sz, const char* file, int line)                          \
-    { void* p = MJ_ALLOC_DEBUG(sz, file, line); MJ_UNUSED2(file, line); return p; }   \
-    void    operator delete(void *p)                                                    \
-    { check_delete(class_name, p); MJ_FREE(p); }                                       \
-    void    operator delete(void *p, const char*, int)                                  \
-    { check_delete(class_name, p); MJ_FREE(p); }                          
+	void*   operator new(UPInt sz)                                                      \
+	{ void *p = MJ_ALLOC_DEBUG(sz, __FILE__, __LINE__); return p; }                                              \
+	void*   operator new(UPInt sz, const char* file, int line)                          \
+	{ void* p = MJ_ALLOC_DEBUG(sz, file, line); MJ_UNUSED2(file, line); return p; }   \
+	void    operator delete(void *p)                                                    \
+	{ check_delete(class_name, p); MJ_FREE(p); }                                       \
+	void    operator delete(void *p, const char*, int)                                  \
+	{ check_delete(class_name, p); MJ_FREE(p); }
 
 #define MJ_MEMORY_DEFINE_PLACEMENT_NEW                                                 \
-    void*   operator new        (UPInt n, void *ptr)    { MJ_UNUSED(n); return ptr; }  \
-    void    operator delete     (void *ptr, void *ptr2) { MJ_UNUSED2(ptr,ptr2); }
+	void*   operator new        (UPInt n, void *ptr){ MJ_UNUSED(n); return ptr; }  \
+	void    operator delete     (void *ptr, void *ptr2) { MJ_UNUSED2(ptr, ptr2); }
 
 
 #define MJ_MEMORY_CHECK_DELETE_NONE(class_name, p)
 
-// Redefined all delete/new operators in a class without custom memory initialization
+	// Redefined all delete/new operators in a class without custom memory initialization
 #define MJ_MEMORY_REDEFINE_NEW(class_name) \
     MJ_MEMORY_REDEFINE_NEW_IMPL(class_name, MJ_MEMORY_CHECK_DELETE_NONE)
 
@@ -173,12 +175,12 @@
 				// Realloc of pointer == 0 is equivalent to Alloc
 				// Realloc to size == 0, shrinks to the minimal size, pointer remains valid and requires Free().
 				virtual void*   Realloc(void* p, UPInt newSize) = 0;
-
+				virtual void*   ReallocDebug(void* p, UPInt newSize) = 0;
 				// Frees memory allocated by Alloc/Realloc.
 				// Free of null pointer is valid and will do nothing.
 				virtual void    Free(void *p) = 0;
 
-
+				virtual void    FreeDebug(void *p) = 0;
 				// *** Standard Alignment Alloc/Free
 
 				// Allocate memory of specified alignment.
@@ -269,12 +271,53 @@
 			// This allocator is created and used if no other allocator is installed.
 			// Default allocator delegates to system malloc.
 
+			struct MemMutex
+			{
+				MemMutex()
+				{
+					pthread_mutex_init(&mtx, NULL);
+				}
+
+				~MemMutex()
+				{
+					pthread_mutex_destroy(&mtx);
+				}
+
+				inline void lock()
+				{
+					pthread_mutex_lock(&mtx);
+				}
+
+				inline void unlock()
+				{
+					pthread_mutex_unlock(&mtx);
+				}
+
+				pthread_mutex_t mtx;
+
+			};
+			struct __tagAllocatorInfo
+			{
+				char * m_pszFile;
+				int m_iLine;
+				int m_iSize;
+				int m_iAllocSize;
+				unsigned char *m_pPosition;
+			};
 			class DefaultAllocator : public Allocator_SingletonSupport<DefaultAllocator>
 			{
+				MemMutex m_AllocTableLock;
+				map<void *, __tagAllocatorInfo> m_AllocTable;
+				void BeforeMapOP(){ m_AllocTableLock.lock(); };
+				void AfterMapOP(){ m_AllocTableLock.unlock(); };
+
 			public:
+				virtual ~DefaultAllocator();
 				virtual void*   Alloc(UPInt size);
 				virtual void*   AllocDebug(UPInt size, const char* file, unsigned line);
 				virtual void*   Realloc(void* p, UPInt newSize);
+				virtual void*   ReallocDebug(void* p, UPInt newSize);
+				virtual void    FreeDebug(void *p);
 				virtual void    Free(void *p);
 			};
 
@@ -286,17 +329,19 @@
 			// macros will allows allocation to be extended with debug file/line information
 			// if necessary.
 
-#define MJ_REALLOC(p,s)        Allocator::GetInstance()->Realloc((p),(s))
-#define MJ_FREE(p)             Allocator::GetInstance()->Free((p))
-#define MJ_ALLOC_ALIGNED(s,a)  Allocator::GetInstance()->AllocAligned((s),(a))
-#define MJ_FREE_ALIGNED(p)     Allocator::GetInstance()->FreeAligned((p))
+#define MJ_ALLOC_ALIGNED(s,a)  Baofeng::Mojing::Allocator::GetInstance()->AllocAligned((s),(a))
+#define MJ_FREE_ALIGNED(p)     Baofeng::Mojing::Allocator::GetInstance()->FreeAligned((p))
 
-#ifdef MJ_BUILD_DEBUG
-#define MJ_ALLOC(s)            Allocator::GetInstance()->AllocDebug((s), __FILE__, __LINE__)
-#define MJ_ALLOC_DEBUG(s,f,l)  Allocator::GetInstance()->AllocDebug((s), f, l)
+#if defined( MJ_BUILD_DEBUG) || defined(_DEBUG) 
+#define MJ_ALLOC(s)            Baofeng::Mojing::Allocator::GetInstance()->AllocDebug((s), __FILE__, __LINE__)
+#define MJ_ALLOC_DEBUG(s,f,l)  Baofeng::Mojing::Allocator::GetInstance()->AllocDebug((s), f, l)
+#define MJ_FREE(p)             Baofeng::Mojing::Allocator::GetInstance()->FreeDebug((p))
+#define MJ_REALLOC(p,s)        Baofeng::Mojing::Allocator::GetInstance()->ReallocDebug((p),(s))
 #else
-#define MJ_ALLOC(s)            Allocator::GetInstance()->Alloc((s))
-#define MJ_ALLOC_DEBUG(s,f,l)  Allocator::GetInstance()->Alloc((s))
+#define MJ_ALLOC(s)            Baofeng::Mojing::Allocator::GetInstance()->Alloc((s))
+#define MJ_ALLOC_DEBUG(s,f,l)  Baofeng::Mojing::Allocator::GetInstance()->Alloc((s))
+#define MJ_FREE(p)             Baofeng::Mojing::Allocator::GetInstance()->Free((p))
+#define MJ_REALLOC(p,s)        Baofeng::Mojing::Allocator::GetInstance()->Realloc((p),(s))
 #endif
 
 			//------------------------------------------------------------------------

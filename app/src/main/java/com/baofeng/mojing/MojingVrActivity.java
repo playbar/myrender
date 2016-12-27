@@ -29,7 +29,7 @@ public class MojingVrActivity extends Activity {
     @Override protected void onPause() {
         mMojingSurfaceView.onPause();
         super.onPause();
-		MojingSDKSensorManager.getInstance().unRegister(this);
+		MojingSDKSensorManager.UnRegisterSensor(this);
         MojingSDKServiceManager.onPause(this);
         com.baofeng.mojing.MojingVrLib.stopVsync(this);
 		MojingSDKReport.onPause(this);
@@ -38,7 +38,7 @@ public class MojingVrActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();   
 
-		MojingSDKSensorManager.getInstance().register(this);
+		MojingSDKSensorManager.RegisterSensor(this);
         MojingSDKServiceManager.onResume(this);
 		com.baofeng.mojing.MojingVrLib.startVsync(this);
         mMojingSurfaceView.onResume();

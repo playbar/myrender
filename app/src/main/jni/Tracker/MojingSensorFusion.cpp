@@ -286,6 +286,38 @@ namespace Baofeng
 			m_bHasData = true;
 		}
 
+		void SensorFusion::OnSensorData(Quatf fOrientation, Vector3f fAngularAcceleration, Vector3f fLinearAcceleration, double dTimeInSeconds, float fTemperature)
+		{
+			StateForPrediction state;
+			state.State.Transform.Orientation.x = fOrientation.x;
+			state.State.Transform.Orientation.y = fOrientation.y;
+			state.State.Transform.Orientation.z = fOrientation.z;
+			state.State.Transform.Orientation.w = fOrientation.w;
+
+			state.State.AngularAcceleration.x = fAngularAcceleration.x;
+			state.State.AngularAcceleration.y = fAngularAcceleration.y;
+			state.State.AngularAcceleration.z = fAngularAcceleration.z;
+
+			state.State.LinearAcceleration.x = fLinearAcceleration.x;
+			state.State.LinearAcceleration.y = fLinearAcceleration.y;
+			state.State.LinearAcceleration.z = fLinearAcceleration.z;
+
+			state.State.TimeInSeconds = dTimeInSeconds;
+			state.Temperature = fTemperature;
+
+			state.State.LinearVelocity.x = state.State.LinearVelocity.y = state.State.LinearVelocity.z = 0.0f;
+			state.State.Transform.Position.x = state.State.Transform.Position.y = state.State.Transform.Position.z = 0.0f;
+
+#ifdef ENABLE_SENSOR_LOGGER
+			Quatf orientation = state.State.Transform.Orientation;
+			MOJING_TRACE(g_Sensorlogger, "Temperature = " << fTemperature << \
+				", orientation (" << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << ")");
+#endif
+			UpdatedState.SetState(state);
+
+			m_bHasData = true;
+		}
+
 		// These two functions need to be moved into Quat class
 		// Compute a rotation required to Pose "from" into "to".
 		Quatf vectorAlignmentRotation(const Vector3f &from, const Vector3f &to)
@@ -726,6 +758,8 @@ namespace Baofeng
 					sstate.Predicted.Transform = recenter * state.State.Transform;
 				}
 			}
+			sstate.Predicted.AngularAcceleration = state.State.AngularAcceleration;
+			sstate.Predicted.LinearAcceleration = state.State.LinearAcceleration;
 //			dTime[1] = Timer::GetSeconds();
 //			MOJING_TRACE(g_APIlogger, "GetPredictionForTime Time All = " << Timer::FormatDoubleTime(dTime[1] - dTime[0]));
 			if (pdOutSensotTime)

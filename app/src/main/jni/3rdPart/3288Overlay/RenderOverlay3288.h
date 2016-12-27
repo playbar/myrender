@@ -1,7 +1,10 @@
 ﻿#pragma once
 #include "C3288Overlay.h"
+#include "../../Base/MojingThreads.h"
 #include "../../Render/GlGeometry.h"
 #include "../../Render/GLProgram.h"
+
+
 namespace Baofeng
 {
 	namespace Mojing

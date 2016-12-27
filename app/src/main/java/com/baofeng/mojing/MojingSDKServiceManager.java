@@ -1,23 +1,24 @@
 package com.baofeng.mojing;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.baofeng.mojing.service.IServiceResponse;
 import com.baofeng.mojing.service.MojingSDKAIDLService;
-import com.baofeng.mojing.service.IServiceResponse.Stub;
 
-import android.R.string;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.InputDevice;
 
 public class MojingSDKServiceManager {
 
@@ -28,9 +29,12 @@ public class MojingSDKServiceManager {
 	
 	private static String packageName;
 	private static String glassName = "UNKNOWN";
-	private static boolean isGlassTracker = false;
+	private static boolean isServiceTracker = false;
 	private static MojingSDKAIDLService mService = null;
 	private static boolean noTrackerMode = false;
+	
+	private static Timer g_SocketHBTimer;
+	private static Object g_SocketHBTimerSync = new Object();
 	
 	private static ServiceConnection connection = new ServiceConnection() {
 		
@@ -45,6 +49,9 @@ public class MojingSDKServiceManager {
         	try {
         		JSONObject jsonObj = new JSONObject();
 				jsonObj.put("PackageName", packageName);
+				jsonObj.put("EnableSensorFusion", true);
+				jsonObj.put("SensorFromJava", com.baofeng.mojing.MojingSDK.IsSensorFromJava());
+				//jsonObj.put("UseSocket", true);
 				mService.clientResume(jsonObj.toString(), callback);
 	        } catch (RemoteException e) {
 	            e.printStackTrace();
@@ -57,12 +64,44 @@ public class MojingSDKServiceManager {
     private final static IServiceResponse.Stub callback = new IServiceResponse.Stub() {
     	@Override
         public void sensorSuccess(final String params) {
+			isServiceTracker = true;
 			try {
 				JSONObject jsonObj = new JSONObject(params);
 				glassName = jsonObj.getString("GlassName");
-				if (!noTrackerMode) com.baofeng.mojing.MojingSDK.StartGlassTracker(glassName);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
+				if (!noTrackerMode) 
+				{
+					MojingSDKAIDLService service = getService();
+					if (service != null) {
+						service.addSocketTarget(com.baofeng.mojing.MojingSDK.GetSocketPort());
+						
+						// start socket heartbeat
+						if (g_SocketHBTimer == null)
+							g_SocketHBTimer = new Timer();
+						g_SocketHBTimer.schedule(new TimerTask()
+						{
+							@Override
+							public void run()
+							{
+								synchronized (g_SocketHBTimerSync)
+								{
+									Log.w(TAG, "socketHeartbeat");
+									if (g_SocketHBTimer != null)
+									{
+										try {
+											mService.socketHeartbeat(com.baofeng.mojing.MojingSDK.GetSocketPort());
+											Log.w(TAG, "socketHeartbeat ok");
+										} catch (RemoteException e) {
+											e.printStackTrace();
+										}
+									}// end of if
+								}// end of synchronized (g_SocketHBTimerSync)
+							}// end of run
+						}, 0, 30000);
+					}
+					
+					com.baofeng.mojing.MojingSDK.StartGlassTracker(glassName);
+				}
+			} catch (Exception e) {
 				e.printStackTrace();
 				if (!noTrackerMode) com.baofeng.mojing.MojingSDK.StartTracker(100);
 			}
@@ -70,15 +109,18 @@ public class MojingSDKServiceManager {
         
         @Override
         public void sensorFailed(final String params) {
+			isServiceTracker = false;
         	if (!noTrackerMode) com.baofeng.mojing.MojingSDK.StartTracker(100);
         }
 
 		@Override
 		public void sensorStopped() throws RemoteException {
+			isServiceTracker = true;
 		}
 
 		@Override
 		public void sensorStarted(String params) throws RemoteException {
+			isServiceTracker = true;
 			if (!noTrackerMode) com.baofeng.mojing.MojingSDK.StopTracker();
 			
 			try {
@@ -103,7 +145,6 @@ public class MojingSDKServiceManager {
 					if (hmdUploadCompleteListener != null) hmdUploadCompleteListener.onHMDUploadComplete();
 				}
 				else if (eventName.equals("HMDTracker")) {
-					isGlassTracker = jsonObj.getBoolean("State");
 					if (hmdTrackerListener != null) hmdTrackerListener.onHMDTrackerStateChanged(jsonObj.getBoolean("State"));
 				}
 				else if (eventName.equals("HMDWorking")) {
@@ -119,7 +160,33 @@ public class MojingSDKServiceManager {
 				e.printStackTrace();
 			}
 		}
+
+		@Override
+		public void onControllerData(int id, byte[] data) throws RemoteException {
+			if (controllerListener != null) controllerListener.onData(id, data);
+		}
+
+		@Override
+		public void onControllerConnect(int id) throws RemoteException {
+			if (controllerListener != null) controllerListener.onDeviceConnect(id);
+		}
+
+		@Override
+		public void onControllerDisconnect(int id) throws RemoteException {
+			if (controllerListener != null) controllerListener.onDeviceDisconnect(id);
+		}
     };
+    
+    public interface ControllerListener {
+    	void onData(int id, byte[] data);
+    	void onDeviceConnect(int id);
+    	void onDeviceDisconnect(int id);
+    }
+    
+    private static ControllerListener controllerListener = null;
+    public static void setControllerListener(ControllerListener listener) {
+    	controllerListener = listener;
+	}
     
     public interface HMDLowPowerListener {
         void onHMDLowPowerStateChanged(boolean isLowPower);
@@ -190,6 +257,7 @@ public class MojingSDKServiceManager {
     }
     
 	public static void onResume(Activity activity) {
+		if(com.baofeng.mojing.MojingSDK.IsUseUnityForSVR()) return;
 		noTrackerMode = false;
 		bindService(activity);
 	}
@@ -212,10 +280,20 @@ public class MojingSDKServiceManager {
 	}
 	
 	public static void onPause(Activity activity) {
+		if(com.baofeng.mojing.MojingSDK.IsUseUnityForSVR()) return;
 		if (mService != null) {
 			try {
+				// stop socket heartbeat
+				if (g_SocketHBTimer != null)
+					g_SocketHBTimer.cancel();		
+				g_SocketHBTimer = null;
+				
+				mService.removeSocketTarget(com.baofeng.mojing.MojingSDK.GetSocketPort());
+				
 				JSONObject jsonObj = new JSONObject();
 				jsonObj.put("PackageName", activity.getPackageName());
+				jsonObj.put("EnableSensorFusion", true);
+				jsonObj.put("UseSocket", true);
 				mService.clientPause(jsonObj.toString());
 	        } catch (RemoteException e) {
 	            e.printStackTrace();
@@ -232,14 +310,14 @@ public class MojingSDKServiceManager {
 		return mService;
 	}
 	
-	public static boolean isGlassTracker() {
-		return isGlassTracker;
+	public static boolean isServiceTracker() {
+		return isServiceTracker;
 	}
 	
 	public static boolean StartTracker () {
 		if(noTrackerMode) return false;
 
-		if(isGlassTracker)
+		if(isServiceTracker)
 		{
 			return com.baofeng.mojing.MojingSDK.StartGlassTracker(glassName);
 		}
@@ -247,5 +325,37 @@ public class MojingSDKServiceManager {
 		{
 			return com.baofeng.mojing.MojingSDK.StartTracker(100);  	
 		}
-	}	
+	}
+
+	/*
+	public static String getSkinList()
+	{
+		if(mService != null)
+		{
+			try
+			{
+				return mService.getSkinList();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return "";
+	}
+		
+	public static int loadOneSkin(String skinName)
+	{
+		if(mService != null)
+		{
+			try
+			{
+				return mService.loadOneSkin(skinName);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return 0;
+	}
+	*/
 }

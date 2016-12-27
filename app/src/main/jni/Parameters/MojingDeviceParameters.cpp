@@ -1,17 +1,63 @@
 ﻿#include "MojingDeviceParameters.h"
+#include <stdio.h>
 #include "../Base/MojingTypes.h"
 #include "../MojingManager.h"
 #include "../Parameters/MojingParameters.h"
+#ifdef LOG4CPLUS_IMPORT
+#include "../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../LogTraker/LogInterface.h"
+#endif
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
 
+
+#ifdef MJ_OS_ANDROID
+#include "../3rdPart/Qualcomm/CSVRApi.h"
+#endif
 namespace Baofeng
 {
 	namespace Mojing
 	{
-		MojingDeviceParameters::MojingDeviceParameters()
+		MojingDeviceParameters::MojingDeviceParameters():
+			m_iAbility(DEVICE_ABILITY_NONE)
 		{
 			SetClassName(__FUNCTION__);
 			m_bIsMachine = false;
 			m_bSensorDataFromJava = false;
+			{
+#ifdef MJ_OS_ANDROID
+				// 注意：因为SVR的代码里面有硬代码exit(1)，所以不能直接调用初始化测试硬件能力
+				// 需要先检查是否是存在以下文件
+#ifdef _DEBUG
+				MOJING_TRACE(g_APIlogger, "Check qvrservice....");
+#endif
+				if (-1 != access("/vendor/bin/qvrservice", 0))
+				{// 程序执行到这里表示疑似存在qvrservice，下面检查可靠性
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "Qvrservice exist, try init....");
+#endif
+
+					CSVRApi svrApi;
+					if (svrApi.Init() && svrApi.CheckServiceIsAvaliable())
+					{
+						MOJING_TRACE(g_APIlogger, "Qvrservice exist and working , + DEVICE_ABILITY_SVR");
+						m_iAbility |= DEVICE_ABILITY_SVR;
+					}
+					else
+					{
+						MOJING_TRACE(g_APIlogger, "Qvrservice exist, but not working with current version....");
+					}
+				}
+				else
+				{
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "Qvrservice not exist....");
+#endif
+				}
+#endif // MJ_OS_ANDROID
+			}
 		}
 
 

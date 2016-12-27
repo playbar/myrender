@@ -13,6 +13,24 @@
 #define DEBUG_LOG_LEVEL			10000
 #define TRACE_LOG_LEVEL			0
 
+/* For debug builds, always enable the debug traces in this library */
+#ifndef NDEBUG
+#include <android/log.h>
+#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, "MojingLogger", __VA_ARGS__))
+#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "MojingLogger", __VA_ARGS__))
+#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_WARN, "MojingLogger", __VA_ARGS__))
+#define LOGW(...)  ((void)__android_log_print(ANDROID_LOG_WARN, "MojingLogger", __VA_ARGS__))
+#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, "MojingLogger", __VA_ARGS__))
+#define LOGF(...)  ((void)__android_log_print(ANDROID_LOG_FATAL, "MojingLogger", __VA_ARGS__))
+#else
+#define LOGV(...)  ((void)0)
+#define LOGI(...)  ((void)0)
+#define LOGD(...)  ((void)0)
+#define LOGW(...)  ((void)0)
+#define LOGE(...)  ((void)0)
+#define LOGF(...)  ((void)0)
+#endif
+
 class MojingLogger
 {
 public:
@@ -47,7 +65,7 @@ private:
 
 #define LOG_BODY(logger, logEvent, logLevel)                \
 	do {													\
-		if (logger.m_nLogLevel >= logLevel) {				\
+		if (logLevel >= logger.m_nLogLevel ) {				\
 			std::ostringstream _buf;						\
 			_buf << logEvent;                               \
 			logger.Log(logLevel, _buf.str().c_str(),		\

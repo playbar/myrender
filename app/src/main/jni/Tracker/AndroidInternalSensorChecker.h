@@ -45,7 +45,7 @@ namespace Baofeng
 			virtual void OnSensorData(MessageBodyFrame& sensorFrame);
 			// 统计所有的误差
 			__tagSampleChecker m_Sample[500];	// 500个采样数据
-			int CalculateSamples(__tagSampleCheckeResult * pSampleCheckeResult);// 返回本轮统计计算的采样数
+			void CalculateSamples(__tagSampleCheckeResult * pSampleCheckeResult);// 返回本轮统计计算的采样数
 
 			int m_iSampleCount;		// 已经得到的采样数
 			float m_SampleOffset[499];	// 从下标1开始的相邻两个元素的差，即So[n] = S[n+1] - S[n] 

@@ -1,4 +1,5 @@
 ﻿#include <dirent.h>
+#include <unistd.h>
 #include "MojingAPI.h"
 #include "Base/MojingTypes.h"
 #include "MojingManager.h"
@@ -27,13 +28,12 @@
 
 #ifdef MJ_OS_ANDROID
 #include "Tracker/AndroidInternalSensorChecker.h"
+//#include "Tracker/MojingControlPose.h"
+#include "Tracker/MojingControllerSocket.h"
 #endif
-#include <unistd.h>
-
 
 #include "3rdPart/MD5/MD5.h"
 #include "3rdPart/AES/AES.h"
-
 
 #include "Profile/ProfileThreadMGR.h"
 
@@ -221,15 +221,30 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 #endif
 
 #ifdef MJ_OS_ANDROID
-	CheckLibSqlite();
+	//CheckLibSqlite();
 #endif
 
 #ifdef MJ_OS_IOS
 	
 #endif
+#include <stdio.h>  
+
 
 #ifdef _DEBUG
 	MojingProfileKey Key;
+
+	// Key.SetString("SWAFHF-AZZG4F-CBEYD9-9323ZT-XBXX9T-CGCTAC");
+	// 1-10-18
+	Key.SetString("2Q2XWR-9YWQSQ-WUHFH7-WWE2WW-8RW84W-XT2FEX");
+	MOJING_TRACE(g_APIlogger , "2Q2XWR-9YWQSQ-WUHFH7-WWE2WW-8RW84W-XT2FEX >>>>> MID = " << Key.GetManufacturerID() <<
+		"PID = " << Key.GetProductID() <<
+		"GID = " << Key.GetGlassID());
+	
+	
+	Key.SetString("932NHM-CNSYA8-DGZ3XQ-XQEYQZ-8NHFDZ-HHDC4C");
+	MOJING_TRACE(g_APIlogger, "932NHM-CNSYA8-DGZ3XQ-XQEYQZ-8NHFDZ-HHDC4C >>>>> MID = " << Key.GetManufacturerID() <<
+		"PID = " << Key.GetProductID() <<
+		"GID = " << Key.GetGlassID());
 #define  PRINT_KEY( MID , PID , GID) do \
 	{\
 	MOJING_TRACE(g_APIlogger, "/* " << MID << " , " << PID << " , " << GID << " */ \"" << MojingProfileKey::GetStringWithID(MID, PID, GID) << "\""); \
@@ -237,7 +252,8 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 
 	MOJING_TRACE(g_APIlogger , "/*****************PRINT KEYS**********************/");
 	PRINT_KEY(1, 100, 100);
-	PRINT_KEY(1, 101, 101);
+	PRINT_KEY(1, 10, 18);
+	PRINT_KEY(235, 235, 235);
 // 	PRINT_KEY(201, 201, 201);
 // 	PRINT_KEY(202, 202, 202);
 // 	PRINT_KEY(203, 203, 203);
@@ -360,20 +376,26 @@ void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const cha
 
 bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 {
+	MOJING_FUNC_TRACE(g_APIlogger);
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
-	if (!pStatus->IsMojingSDKEnbaled())
+	if (pStatus == NULL || !pStatus->IsMojingSDKEnbaled())
 	{
 		MOJING_ERROR(g_APIlogger, "MojingSDK_SetEngineVersion before SDK init! InitStatus = " << pStatus->GetInitStatus());
 		return false;
 	}
 	
+	//MOJING_TRACE(g_APIlogger , "MojingSDK_SetEngineVersion - 1" << lpszEngine);
+
 	if (lpszEngine && *lpszEngine)
 	{
+		//MOJING_TRACE(g_APIlogger, "MojingSDK_SetEngineVersion - 2" << lpszEngine);
+
 		char *szTempEngine = new char[strlen(lpszEngine) + 1];
 		char *szTempDest = szTempEngine;
 		const char *szTempSrc = lpszEngine;
 		// 复制引擎信息，并且转换为小写
-		while (*szTempDest++ = tolower(*szTempSrc++));
+		while (*szTempDest++ = (char)tolower(*szTempSrc++));
+		//MOJING_TRACE(g_APIlogger, "MojingSDK_SetEngineVersion - 3" << lpszEngine);
 
 		if (strstr(szTempEngine, "unreal"))
 		{
@@ -383,7 +405,11 @@ bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 		{
 			pStatus->SetEngineStatus(ENGINE_UNITY);
 		}
-
+		else
+		{
+			pStatus->SetEngineStatus(ENGINE_NONE);
+		}
+		//MOJING_TRACE(g_APIlogger, "MojingSDK_SetEngineVersion - 4" << lpszEngine);
 		if (strcmp(lpszEngine, "Unreal Engine Init"))
 		{
 			JSON* joMsg = JSON::CreateObject();
@@ -399,7 +425,7 @@ bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 			joMsg->AddStringItem("engine", lpszEngine);
 			MojingSDK_ReportLog(2000, "ReportEngineInfo", joMsg->PrintValue(0, false), true);
 		}
-
+		//MOJING_TRACE(g_APIlogger, "MojingSDK_SetEngineVersion - 5" << lpszEngine);
 		MOJING_TRACE(g_APIlogger, "Set Engine = " << lpszEngine);
 		pStatus->SetEngine(lpszEngine);
 		delete[] szTempEngine;
@@ -409,7 +435,9 @@ bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 		pStatus->SetEngineStatus(ENGINE_NONE);
 		pStatus->SetEngine("");
 		MOJING_TRACE(g_APIlogger, "Set Engine = NONE" );
+		//MOJING_TRACE(g_APIlogger, "MojingSDK_SetEngineVersion - 0" << lpszEngine);
 	}
+	
 	return true;
 }
 // 获取指定镜片的畸变框物理尺寸
@@ -447,7 +475,7 @@ void MojingSDK_AppExit()
 bool MojingSDK_AppResume(const char* szUniqueID)
 {
 	mj_Initialize();
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	MojingRenderBase::SetModify();
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
@@ -698,11 +726,27 @@ void MojingSDK_SendSensorData(float* pArray, double dLastSampleTime)
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled())
 	{
-		MOJING_ERROR(g_APIlogger, "StartTracker befor SDK init! InitStatus = " << pStatus->GetInitStatus());
+		MOJING_ERROR(g_APIlogger, "MojingSDK_SendSensorData befor SDK init! InitStatus = " << pStatus->GetInitStatus());
 		return;
 	}
 	
 	Manager::GetMojingManager()->GetTracker()->SendSensorData(pArray, dLastSampleTime);
+}
+
+void MojingSDK_SendControllerData(const Baofeng::UByte* pArray, int dataLen)
+{
+	ENTER_MINIDUMP_FUNCTION;
+	//	MOJING_FUNC_TRACE(g_APIlogger);
+	mj_Initialize();
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_SnedControllerData befor SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return;
+	}
+#ifdef MJ_OS_ANDROID
+    Manager::GetMojingManager()->GetControlTracker()->ReadMMapData(pArray, dataLen);
+#endif
 }
 
 int MojingSDK_CheckSensors()
@@ -804,6 +848,8 @@ int MojingSDK_StartTrackerChecker(int nSampleFrequence)
 int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult)
 {
 	memcpy(pOutCheckeResult, AndroidInternalSensorChecker::GetSampleCheckeResult(), sizeof(__tagSampleCheckeResult));
+
+	return 1;
 }
 #endif
 
@@ -894,6 +940,31 @@ void MojingSDK_ResetTracker(void)
 		Tracker* pTracker = pManager->GetTracker();
 		pTracker->ResetTracker();
 	}
+}
+
+double MojingSDK_getLastSensorState(float* fArray)
+{
+	double Ret = 0;
+
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled() || pStatus->GetTrackerStatus() != TRACKER_START)
+	{
+		MOJING_ERROR(g_APIlogger, "getLastSensorState FAILD! InitStatus = " << pStatus->GetInitStatus() << " , TrackerStatus = " << pStatus->GetTrackerStatus());
+		memset(fArray, 0, sizeof(float)* 10);
+		return Ret;
+	}
+
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		Tracker* pTracker = pManager->GetTracker();
+		if (pTracker)
+		{
+			Ret = pTracker->getLastSensorState(fArray);			
+		}
+	}
+
+	return Ret;
 }
 
 uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
@@ -1079,8 +1150,14 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 		MOJING_ERROR(g_APIlogger, "EnterMojingWorld with out Init SDK!");
 		return false;
 	}
-	
-	if (pStatus->GetEngineStatus() != ENGINE_UNREAL)
+	MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
+	MachineListNode CurrentMachineType = pDeviceParameters->GetCurrentMachine();
+	bool bIsUnreal = (pStatus->GetEngineStatus() == ENGINE_UNREAL);
+	bool bIsUnityWithQ820 = ((pStatus->GetEngineStatus() == ENGINE_UNITY) &&
+		// pDeviceParameters->GetCurrentMachine().m_iID == 2
+		(pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR) != 0);
+
+	if (!bIsUnreal && !bIsUnityWithQ820)
 	{
 		if (NULL != MojingRenderBase::GetCurrentRender())
 		{
@@ -1119,13 +1196,20 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 	
 	if (MojingSDK_ChangeMojingWorld(szGlassesName))
 	{
-		if (pStatus->GetEngineStatus() != ENGINE_UNREAL)
+
+		if (!bIsUnreal// UNREAL不需要 创建Render对象
+			&& !bIsUnityWithQ820)// 高通820的Unity模式不创建Render对象
 		{// Unreal 不用创建绘制对象
+			MOJING_TRACE(g_APIlogger ,"MojingRenderBase::CreateCurrentRender - 1");
 			MojingRenderBase::CreateCurrentRender(bEnableMultiThread, bEnableTimeWarp);
-			return MojingRenderBase::GetCurrentRender() != NULL;
+			MOJING_TRACE(g_APIlogger, "MojingRenderBase::CreateCurrentRender - 2");
+			bool bRet = MojingRenderBase::GetCurrentRender() != NULL;
+			MOJING_TRACE(g_APIlogger, "MojingRenderBase::CreateCurrentRender - 3 :: " << bRet);
+			return bRet;
 		}
 		else
 		{
+			MOJING_TRACE(g_APIlogger, "Skip creat render object , " << bIsUnreal << bIsUnityWithQ820);
 			return true;
 		}
 	}
@@ -1448,11 +1532,33 @@ int MojingSDK_GetTextureSize()
 	int iScreenSize = fmin(height , width);//(height > width) ? height / 2 : width / 2;
 	// 安卓手机最大提供1024的分辨率
 	//return fmin(1024 , iScreenSize &0xFFFFFF00);
+	if (Manager::GetMojingManager()->GetParameters()->GetDeviceParameters()->GetCurrentMachine().m_iID == 2)
+	{// 820一体机，分辨率1440
+		MOJING_TRACE(g_APIlogger , "MachineType = 2 , Set TextureSize = 1440" );
+		return 1440;
+	}
 	return max(1024u , iScreenSize & 0xFFFFFF00);
 //#endif
 #endif
 }
 
+#ifdef MJ_OS_ANDROID
+bool MojingSDK_IsUseUnityForSVR()
+{
+	MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
+	if (pDeviceParameters == NULL)
+	{
+		MOJING_TRACE(g_APIlogger, "MojingSDK_IsUseUnityForSVR: get DeviceParameters failed.");
+		return false;
+	}
+	if (pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR)
+	{
+		MOJING_TRACE(g_APIlogger, "Run in SVR device..." );
+		return true;
+	}
+	return false;
+}
+#endif
 
 float MojingSDK_GetFOV()
 {
@@ -1522,7 +1628,7 @@ void MojingSDK_SetCenterLine(int iWidth, int colR, int colG, int colB, int colA)
 #define EYE_LEFT	0
 #define EYE_CENTER	1
 #define EYE_RIGHT	2
-void MojingSDK_getProjectionMatrix(int eye, bool bVrMode, float fFOV, float fNear, float fFar, float* pfProjectionMatrix, int* pfViewRect)
+void MojingSDK_GetProjectionMatrix(int eye, bool bVrMode, float fFOV, float fNear, float fFar, float* pfProjectionMatrix, int* pfViewRect)
 {
 	ENTER_MINIDUMP_FUNCTION;
 	Parameters* pParameters = Manager::GetMojingManager()->GetParameters();
@@ -1531,8 +1637,9 @@ void MojingSDK_getProjectionMatrix(int eye, bool bVrMode, float fFOV, float fNea
 	int iWidth = pDisplay->GetScreenWidth();
 
 	float fAspect;
-
+	// iMin = 手柄屏幕长边的一半
 	int iMin = (iWidth > iHeight) ? iWidth / 2 : iHeight / 2;
+	// iMax 
 	int iMax = (iWidth > iHeight) ? iHeight : iWidth;
 
 	if (bVrMode)
@@ -1790,7 +1897,7 @@ void MojingSDK_SetOverlayPosition(const float fLeft, const float fTop, const flo
 		// 注意：这里不再做有效性检查，等到绘制的时候再去处理
 		Vector4f OverlayRect = Vector4f(fLeft, fTop, fWidth, fHeight); 
 #ifdef _DEBUG
-		char szTemp[100];
+		char szTemp[256];
 		sprintf(szTemp, "MojingSDK_SetOverlayPosition : Left&& Right : Rect = {%1.2f , %1.2f , %1.2f , %1.2f}", OverlayRect.x, OverlayRect.y, OverlayRect.z, OverlayRect.w);
 		MOJING_TRACE(g_APIlogger, szTemp);
 #endif	
@@ -1823,9 +1930,13 @@ Vector3f PointInNear(float fNear, Vector3f fEye, Vector3f fPoint)
 
 	return Vector3f(fXNear , fYNear , fNear);
 }
+#define FIX_COUNT (1000.0f)
+
 void MojingSDK_Math_GetOverlayPosition3D(float fLeft, float fTop, float fWidth, float fHeight, float fDistanceInMetre, Vector4f &OverlayRectLeft, Vector4f &OverlayRectRight)
 {
-#define FIX_COUNT (1000.0f)
+	Manager* pManager = Manager::GetMojingManager();
+	float fYOffset = pManager->GetDistortion()->GetYOffset() / pManager->GetParameters()->GetDisplayParameters()->GetScreenHeightMeter();
+
 	if (fDistanceInMetre < 1e5)
 	{
 		OverlayRectLeft = OverlayRectRight = Vector4f(fLeft, fTop, fWidth, fHeight);
@@ -1845,7 +1956,7 @@ void MojingSDK_Math_GetOverlayPosition3D(float fLeft, float fTop, float fWidth, 
 	Vector3f fLeftEye = Vector3f(MojingSDK_GetGlassesSeparation() / -2, 0, 0);
 	Vector3f v3LeftEyeNear = PointInNear(fNear, fLeftEye, v3Center);
 	float fX_L = trunc((v3LeftEyeNear.x - fWidth / 2) * FIX_COUNT) / FIX_COUNT;
-	float fY_L = trunc((v3LeftEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT;
+	float fY_L = trunc((v3LeftEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT + fYOffset / 2;
 	OverlayRectLeft = Vector4f(fX_L, fY_L, fWidth, fHeight);
 
 	Vector3f fRightEye = Vector3f(MojingSDK_GetGlassesSeparation() / 2, 0, 0);
@@ -1857,9 +1968,38 @@ void MojingSDK_Math_GetOverlayPosition3D(float fLeft, float fTop, float fWidth, 
 	float fY_R = trunc((v3RightEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT;
 	OverlayRectRight = Vector4f(fX_R, fY_R, fWidth, fHeight);
 }
+
+Rectf MojingSDK_Math_OverlayPosition3D(unsigned int eyeTextureType, Rectf rcRect, float fDistanceInMetre)
+{
+	Rectf rcRet;
+	float fFOV = MojingSDK_GetFOV() / 180 * PI;
+	double dTan = tan(fFOV / 2);
+	// 目标平面的宽度
+	float fWidthInDistance = 2 * dTan * fDistanceInMetre;
+	float fHeightInDistance = 2 * dTan * fDistanceInMetre;
+	// 近平面的宽度,近平面为屏幕平面，也就是宽度为1的平面
+	float fWidthInNear = 1;
+	float fHeightInNear = 1;
+	float fNear = fWidthInNear / 2 / dTan;
+	// 中心点在目标平面上的位置
+	
+	Vector3f v3Center = Vector3f((rcRect.x + rcRect.w / 2)* fWidthInDistance, (rcRect.y + rcRect.h/ 2)* fHeightInDistance, fDistanceInMetre);
+	Vector3f fEye = Vector3f(MojingSDK_GetGlassesSeparation() / -2, 0, 0);
+	if (eyeTextureType & TEXTURE_RIGHT_EYE)
+	{
+		/*以米为单位的眼坐标*/
+		fEye.x = -fEye.x;
+	}
+	Vector3f v3EyeNear = PointInNear(fNear, fEye, v3Center);
+	float fX = trunc((v3EyeNear.x - rcRect.w / 2) * FIX_COUNT) / FIX_COUNT;
+	float fY = trunc((v3EyeNear.y - rcRect.h / 2) * FIX_COUNT) / FIX_COUNT;
+	rcRet = Rectf(fX, fY, rcRect.w, rcRect.h);
+	return rcRet;
+
+}
 void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType , float fLeft, float fTop, float fWidth, float fHeight, float fDistanceInMetre)
 {
-#define FIX_COUNT (1000.0f)
+
 	ENTER_MINIDUMP_FUNCTION;
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
@@ -1870,7 +2010,12 @@ void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType , float fLeft
         MojingRenderMetal* pMetalRender = MojingRenderMetal::GetInstance();
 #endif
 #endif
+		
 		// fLeft、fTop、fWidth、fHeight是在平面宽度为1的地方，以左上角为0，0的坐标
+		
+		float fYOffset = pManager->GetDistortion()->GetYOffset() / pManager->GetParameters()->GetDisplayParameters()->GetScreenHeightMeter();
+
+
 		// 1 计算贴图矩形的三维坐标
 		float fFOV = MojingSDK_GetFOV() / 180 * PI;
 		double dTan = tan(fFOV / 2);
@@ -1890,13 +2035,13 @@ void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType , float fLeft
 			Vector3f v3LeftEyeNear = PointInNear(fNear, fLeftEye, v3Center);
 			float fX = trunc((v3LeftEyeNear.x - fWidth / 2) * FIX_COUNT) / FIX_COUNT;
 			float fY = trunc((v3LeftEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT;
-			Vector4f OverlayRectLeft = Vector4f(fX , fY, fWidth, fHeight);
-			
-#ifdef _DEBUG
-			MOJING_TRACE(g_APIlogger, "Left Eye =( " << fLeftEye.x << " , "<< fLeftEye.y << " , "<< fLeftEye.z << " ) , Near = " << fNear << " Size = ( " << fWidthInNear << " , " << fHeightInNear << " ) , "
-				<< " Center Point = ( " << v3Center.x << " , " << v3Center.y << " , " << v3Center.z << " )  " 
-				<< " Center Point in Near = ( " << v3LeftEyeNear.x << " , " << v3LeftEyeNear.y << " , " << v3LeftEyeNear.z << " )  " 
-				<< " Center Point in Screen = ( " << v3LeftEyeNear.x / fWidthInNear << " , " << v3LeftEyeNear.y / fHeightInNear << " )  " 
+			Vector4f OverlayRectLeft = Vector4f(fX, fY + fYOffset / 2.0f, fWidth, fHeight);
+
+#if 0
+			MOJING_TRACE(g_APIlogger, "Left Eye =( " << fLeftEye.x << " , " << fLeftEye.y << " , " << fLeftEye.z << " ) , Near = " << fNear << " Size = ( " << fWidthInNear << " , " << fHeightInNear << " ) , "
+				<< " Center Point = ( " << v3Center.x << " , " << v3Center.y << " , " << v3Center.z << " )  "
+				<< " Center Point in Near = ( " << v3LeftEyeNear.x << " , " << v3LeftEyeNear.y << " , " << v3LeftEyeNear.z << " )  "
+				<< " Center Point in Screen = ( " << v3LeftEyeNear.x / fWidthInNear << " , " << v3LeftEyeNear.y / fHeightInNear << " )  "
 				<< " Display Rect ( " << OverlayRectLeft.x << " , " << OverlayRectLeft.y << " , " << OverlayRectLeft.z << " , " << OverlayRectLeft.w << " )");
 #endif
 			
@@ -1932,8 +2077,8 @@ void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType , float fLeft
 			
 			float fX = trunc((v3RightEyeNear.x - fWidth / 2) * FIX_COUNT) / FIX_COUNT;
 			float fY = trunc((v3RightEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT;
-			Vector4f OverlayRectRight = Vector4f(fX, fY, fWidth, fHeight);
-#ifdef _DEBUG
+			Vector4f OverlayRectRight = Vector4f(fX, fY + fYOffset / 2.0f, fWidth, fHeight);
+#if 0
 			MOJING_TRACE(g_APIlogger, "Right Eye =( " << fRightEye.x << " , " << fRightEye.y << " , " << fRightEye.z << " ) , Near = " << fNear << " Size = ( " << fWidthInNear << " , " << fHeightInNear << " ) , "
 				<< " Center Point = ( " << v3Center.x << " , " << v3Center.y << " , " << v3Center.z << " )  "
 				<< " Center Point in Near = ( " << v3RightEyeNear.x << " , " << v3RightEyeNear.y << " , " << v3RightEyeNear.z << " )  "
@@ -2025,7 +2170,7 @@ void MojingSDK_SetOverlayPosition3D(unsigned int eyeTextureType, /*float fLeft, 
 			// 注意：这里不再做有效性检查，等到绘制的时候再去处理
 			Vector4f OverlayRect = Vector4f(fLeft + fXOffset, fTop + fYOffset, fWidth, fHeight);
 #ifdef _DEBUG
-			char szTemp[100];
+			char szTemp[256];
 			sprintf(szTemp, "MojingSDK_SetOverlayPosition2 : Left : Rect = {%1.2f , %1.2f , %1.2f , %1.2f}", OverlayRect.x, OverlayRect.y, OverlayRect.z, OverlayRect.w);
 			MOJING_TRACE(g_APIlogger, szTemp);
 #endif	
@@ -2052,7 +2197,7 @@ void MojingSDK_SetOverlayPosition3D(unsigned int eyeTextureType, /*float fLeft, 
 			// 注意：这里不再做有效性检查，等到绘制的时候再去处理
 			Vector4f OverlayRect = Vector4f(fLeft + fXOffset, fTop + fYOffset, fWidth, fHeight);
 #ifdef _DEBUG
-			char szTemp[100];
+			char szTemp[256];
 			sprintf(szTemp, "MojingSDK_SetOverlayPosition2 : Right: Rect = {%1.2f , %1.2f , %1.2f , %1.2f}", OverlayRect.x, OverlayRect.y, OverlayRect.z, OverlayRect.w);
 			MOJING_TRACE(g_APIlogger, szTemp);
 #endif	
@@ -2089,6 +2234,7 @@ void MojingSDK_SetEnableTimeWarp(bool bEnable)
 // GLsizei depth;  /*!< */
 bool MojingSDK_ktxLoadTextureM(const void* const ktxData, const int idataSize,unsigned int* pTexture, unsigned int* pTarget, int* pHeight, int* pWidth, int* pDepth, bool* pIsMipmapped, unsigned int* pGlerror, int* ktxError)
 {
+#ifdef ENABLE_KTX
 	GLenum target;
 	GLboolean isMipmapped;
 	KTX_error_code ktxerror;
@@ -2104,12 +2250,13 @@ bool MojingSDK_ktxLoadTextureM(const void* const ktxData, const int idataSize,un
 		target = *pTarget;
 		return true;
 	}
+#endif
 	return false;
-
 }
 
 bool MojingSDK_ktxLoadTextureN(const char* const filename, unsigned int* pTexture, unsigned int* pTarget, int* pHeight, int* pWidth, int* pDepth, bool* pIsMipmapped, unsigned int* pGlerror, int* ktxError)
 {
+#ifdef ENABLE_KTX
  	GLboolean isMipmapped;
 	KTX_error_code ktxerror;
 	KTX_dimensions kd;
@@ -2123,8 +2270,9 @@ bool MojingSDK_ktxLoadTextureN(const char* const filename, unsigned int* pTextur
 		*pDepth = kd.depth;
 		return true;
 	}
-	return false;
+#endif
 
+	return false;
 }
 #endif
 
@@ -2210,7 +2358,7 @@ void MojingSDK_SetImageYOffset(float fYOffset)
 
 String MojingSDK_GetUserSettings()
 {
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	String strRet = "";
 	UserSettingProfile* pProfile = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile();
 	if (pProfile)
@@ -2221,7 +2369,7 @@ String MojingSDK_GetUserSettings()
 			char * pJsonValue = pJson->PrintValue(0,false);
 			strRet = pJsonValue;
 			MJ_FREE(pJsonValue);
-			delete pJson;
+			pJson->Release();
 		}
 	}
 	return strRet;
@@ -2247,7 +2395,7 @@ bool   MojingSDK_SetUserSettings(const char * sUserSettings)
 			else
 				*pProfile = TempProfile;// 解析失败，恢复初始值
 		}
-		delete pJson;
+		pJson->Release();
 	}
 	return bRet;
 }
@@ -2338,7 +2486,7 @@ bool MojingSDK_GetInMojingWorld(void)
 const char* MojingSDK_GetSDKVersion(void)
 {
 	ENTER_MINIDUMP_FUNCTION;
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	mj_Initialize();
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	return pStatus->GetSDKVersion();
@@ -2718,7 +2866,11 @@ void MojingSDK_Math_DirectionalInScreen(float* fArray)
 	//Vector2f Ret(V3_A.x + 0.5, V3_A.y + 0.5);
 
 	//return Ret;
-
+// 
+// 	Matrix4f m;
+// 	Quatf q(m);
+// 	Vector3f v;
+// 	Vector3f v2 = v * q;
 }
 
 const char* MojingSDK_GetCpuName()
@@ -2809,6 +2961,175 @@ bool MojingSDK_IsLowPower()
 	}
 	return false;
 }
+
+#ifdef MJ_OS_ANDROID
+int MojingSDK_GetSocketPort()
+{
+	int s = -1, port = 0;
+
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		MojingSensorParameters * pSensorParameters = pManager->GetParameters()->GetSensorParameters();
+		if (pSensorParameters->GetSocket() == -1)
+		{
+			struct sockaddr_in si_me;
+			socklen_t slen_me = sizeof(si_me);
+
+			// create a UDP socket
+			if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+			{
+				__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "create socket failed");
+			}
+			else
+			{
+				__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "create socket OK");
+
+				// zero out the structure
+				memset((char *) &si_me, 0, sizeof(si_me));
+
+				si_me.sin_family = AF_INET;
+				si_me.sin_port = htons(0);
+				si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+
+				// bind socket to port
+				if(bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1)
+				{
+					__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "bind socket failed");
+				}
+				else
+				{
+					getsockname(s, (struct sockaddr*)&si_me, &slen_me);
+
+					__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "bind socket OK port=%d", ntohs(si_me.sin_port));
+
+					// set timeout
+					struct timeval tv;
+					tv.tv_sec = 0;
+					tv.tv_usec = 100000;
+					if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0)
+					{
+						__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "setsockopt failed");
+					}
+					else
+					{
+						port = ntohs(si_me.sin_port);
+					}
+				}
+			}
+
+			if (s != -1 && port == 0)
+			{
+				close(s);
+				s = -1;
+			}
+
+			pSensorParameters->SetSocket(s);
+			pSensorParameters->SetPort(port);
+		}
+		else
+		{
+			__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "socket already init");
+			port = pSensorParameters->GetPort();
+		}
+	}
+	else
+	{
+		__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "Manager not init");
+	}
+	return port;
+}
+
+/*
+bool MojingSDK_Device_StartTracker(int iID)
+{
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		return pManager->GetControlTracker()->StartControlTracker(iID);
+	}
+	return false;
+}
+
+void MojingSDK_Device_StopTracker(int iID)
+{
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		pManager->GetControlTracker()->StopControlTracker(iID);
+	}
+}
+*/
+
+// 获取已经连接的设备上的按键列表的掩码，返回长度为32的int数组。分别表示按键状态码的第0位到第31位表示的键值。
+int MojingSDK_Device_GetKeymask(int iID, int *pKeyMask)
+{
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		return pManager->GetControlTracker()->GetKeymask(iID, pKeyMask);
+	}
+
+	return 0;
+}
+
+// 获取设备的姿态信息和其他传感器信息,返回值为采样的时间。
+float MojingSDK_Device_GetCurrentPoaseInfo(int iID/*设备ID*/,
+	float *pQuart/*四元数表示的旋转，依次为XYZW*/,
+	float *pAngularAccel/*角加速度，依次为XYZ*/,
+	float *pLinearAccel/*线加速度，依次为XYZ*/,
+	float *pPosition,/*设备的空间位置，以米为单位，默认是0,0,0。*/
+	unsigned int *pKeystatus/*设备上的按键状态，默认是0表示没有按键被按下*/)
+{
+	//MOJING_FUNC_TRACE(g_APIlogger);
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		*pKeystatus = 0;
+		return pManager->GetControlTracker()->GetControlCurrentPose(iID, pQuart, pAngularAccel, pLinearAccel);
+	}
+
+	return 0;
+}
+
+// 获取设备Reset的姿态信息和其他传感器信息,返回值为Reset的时间。
+float MojingSDK_Device_GetFixPoaseInfo(int iID/*设备ID*/,
+	float *pQuart/*四元数表示的旋转，依次为XYZW*/,
+	float *pAngularAccel/*角加速度，依次为XYZ*/,
+	float *pLinearAccel/*线加速度，依次为XYZ*/,
+	float *pPosition/*设备的空间位置，以米为单位，默认是0,0,0。*/)
+{
+	//MOJING_FUNC_TRACE(g_APIlogger);
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		return pManager->GetControlTracker()->GetControlFixPose(iID, pQuart, pAngularAccel, pLinearAccel);
+	}
+
+	return 0;
+}
+
+// 获取设备Reset的姿态信息和其他传感器信息,返回值为Reset的时间。
+float MojingSDK_Device_GetControlFixCurrentInfo(int iID/*设备ID*/,
+    float *pQuart/*四元数表示的旋转，依次为XYZW*/,
+    float *pAngularAccel/*角加速度，依次为XYZ*/,
+    float *pLinearAccel/*线加速度，依次为XYZ*/,
+    float *pPosition/*设备的空间位置，以米为单位，默认是0,0,0。*/,
+    unsigned int *pKeystatus/*设备上的按键状态，默认是0表示没有按键被按下*/)
+{
+    //MOJING_FUNC_TRACE(g_APIlogger);
+    Manager* pManager = Manager::GetMojingManager();
+    if (pManager)
+    {
+        pPosition[0] = pPosition[1] = pPosition[2] = 0;
+        return pManager->GetControlTracker()->GetControlFixCurrentPose(iID, pQuart, pAngularAccel, pLinearAccel);
+    }
+
+    return 0;
+}
+#endif
 
 #ifdef _DEBUG
 /************************************************************************/

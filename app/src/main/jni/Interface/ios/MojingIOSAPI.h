@@ -98,7 +98,8 @@ bool MojingSDK_API_EnterMojingWorld_Metal(const char * GlassesName,
                                           bool bEnableMultiThread,
                                           bool bEnableTimeWarp,
                                           id<MTLDevice> device,
-                                          id<MTLCommandQueue> cmdQueue);
+                                          id<MTLCommandQueue> cmdQueue,
+                                          id<MTLCommandBuffer> cmdBuffer);
 
 bool MojingSDK_API_DrawTexture_Metal(id<CAMetalDrawable> drawable,
                                      id<MTLTexture> eyeTextureLeft,

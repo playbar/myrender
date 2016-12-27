@@ -12,6 +12,10 @@
 //    ANDROID  - Android
 //    IPHONE   - iPhone
 #include "BuildType.h"
+#ifdef _DEBUG
+#define  MJ_BUILD_DEBUG
+#endif
+
 
 #define ENABLE_LOGGER 
 
@@ -59,8 +63,8 @@ struct __tagMojingMinidumpContext
 {
 	__tagMojingMinidumpContext(){ *szApp = *szSDKVersion = *szFunc = *szBrand = *szModel = *szSerial = *szGlassesName = 0; tmNow = 0; m_bInit = m_bSensorOn = m_bInMojingWorld = false; };
 	// 应用程序信息
-	char szApp[64];	//  当前应用程序名
-	char szSDKVersion[64];// 当前SDK版本
+	char szApp[128];	//  当前应用程序名
+	char szSDKVersion[128];// 当前SDK版本
 	// 崩溃现场信息
 	char szFunc[512];	//	出错时正在执行的函数
 	time_t tmNow;
@@ -68,10 +72,10 @@ struct __tagMojingMinidumpContext
 	bool m_bSensorOn;
 	bool m_bInMojingWorld;
 	// 当前设备信息
-	char szBrand[64];
-	char szModel[64];
-	char szSerial[64];
-	char szGlassesName[64];
+	char szBrand[128];
+	char szModel[128];
+	char szSerial[128];
+	char szGlassesName[128];
 
 	SetValueFunc(App);
 	SetValueFunc(SDKVersion);
@@ -101,7 +105,7 @@ extern __tagMojingMinidumpContext g_MojingMinidump;
 #ifdef USING_MINIDUMP
 class MINIDUMP_HELPER
 {
-	char szOldFunction[128];
+	char szOldFunction[512];
 public :
 	MINIDUMP_HELPER(const char*pFunction){ strcpy(szOldFunction, g_MojingMinidump.szFunc); g_MojingMinidump.SetFunc(pFunction); };
 	virtual ~MINIDUMP_HELPER(){ g_MojingMinidump.SetFunc(szOldFunction); };
@@ -740,9 +744,11 @@ virtual void _NAME_##ToJson(JSON* pJson){ pJson->AddNumberItem(#_NAME_, _PREV_NA
 
 enum EyeTextureType
 {
+	TEXTURE_OPEN_GL = 0,
 	TEXTURE_LEFT_EYE = 1,
 	TEXTURE_RIGHT_EYE = 2,
 	TEXTURE_BOTH_EYE = TEXTURE_LEFT_EYE | TEXTURE_RIGHT_EYE,
+	TEXTURE_IS_UNITY_METAL_RENDER_TEXTURE = 4
 };
 #ifdef  MJ_OS_WIN32
 // #define DO_NOT_USING_TEXTURE_BACKER

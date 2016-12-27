@@ -14,14 +14,18 @@ extern MojingLogger g_APIlogger;
 
 // TODO: remove when new glext is available
 #ifdef MJ_OS_ANDROID
+#ifndef EGL_OPENGL_ES3_BIT_KHR
 #define EGL_OPENGL_ES3_BIT_KHR      0x0040
+#endif
 
 bool	EXT_discard_framebuffer;
 PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT_ = NULL;
 
 bool	IMG_multisampled_render_to_texture;
-//PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG glRenderbufferStorageMultisampleIMG_ = NULL;
-//PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG_ = NULL;
+#if !defined(__aarch64__)
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG glRenderbufferStorageMultisampleIMG_ = NULL;
+PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG_ = NULL;
+#endif
 
 PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR_ = NULL;
 PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR_ = NULL;
@@ -156,19 +160,23 @@ namespace Baofeng
 				glDiscardFramebufferEXT_ = (PFNGLDISCARDFRAMEBUFFEREXTPROC)GetExtensionProc("glDiscardFramebufferEXT");
 			}
 
-//			if (ExtensionStringPresent("GL_IMG_multisampled_render_to_texture", extensions))
-//			{
-//				IMG_multisampled_render_to_texture = true;
-//				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleIMG");
-//				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleIMG");
-//			}
-//			else if (ExtensionStringPresent("GL_EXT_multisampled_render_to_texture", extensions))
-//			{
-//				// assign to the same function pointers as the IMG extension
-//				IMG_multisampled_render_to_texture = true;
-//				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleEXT");
-//				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleEXT");
-//			}
+			if (ExtensionStringPresent("GL_IMG_multisampled_render_to_texture", extensions))
+			{
+				IMG_multisampled_render_to_texture = true;
+#if !defined(__aarch64__)
+				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleIMG");
+				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleIMG");
+#endif
+			}
+			else if (ExtensionStringPresent("GL_EXT_multisampled_render_to_texture", extensions))
+			{
+				// assign to the same function pointers as the IMG extension
+				IMG_multisampled_render_to_texture = true;
+#if !defined(__aarch64__)
+				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleEXT");
+				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleEXT");
+#endif
+			}
 
 			eglCreateSyncKHR_ = (PFNEGLCREATESYNCKHRPROC)GetExtensionProc("eglCreateSyncKHR");
 			eglDestroySyncKHR_ = (PFNEGLDESTROYSYNCKHRPROC)GetExtensionProc("eglDestroySyncKHR");
@@ -705,12 +713,13 @@ namespace Baofeng
 				const char * eglClientApisString = eglQueryString(egl.display, EGL_CLIENT_APIS);
 				//LOG("EGL_CLIENT_APIS: %s", eglClientApisString);
 				const char * eglVersionString = eglQueryString(egl.display, EGL_VERSION);
-				//LOG("EGL_VERSION: %s", eglVersionString);
+				//MOJING_TRACE(g_APIlogger, "EGL_VERSION: " << eglVersionString);
 				const char * eglExtensionString = eglQueryString(egl.display, EGL_EXTENSIONS);
 
 				if (outEGLInfo)
 				{
-					strcpy(outEGLInfo, eglVersionString);
+					strncpy(outEGLInfo, eglVersionString, EGL_INFO_BUFFER_LENGTH - 1);
+					outEGLInfo[EGL_INFO_BUFFER_LENGTH - 1] = 0;
 				}
 			}
 			else
@@ -723,11 +732,14 @@ namespace Baofeng
 			const char * glVendorString = (const char *)glGetString(GL_VENDOR);
 			//LOG("GL_VENDOR: %s", glVendorString);
 			const char * glRendererString = (const char *)glGetString(GL_RENDERER);
-			//LOG("GL_RENDERER: %s", glRendererString);
+			//MOJING_TRACE(g_APIlogger, "GL_RENDERER: " << glRendererString);
 			if (outGpuName && glRendererString)
 			{
 				if (glRendererString)
-				strcpy(outGpuName, glRendererString);
+				{
+					strncpy(outGpuName, glRendererString, EGL_INFO_BUFFER_LENGTH - 1);
+					outGpuName[EGL_INFO_BUFFER_LENGTH - 1] = 0;
+				}
 				else
 					strcpy(outGpuName, "NULL");
 			}
@@ -739,12 +751,14 @@ namespace Baofeng
 			size_t lenGlVersionStr = strlen(glVersionString);
 			size_t lenSlVersionStr = strlen(glSlVersionString);
 
-			//LOGE("GL_SHADING_LANGUAGE_VERSION: %s", glSlVersionString);
+			//MOJING_TRACE(g_APIlogger, "GL_VERSION: " << glVersionString);
+			//MOJING_TRACE(g_APIlogger, "GL_SHADING_LANGUAGE_VERSION: " << glSlVersionString);
 			if (outGLESInfo && glVersionString && glSlVersionString && ((lenGlVersionStr + lenSlVersionStr + 1) < EGL_INFO_BUFFER_LENGTH))
 			{
 				strncpy(outGLESInfo, glVersionString, lenGlVersionStr);
 				outGLESInfo[lenGlVersionStr] = '\n';
 				strncpy(outGLESInfo+lenGlVersionStr+1, glSlVersionString, lenSlVersionStr);
+				outGLESInfo[EGL_INFO_BUFFER_LENGTH - 1] = 0;
 
 				MOJING_TRACE(g_APIlogger, outGLESInfo);
 			}

@@ -9,7 +9,7 @@ namespace Baofeng
 		{
 		public:
 			PageInfoReporter();
-			~PageInfoReporter();
+			virtual ~PageInfoReporter(){};
 
 			void PostMessage(String pageName, PageInfo info);
 			void SaveMessage(String pageName, PageInfo info);

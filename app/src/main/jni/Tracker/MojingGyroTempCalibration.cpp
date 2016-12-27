@@ -91,7 +91,7 @@ namespace Baofeng
 				char * pJsonValue = pJson->PrintValue(0, false);
 				GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetGyroOffsetReportSet(pJsonValue);
 				MJ_FREE(pJsonValue);
-				delete pJson;
+				pJson->Release();
 
 				GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->Post();
 			}

@@ -8,12 +8,6 @@ namespace Baofeng
 		{
 		}
 
-
-		PageInfoReporter::~PageInfoReporter()
-		{
-
-		}
-
 		void PageInfoReporter::CreateReportMsg(String pageName, PageInfo info)
 		{
 			JSON* joMsg = JSON::CreateObject();

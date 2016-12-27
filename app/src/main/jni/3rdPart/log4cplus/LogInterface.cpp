@@ -1,24 +1,6 @@
 ﻿#include "LogInterface.h"
 #include "../../Base/MojingLoadSo.h"
 
-/* For debug builds, always enable the debug traces in this library */
-#ifndef NDEBUG
-#include <android/log.h>
-#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, "MojingLogger", __VA_ARGS__))
-#define LOGI(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "MojingLogger", __VA_ARGS__))
-#define LOGD(...)  ((void)__android_log_print(ANDROID_LOG_WARN, "MojingLogger", __VA_ARGS__))
-#define LOGW(...)  ((void)__android_log_print(ANDROID_LOG_WARN, "MojingLogger", __VA_ARGS__))
-#define LOGE(...)  ((void)__android_log_print(ANDROID_LOG_ERROR, "MojingLogger", __VA_ARGS__))
-#define LOGF(...)  ((void)__android_log_print(ANDROID_LOG_FATAL, "MojingLogger", __VA_ARGS__))
-#else
-#define LOGV(...)  ((void)0)
-#define LOGI(...)  ((void)0)
-#define LOGD(...)  ((void)0)
-#define LOGW(...)  ((void)0)
-#define LOGE(...)  ((void)0)
-#define LOGF(...)  ((void)0)
-#endif
-
 #undef NULL
 #define NULL  0
 
@@ -70,6 +52,7 @@ MojingLogger::MojingLogger(const char* sLogFileName, const char *sLoggerName,
 	{
 		m_logger = g_fpCreateLogger(sLogFileName, sLoggerName, nLogLevel, nMaxFileSize, nMaxFileNum);
 	}
+	m_nLogLevel = nLogLevel;
 }
 
 MojingLogger::MojingLogger(const char* sLoggerName)
@@ -81,6 +64,7 @@ MojingLogger::MojingLogger(const char* sLoggerName)
 	{
 		m_logger = g_fpCreateLogger(NULL, sLoggerName, TRACE_LOG_LEVEL, 0, 0);
 	}
+	m_nLogLevel = TRACE_LOG_LEVEL;
 }
 
 MojingLogger::~MojingLogger()
@@ -99,7 +83,7 @@ void MojingLogger::Log(int nLogLevel, const char* pLogString, const char* pFileN
 {
 	if (g_fpLog && m_logger)
 	{
-		g_fpLog(m_logger, m_nLogLevel, pLogString, pFileName, nLine);
+		g_fpLog(m_logger, nLogLevel, pLogString, pFileName, nLine);
 	}
 
 	switch (nLogLevel)

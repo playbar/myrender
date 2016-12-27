@@ -11,6 +11,8 @@
 //#define TRACE(_X_) MOJING_TRACE(g_APIlogger , _X_)
 #endif
 
+
+
 namespace Baofeng
 {
 	namespace Mojing

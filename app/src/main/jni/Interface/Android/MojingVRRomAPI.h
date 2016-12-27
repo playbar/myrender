@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 int MojingVRRomAPI_CreateModel(int modelType, int textureType, const char* atlasJson);
 void MojingVRRomAPI_DrawModel(int iModelKey, int iEye, int iTextureId, float* pMVP);
 void MojingVRRomAPI_SetRectModelPosition(int iModelKey, float* pPosition);

@@ -12,6 +12,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.baofeng.mojing.MojingSDK;
+import com.baofeng.mojing.MojingSDKServiceManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +42,8 @@ public class MojingSDKSensorManager {
     private HandlerThread handlerThread;
     //子线程Handler
     private Handler threadHandler;
+	//保持当前Context
+	private Context m_context = null;
     //是否使用Java层取得的Sensor数据
 	//private boolean bUseJavaSensor = false;
 	//测试用
@@ -55,7 +58,7 @@ public class MojingSDKSensorManager {
      *
      * @return
      */
-    public boolean useJavaSensor() {
+    public static boolean useJavaSensor() {
 		boolean bUseJavaSensor = false;
         try {
             String json = MojingSDK.GetUserSettings();
@@ -79,6 +82,19 @@ public class MojingSDKSensorManager {
         return instance;
     }
 
+    
+    public static void RegisterSensor(Context context)
+    {
+        //Log.i(TAG, "RegisterSensor");	
+    	MojingSDKSensorManager.getInstance().register(context);
+    }
+
+    public static void UnRegisterSensor(Context context)
+    {
+        //Log.i(TAG, "UnRegisterSensor");		
+    	MojingSDKSensorManager.getInstance().unRegister(context);
+    }
+
     /**
      * 初始化子线程
      */
@@ -91,24 +107,28 @@ public class MojingSDKSensorManager {
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 MojingSDK.SendSensorData((float[]) msg.obj, System.nanoTime() / 1000000000D);
-
+				if(m_context != null && MojingSDKServiceManager.isServiceTracker())
+				{
+					unRegister(m_context);
+					m_context = null;
+				}
             }
         };
     }
 
-
-    public void register(Context context) {
+    private void register(Context context) {
         if (!useJavaSensor()) {
             Log.i(TAG, "useJavaSensor=false");
             return;
         }
-		Log.i(TAG, "useJavaSensor=true");
+        Log.i(TAG, "useJavaSensor=true");
         hasMagneticField = false;
         sensorArr = new float[12];
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         //list(sensorManager);
 //        unRegister(context);
         register(sensorManager);
+		m_context = context;
     }
 
     /**
@@ -189,7 +209,7 @@ public class MojingSDKSensorManager {
      *
      * @param context
      */
-    public void unRegister(Context context) {
+    private void unRegister(Context context) {
         if (handlerThread != null) {
             handlerThread.quit();
             handlerThread = null;

@@ -80,7 +80,7 @@ namespace Baofeng
 				char *pJsonValue = pJson->PrintValue(0, false);
 				SetDisplay(pJsonValue);
 				MJ_FREE(pJsonValue);
-				delete pJson;
+				pJson->Release();
 			}
 			else
 			{
@@ -94,7 +94,7 @@ namespace Baofeng
 				char *pJsonValue = pJson->PrintValue(0, false);
 				SetSensor(pJsonValue);
 				MJ_FREE(pJsonValue);
-				delete pJson;
+				pJson->Release();
 			}
 			else
 			{
@@ -211,7 +211,7 @@ namespace Baofeng
 						}
 					}
 				}
-				delete pJson;
+				pJson->Release();
 			}
 		}
 	}

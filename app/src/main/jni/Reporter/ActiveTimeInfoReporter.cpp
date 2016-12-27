@@ -8,10 +8,6 @@ namespace Baofeng
 		{
 		}
 
-		ActiveTimeInfoReporter::~ActiveTimeInfoReporter()
-		{
-		}
-
 		void ActiveTimeInfoReporter::CreateReportMsg()
 		{
 			MojingPlatformBase* pPlatform = MojingPlatformBase::GetPlatform();

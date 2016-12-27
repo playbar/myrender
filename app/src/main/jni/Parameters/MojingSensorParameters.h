@@ -20,6 +20,9 @@ namespace Baofeng
 			CLASS_MEMBER_J(int, m_i, GyroScopeSensor);
 			CLASS_MEMBER_J(int, m_i, AccelerometerSensor);
 
+			CLASS_MEMBER_J(int, m_i, Socket);
+			CLASS_MEMBER_J(int, m_i, Port);
+
 			CLASS_MEMBER_J(bool, m_b, IsLowPower);
 
 			CLASS_MEMBER_J(float, m_f, MaxSampleRate);

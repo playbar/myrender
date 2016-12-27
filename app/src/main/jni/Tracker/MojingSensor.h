@@ -45,6 +45,7 @@ namespace Baofeng
 
 			void RemoveHandlerFromSensor();
 			virtual void OnSensorData(MessageBodyFrame&) = 0;
+			virtual void OnSensorData(Quatf fOrientation, Vector3f fAngularAcceleration, Vector3f fLinearAcceleration, double dTimeInSeconds, float fTemperature) = 0;
 
 		private:
 			Sensor* m_pSensor;

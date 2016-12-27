@@ -277,6 +277,8 @@ namespace Baofeng
 				m_StartEvent.SetEvent();
 			}
 			m_bInitSucceeded = false;
+			return 1; 
 		}// end of function run
+		
 	}
 }

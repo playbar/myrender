@@ -8,11 +8,6 @@ namespace Baofeng
 		{
 		}
 
-
-		EventInfoReporter::~EventInfoReporter()
-		{
-		}
-
 		void EventInfoReporter::CreateReportMsg(const char* szEventName, const char* szEventChannelID,
 			const char* szEventInName, float eInData, const char* szEventOutName, float eOutData, int64_t date, bool pd)
 		{

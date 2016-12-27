@@ -9,10 +9,6 @@ namespace Baofeng
 			SetMessageType(MSGTYPE_ERROR);
 		}
 
-		LogInfoReporter::~LogInfoReporter()
-		{
-		}
-
 		void LogInfoReporter::CreateReportMsg(int iLogType, const char* szTypeName, const char* szLogContent, int64_t date, bool pd)
 		{
 			JSON* joMsg = JSON::CreateObject();

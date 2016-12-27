@@ -20,6 +20,7 @@ public class MojingSDKPrivate
 	static 
 	{
 		System.loadLibrary("curl");
+		System.loadLibrary("sqlite3");
         System.loadLibrary("mojing");
     }
 	

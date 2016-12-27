@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Parameters/MojingJsonElement.h"
 #include "../Base/MojingMath.h"
 #include <map>
@@ -76,7 +76,7 @@ namespace Baofeng
 					return filenameFromJson(pJson) && m_Frame.FromJson(pFrameNode);
 					
 				}
-				
+				return true;
 			}
 			CLASS_MEMBER_STR_J(String, m_sz, filename);
 			const AtlasRect GetFrame()const{ return m_Frame; };
@@ -177,6 +177,7 @@ namespace Baofeng
 						}
 					}
 				}
+				return true;
 			}
 		}; // AtlasProfile
 

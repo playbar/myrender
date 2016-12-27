@@ -1,15 +1,12 @@
 ﻿
 #ifndef MJ_Geometry_h
 #define MJ_Geometry_h
-
-#include <vector>
-#include "../Base/MojingArray.h"
 #include "../Base/GlUtils.h"
 #include "../Base/MojingTypes.h"
 #include "../Base/MojingMath.h"
-#include "../Base/MojingThreads.h"
-#include "../Base/GlUtils.h"
 
+#include <vector>
+#define USING_NEW_MESH 1
 namespace Baofeng
 {
 	namespace Mojing
@@ -92,6 +89,11 @@ namespace Baofeng
 		class GlGeometryTriangles : public GlGeometry
 		{
 		public:
+			std::vector<float> m_VertexLeft_Qualcomm;
+			std::vector<unsigned int > m_IndexLeft_Qualcomm;
+			std::vector<float> m_VertexRight_Qualcomm;
+			std::vector<unsigned int > m_IndexRight_Qualcomm;
+
 			virtual bool BuildGeometry(int iWidth = 0, int iHeight = 0, void *pBuffer = NULL);
 			virtual void DrawElements(int eye);
 			virtual void DrawElementsRange(int eye);

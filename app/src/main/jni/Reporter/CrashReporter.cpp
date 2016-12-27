@@ -124,7 +124,7 @@ namespace Baofeng
 			strcat(pMD5SrcBuffer, "41f836e3d488337eeb49b7f6e87175db");
 			md5.update(pMD5SrcBuffer, strlen(pMD5SrcBuffer));
 			data += md5.toString();
-			delete pMD5SrcBuffer;
+			delete[] pMD5SrcBuffer;
 
 			if (!szFileName.IsEmpty())
 			{

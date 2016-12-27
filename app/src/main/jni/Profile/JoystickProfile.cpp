@@ -113,12 +113,18 @@ namespace Baofeng
 			LoadFromJSON(pUseNode);
 #endif
 			if (pJsonFromPacket)
-				delete pJsonFromPacket;
+			{
+				pJsonFromPacket->Release();
+				pJsonFromPacket = NULL;
+			}
 			if (pJsonFromSDCard)
-				delete pJsonFromSDCard;
+			{
+				pJsonFromSDCard->Release();
+				pJsonFromSDCard = NULL;
+			}
 
 			int iNewVersion = 20150101;
-			if (szNewVersion && *szNewVersion)
+			if (*szNewVersion != 0)
 				sscanf(szNewVersion, "%d", &iNewVersion);
 
 			int iRet = iNewVersion != (int)GetReleaseDate();
@@ -166,7 +172,7 @@ namespace Baofeng
 
 			md5.update(pMD5SrcBuffer, strlen(pMD5SrcBuffer));
 			data += md5.toString();
-			delete pMD5SrcBuffer;
+			delete[] pMD5SrcBuffer;
 
 			MOJING_TRACE(g_APIlogger, "URL_DATA = " << data);
 			ProfileThreadMGR::UpdateInternetProfile(GetClassName(), data, Profile_LOAD, CheckUpdateCallBack, this);
@@ -185,7 +191,7 @@ namespace Baofeng
 			memcpy(pBuffer, lpszRespString, uiSize);
 			pBuffer[uiSize] = 0;
 			JSON *pJson = JSON::Parse(pBuffer);
-			delete pBuffer;
+			delete[] pBuffer;
 			if (pJson != NULL)
 			{
 				if (JSON *pResultNode = pJson->GetItemByName("Result"))
@@ -204,7 +210,8 @@ namespace Baofeng
 						}
 					}
 				}
-				delete pJson;
+				pJson->Release();
+				pJson = NULL;
 			}
 		}
 
@@ -253,7 +260,7 @@ namespace Baofeng
 			pJsonRet->AddItem("JoystickProfile" , pJsonConfig);
 
 			szRet = pJsonRet->PrintValue(0,0);
-			delete pJsonRet;
+			pJsonRet->Release();
 			return szRet;
 		}
 

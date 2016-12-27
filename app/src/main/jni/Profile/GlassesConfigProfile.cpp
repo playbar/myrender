@@ -89,11 +89,11 @@ namespace Baofeng
 			}
 
 			if (pJsonFromPacket)
-				delete pJsonFromPacket;
+				pJsonFromPacket->Release();
 			if (pJsonFromSDCard)
-				delete pJsonFromSDCard;
+				pJsonFromSDCard->Release();
 			if (pJsonFromUpdate)
-				delete pJsonFromUpdate;
+				pJsonFromUpdate->Release();
 
 			return bRet;
 		}
@@ -106,7 +106,7 @@ namespace Baofeng
 			{
 				pRet = SelectJsonNode(lpszGlassesName , pJson);
 
-				delete pJson;
+				pJson->Release();
 			}
 			return pRet;
 		}

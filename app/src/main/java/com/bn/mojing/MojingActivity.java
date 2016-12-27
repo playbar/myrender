@@ -35,13 +35,14 @@ public class MojingActivity extends MojingVrActivity{
 	static String MJ3_96pmma = "SFCNDH-4WCYA4-4W8NX8-ZN9NF8-C386HT-A49ZWB";
 	static String MJ4 = "2WF5F5-FPWGZZ-H7AE2C-H3F8SW-EE8KCF-YTHBCN";
 	static String MJA1="WNE8QN-QVCCZN-XXF8W3-9Q2YDH-AQZRA2-XVDZ9Q";
+	static String RK3288="WNE8QN-QVCCZN-XXF8W3-9Q2YDH-AQZRA2-XVDZ9Q";
 	static String MJ_D="Z74QHR-AC9RYL-4FZGQ3-QGZZ2H-9T86Q5-XGFVW8";
 	static String UC_VR = "WZ2Z8K-9VFT2Y-ZZQHZB-Z82N48-2CZL4B-CGAZDW";
 	static String lefant = "Y7XVWU-4BDSFN-S99HA8-8598WR-YVH78U-Y7XNSW";
 	static String MJ5 = "9GEDFU-954ESX-QV9B2Y-YVXNEG-FLDWAY-ZFS99Z";
 	static String MJ_RIO = "SXF8DB-ZUSQS8-A2FMDC-SHHLHB-SZZNY3-DHC8Y7";
-	static String RK3288="WNE8QN-QVCCZN-XXF8W3-9Q2YDH-AQZRA2-XVDZ9Q";
-
+	static String MJ_VR43 = "QGQZCZ-2FQ383-C8QYS8-H5AHDG-DBSW98-EQEWQB";
+	static String MJ_QB820 = "2Q2XWR-9YWQSQ-WUHFH7-WWE2WW-8RW84W-XT2FEX";
 
 	static String[] MojingKey = {MJ2,MJ3,MJ3_96pmma,MJ3_88pmma,MJ4,MJ_RIO,MJ5};
 	
@@ -67,16 +68,15 @@ public class MojingActivity extends MojingVrActivity{
 	
 	static boolean   bTimeWarp = true;
 	static boolean   bMultiThread = true;
-	static String DefaultGlass = MJ4; //RK3288;
+	static String DefaultGlass = MJ4 ;// MJ2;//MJ_QB820;RK3288;
 	private VrPhotoRender renderer;
-	private VrRomNativeRender nativeRender;
 	
 	private Handler handler = new Handler( );
 
     private Runnable runnable = new Runnable( ) {
     	public void run ( ) {
 //	    	Log.e("TEST", "IsLowPower:" + com.baofeng.mojing.MojingSDK.IsLowPower());
-    		Log.e("TEST", "isGlassTracker:" + MojingSDKServiceManager.isGlassTracker());
+    		Log.e("TEST", "isGlassTracker:" + MojingSDKServiceManager.isServiceTracker());
 		    handler.postDelayed(this,1000);
 	    }
     };
@@ -119,20 +119,8 @@ public class MojingActivity extends MojingVrActivity{
         mView.setMultiThread(bMultiThread);
         mView.setGlassesKey(DefaultGlass);
 
-		if (true)
-		{
-			renderer = new VrPhotoRender(this);
-			mView.setRenderer(renderer);
-		}
-		else
-		{
-			// USE native render
-			nativeRender = new VrRomNativeRender(this);
-			mView.setRenderer(nativeRender);
-		}
-		
-		
-
+		renderer=new VrPhotoRender(this);
+		mView.setRenderer(renderer);
 		mView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         
 		String  strManufacturerList = 
@@ -214,7 +202,7 @@ public class MojingActivity extends MojingVrActivity{
 		if (event.getAction() == MotionEvent.ACTION_UP)
 		{
 			//jump2AdjustActivity();
-			//com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
+			com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
 			String MojingType = MojingKey[StartCount];
 			mView.setGlassesKey(MojingType);
 			//com.baofeng.mojing.MojingSDK.ChangeMojingWorld(MojingType);

@@ -26,7 +26,6 @@
 
 #include "3rdPart/MD5/MD5.h"
 #include "3rdPart/AES/AES.h"
-
 #include "../../Platform/Android/MojingAndroidDeviceInfo.h"
 
 #include "Profile/ProfileThreadMGR.h"
@@ -74,7 +73,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	}
 	else
 	{
-		MOJING_TRACE(g_APIlogger, "===> gJavaVM = " << int(gJavaVM));
+		MOJING_TRACE(g_APIlogger, "===> gJavaVM = " << gJavaVM);
 	}
 
 	JNIEnv *pEnv = NULL;
@@ -120,6 +119,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 //		initClassHelper(pEnv, "com/baofeng/mojing/MojingSDKServiceManager", &gobject_MojingSDKServiceManager);
 	}
+
 	return JNI_VERSION_1_6;
 }
 
@@ -180,7 +180,9 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, j
 	const char * szAppKey = env->GetStringUTFChars(appKey, 0);
 	const char * szAppName = env->GetStringUTFChars(appName, 0);
 	const char * szPackageName = env->GetStringUTFChars(packageName, 0);
+#ifdef _DEBUG
 	MOJING_TRACE(g_APIlogger, "MerchantID: " << szMerchantID << ", AppID: " << szAppID << ", AppKey: " << szAppKey << ", AppName: " << szAppName << ", PackageName: " << szPackageName);
+#endif
 	const char * szUserID = env->GetStringUTFChars(userID, 0);
 	const char * szChannelID = env->GetStringUTFChars(channelID, 0);
 	MOJING_TRACE(g_APIlogger, "ChannelID: " << szChannelID << ", UserID: " << szUserID);
@@ -203,6 +205,14 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetEngineVersion(JNIEnv
 	const char * szEngineVersion = env->GetStringUTFChars(jstrEngineVersion, 0);
 	MojingSDK_SetEngineVersion(szEngineVersion);
 	env->ReleaseStringUTFChars(jstrEngineVersion, szEngineVersion);
+}
+
+JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseUnityForSVR(JNIEnv *env, jclass)
+{
+	bool bRet = MojingSDK_IsUseUnityForSVR();
+	MOJING_TRACE(g_APIlogger, "IsUseUnityForSVR: " << bRet);
+	
+	return bRet;
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppExit(JNIEnv *env, jclass)
@@ -290,6 +300,7 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetReportImmediate(J
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_StartTracker(JNIEnv *jEnv, jclass, jint nSampleFrequence)
 {
 	// USING_MINIDUMP;
+	MOJING_FUNC_TRACE(g_APIlogger);
 	return MojingSDK_StartTracker(nSampleFrequence);
 }
 
@@ -300,6 +311,7 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_StartGlassTracker(J
 	bool bRet;
 
 	const char * szGlassName = jEnv->GetStringUTFChars(glassName, 0);
+	MOJING_TRACE(g_APIlogger, "StartGlassTracker GlassName: " << szGlassName);
 	bRet = MojingSDK_StartTracker(250, szGlassName);
 	jEnv->ReleaseStringUTFChars(glassName, szGlassName);
 
@@ -334,6 +346,26 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_ResetTracker(JNIEnv *jE
 {
 	// USING_MINIDUMP;
 	MojingSDK_ResetTracker();
+}
+
+JNIEXPORT jdouble JNICALL Java_com_baofeng_mojing_MojingSDK_getLastSensorState(JNIEnv *jEnv, jclass, jfloatArray jArray)
+{
+	// Copy to jflotArray
+	jdouble dRet = 0;
+	jfloat* pArray = jEnv->GetFloatArrayElements(jArray, NULL);
+	jsize length = (jEnv)->GetArrayLength(jArray);
+	if (length < 10)
+	{
+		MOJING_ERROR(g_APIlogger, "The array for Euler Angle is too small. Need 10 while only %d" << length);
+	}
+	else
+	{
+		dRet = MojingSDK_getLastSensorState(pArray);
+	}
+
+	jEnv->ReleaseFloatArrayElements(jArray, pArray, 0);
+
+	return dRet;
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv *jEnv, jclass, jfloatArray jViewMatrix)
@@ -459,6 +491,16 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SendSensorData(JNIEnv *
 	jEnv->ReleaseFloatArrayElements(jSensortMatrix, pMatrixArray, 0);
 }
 
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SendControllerData(JNIEnv *jEnv, jclass, jbyteArray jControllerData, jint dataLen)
+{
+	jbyte* pControllerData = jEnv->GetByteArrayElements(jControllerData, NULL);
+
+	MojingSDK_SendControllerData((const Baofeng::UByte* )pControllerData, dataLen);
+
+	jEnv->ReleaseByteArrayElements(jControllerData, pControllerData, 0);
+}
+
+
 JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSurfaceView_EnterMojingWorld(JNIEnv *env, jclass, jstring GlassesName, jboolean bEnableMultiThread, jboolean bEnableTimeWarp)
 {
 
@@ -470,7 +512,7 @@ JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSurfaceView_EnterMojingWorl
 	memset(szGlassesName2, 0, iSize / 16 * 16 + 16);
 	strcpy(szGlassesName2 , szGlassesName);
 	bool ret = MojingSDK_EnterMojingWorld(szGlassesName2, bEnableMultiThread, bEnableTimeWarp);
-	delete szGlassesName2;
+	delete[] szGlassesName2;
 	env->ReleaseStringUTFChars(GlassesName, szGlassesName);
 	return ret;
 }
@@ -633,7 +675,6 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetImageYOffset(JNIEnv 
 /************************************************************************/
 /* 厂商-产品-镜片-APP管理                                               */
 /************************************************************************/
-
 JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetManufacturerList(JNIEnv *jEnv, jclass, jstring strLanguageCodeByISO639)
 {
 	MOJING_FUNC_TRACE(g_APIlogger);
@@ -658,7 +699,7 @@ JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetProductList(JNIEn
 }
 JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetGlassList(JNIEnv *jEnv, jclass, jstring strProductKey, jstring strLanguageCodeByISO639)
 {
-	MOJING_FUNC_TRACE(g_APIlogger);
+// 	MOJING_FUNC_TRACE(g_APIlogger);
 	const char * szLanguageName = jEnv->GetStringUTFChars(strLanguageCodeByISO639, 0);
 	const char * szKey = jEnv->GetStringUTFChars(strProductKey, 0);
 	String  strRet = MojingSDK_GetGlassList(szKey, szLanguageName);
@@ -696,7 +737,7 @@ JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GenerationGlassKey(J
 	return jsRet;
 }
 
-JNIEXPORT jstring Java_com_baofeng_mojing_MojingSDK_GetEliminateBuiltin(JNIEnv *jEnv, jclass)
+JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetEliminateBuiltin(JNIEnv *jEnv, jclass)
 {	
 	jstring jsRet = jEnv->NewStringUTF(MobileConfigProfile::GetEliminateBuiltin());
 	return jsRet;
@@ -944,6 +985,90 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsLowPower(JNIEnv *
 	return MojingSDK_IsLowPower();
 }
 
+JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_GetSocketPort(JNIEnv *, jclass)
+{
+	return MojingSDK_GetSocketPort();
+}
+
+JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetKeymask(JNIEnv *env, jclass, jint iID, jintArray KeyMask)
+{
+	jint* pKeyMask = env->GetIntArrayElements(KeyMask, NULL);
+
+	jint iRet = MojingSDK_Device_GetKeymask(iID, pKeyMask);
+	env->ReleaseIntArrayElements(KeyMask, pKeyMask, 0);
+
+	return iRet;
+}
+
+JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+	jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
+	jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
+	jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
+	jfloatArray PositionArray,/*设备的空间位置，以米为单位，默认是0,0,0。*/
+	jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/)
+{	
+	jfloat* pQuart = env->GetFloatArrayElements(QuartArray, NULL);
+	jfloat* pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
+	jfloat* pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
+	jfloat* pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+	jint* pKeystatus = env->GetIntArrayElements(KeystatusArray, NULL);
+
+	jfloat fRet = MojingSDK_Device_GetCurrentPoaseInfo(iID, pQuart, pAngularAccel, pLinearAccel, pPosition, (unsigned int* )pKeystatus);
+
+	env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
+	env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
+	env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
+	env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
+	env->ReleaseIntArrayElements(KeystatusArray, pKeystatus, 0);
+
+	return fRet;
+}
+
+JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetFixInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+	jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
+	jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
+	jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
+	jfloatArray PositionArray/*设备的空间位置，以米为单位，默认是0,0,0。*/ )
+{
+	jfloat *pQuart = env->GetFloatArrayElements(QuartArray, NULL);
+	jfloat *pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
+	jfloat *pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
+	jfloat *pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+
+	jfloat fRet = MojingSDK_Device_GetFixPoaseInfo(iID, pQuart, pAngularAccel, pLinearAccel, pPosition);
+	env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
+	env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
+	env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
+	env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
+
+	return fRet;
+}
+
+
+JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetControlFixCurrentInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+    jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
+    jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
+    jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
+    jfloatArray PositionArray,/*设备的空间位置，以米为单位，默认是0,0,0。*/
+    jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/
+    )
+{
+    jfloat* pQuart = env->GetFloatArrayElements(QuartArray, NULL);
+    jfloat* pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
+    jfloat* pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
+    jfloat* pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+    jint* pKeystatus = env->GetIntArrayElements(KeystatusArray, NULL);
+
+    jfloat fRet = MojingSDK_Device_GetControlFixCurrentInfo(iID, pQuart, pAngularAccel, pLinearAccel, pPosition, (unsigned int*)pKeystatus);
+
+    env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
+    env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
+    env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
+    env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
+    env->ReleaseIntArrayElements(KeystatusArray, pKeystatus, 0);
+
+    return fRet;
+}
 #ifdef _DEBUG
 /************************************************************************/
 /* 以下为私有代码，给SDK用的代码放到前面去			                    */

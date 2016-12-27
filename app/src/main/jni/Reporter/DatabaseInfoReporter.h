@@ -6,11 +6,11 @@
 #include "../Platform/MojingPlatformBase.h"
 #include "ReporterTools.h"
 #include <map>
-#ifdef MJ_OS_WIN32
+//#ifdef MJ_OS_WIN32
 #include "../3rdPart/sqlite3/sqlite3.h"
-#else
-#include <sqlite3.h>
-#endif
+//#else
+//#include <sqlite3.h>
+//#endif
 
 using namespace std;
 
@@ -41,10 +41,10 @@ namespace Baofeng
 			friend class PageInfoReporter;
 		public:
 			DatabaseInfoReporter();
-			~DatabaseInfoReporter();
+			virtual ~DatabaseInfoReporter();
 
 			CLASS_MEMBER_STR(String, m_str, ClassName);
-			CLASS_INTERFACE(String, m_, InstallID);
+			CLASS_MEMBER_STR(String, m_, InstallID);
 			CLASS_MEMBER(sqlite3*, m_p, InfoDataBase);
 			CLASS_MEMBER(MojingPlatformBase*, m_p, PlatformBase);
 			CLASS_MEMBER(int, m_, ContinueInterval);

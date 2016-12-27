@@ -30,6 +30,7 @@ namespace Baofeng
 			Quatf getPredictionPosition(const double& absoluteTimeSeconds, double * pdOutSensotTime = NULL);
 			void getLastHeadEulerAngles(float *yaw, float *pitch, float *roll);
 			void getLastHeadQuarternion(float *x, float *y, float *z, float *w);
+			double getLastSensorState(float* fArray);
 			void StopTrack();
 			// Resets orientation.
 			void ResetTracker();
@@ -38,6 +39,7 @@ namespace Baofeng
 			void Recenter();
 			Matrix4f GetMatrix();
 			
+			static Quatf   CalculateTimeWarpMatrix(Quatf  qFrom, Quatf qTo);
 			static Matrix4f CalculateTimeWarpMatrix2( Quatf  qFrom, Quatf qTo);
 			//const ovrSensorState sensor = ovrHmd_GetSensorState(InitParms.Hmd, timePoint, false);
 			//const Matrix4f warp = CalculateTimeWarpMatrix2(

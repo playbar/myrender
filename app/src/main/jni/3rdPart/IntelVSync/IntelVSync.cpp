@@ -199,6 +199,7 @@ public:
     {
         if (bMiss)
             mHalfVSyncMiss++;
+		return bMiss;
     }
 
     void HalfFrame(bool bMiss, uint64_t waitTime)

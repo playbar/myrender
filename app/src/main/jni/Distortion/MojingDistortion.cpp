@@ -1,6 +1,5 @@
 ﻿#include "MojingDistortion.h"
 #include <math.h>
-#include <Base/MojingLog.h>
 #include "../MojingManager.h"
 #include "../MojingAPI.h"
 #include "../Parameters/MojingParameters.h"
@@ -39,6 +38,7 @@ namespace Baofeng
 			
 			HMDI.widthPixels = fmax(pDisplay->GetScreenHeight(), pDisplay->GetScreenWidth());
 			HMDI.widthMeters = fmax(pDisplay->GetScreenHeightMeter(), pDisplay->GetScreenWidthMeter());
+
 			HMDI.MetersPerTanAngleAtCenter = GetMetersPerTanAngleAtCenter();
 			HMDI.lensSeparation = GetLensSeparation();
 			void * pBuffer = BuildDistortionBuffer_V2(HMDI , eyeBlocksWide, eyeBlocksHigh);
@@ -103,8 +103,6 @@ namespace Baofeng
 			// 制作Index
 			int	index = 0;
 			verts = 0;
-
-
 			for (int eye = 0; eye < 2; eye++)
 			{
 				const int vertBase = verts;
@@ -119,9 +117,9 @@ namespace Baofeng
 					// 下面的代码用于绘制各个矩形，使用六个顶点将一个矩形切分成两个三角形；
 					// 并且分别采用了从左上到右下和从右上到左下两种分割矩形的方式分割不同象限中的矩形。
 					// 以下注释所描述的三角形方向和象限均是以左上角为原点坐标
-					for (int x = 0; x < tesselationsX; x++)
+					for (int y = 0; y < tesselationsY; y++)
 					{
-						for (int y = 0; y < tesselationsY; y++)
+						for (int x = 0; x < tesselationsX; x++)
 						{
 							// flip the triangulation in opposite corners
 							if (( x <  tesselationsX / 2) ^ (y < (tesselationsY / 2)))
@@ -161,24 +159,17 @@ namespace Baofeng
 								pRet->m_pDistortionVertexIndex[index + 4] = vertBase + y * (tesselationsX + 1) + x + 1;
 								pRet->m_pDistortionVertexIndex[index + 5] = vertBase + (y + 1) * (tesselationsX + 1) + x + 1;
 							}
-
-
-							for (int ii=0; ii<6; ii++)
-							{
-								//LOGE("index[%d] = %d", ii, pRet->m_pDistortionVertexIndex[index + ii]);
-							}
-
-
 							index += 6;
 						}
 					}
 					verts += (tesselationsY + 1)*(tesselationsX + 1);
 				
-			} // end of index
+			}
 			free(pBuffer);
 			return pRet;
 		}
-		void * Distortion::BuildDistortionBuffer_V2(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/)
+
+		void * Distortion::BuildDistortionBuffer_V2(Mesh_820& mesh_820,int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/)
 		{
 			/*全新流程，Mesh表只覆盖需要显示的区域*/
 			DistortionVertexBuffer* pUnrealVertex = BuildDistortionVertexBuffer(eyeBlocksWide, eyeBlocksHigh);
@@ -195,7 +186,6 @@ namespace Baofeng
 			((int *)buf)[1] = eyeBlocksWide;
 			((int *)buf)[2] = eyeBlocksHigh;
 
-
 			for (int eye = 0; eye < 2; eye++)
 			{
 				for (int y = 0; y <= eyeBlocksHigh; y++)
@@ -207,7 +197,8 @@ namespace Baofeng
 						DistortionVertexNode* pNode = 0 == eye ? pUnrealVertex->GetLeftVertexNode(x, y) : pUnrealVertex->GetRightVertexNode(x, y);
 						//0.25 + 0.25*(*pColor++) + eye * 0.5;
 						v[0] = (pNode->m_fRX - 0.25 - eye * 0.5) / 0.25;
-						v[1] = 1 - pNode->m_fRY * 2; // 0.5 - 0.5 *(*pColor++);
+						// 0.5 - 0.5 *(*pColor++);
+						v[1] = 1 - pNode->m_fRY * 2;
 						v[2] = (pNode->m_fGX - 0.25 - eye * 0.5) / 0.25;
 						v[3] = 1 - pNode->m_fGY * 2;
 						v[4] = (pNode->m_fBX - 0.25 - eye * 0.5) / 0.25;
@@ -217,14 +208,114 @@ namespace Baofeng
 						v[7] = pNode->m_fX / 2.0 - 0.5 + 1 * eye;
 						// 注意：Android的Y方向和Unreal的Y方向是反的
 						v[8] = pNode->m_fY + fYOffset * 2;
-
-
-
-
-
+						if (eye == 0)
+						{
+							mesh_820.vertices_left.push_back(v[7]);
+							mesh_820.vertices_left.push_back(v[8]);
+							mesh_820.vertices_left.push_back(v[0]);
+							mesh_820.vertices_left.push_back(v[1]);
+							mesh_820.vertices_left.push_back(v[2]);
+							mesh_820.vertices_left.push_back(v[3]);
+							mesh_820.vertices_left.push_back(v[4]);
+							mesh_820.vertices_left.push_back(v[5]);
+						}
+						else
+						{
+							mesh_820.vertices_right.push_back(v[7]);
+							mesh_820.vertices_right.push_back(v[8]);
+							mesh_820.vertices_right.push_back(v[0]);
+							mesh_820.vertices_right.push_back(v[1]);
+							mesh_820.vertices_right.push_back(v[2]);
+							mesh_820.vertices_right.push_back(v[3]);
+							mesh_820.vertices_right.push_back(v[4]);
+							mesh_820.vertices_right.push_back(v[5]);
+						}
+						
 					}
 				}
-			} // end of vertexData
+			}
+
+			// Index
+			int m_IndexCount = 2 * eyeBlocksWide * eyeBlocksHigh * 6;
+			uint32_t* pTessIndices = new uint32_t[m_IndexCount];
+
+			int	index = 0;
+			int verts = 0;
+			for (int eye = 0; eye < 2; eye++)
+			{
+				//for (int slice = 0; slice < NUM_SLICES_PER_EYE; slice++)
+				//{
+				const int vertBase = verts;
+				// The order of triangles doesn't matter for tiled rendering,
+				// but when we can do direct rendering to the screen, we want the
+				// order to follow the raster order to minimize the chance
+				// of tear lines.
+				//
+				// This can be checked by quartering the number of indexes, and
+				// making sure that the drawn pixels are the first pixels that
+				// the raster will scan.
+				// 下面的代码用于绘制各个矩形，使用六个顶点将一个矩形切分成两个三角形；
+				// 并且分别采用了从左上到右下和从右上到左下两种分割矩形的方式分割不同象限中的矩形。
+				// 以下注释所描述的三角形方向和象限均是以左上角为原点坐标
+				for (int y = 0; y < eyeBlocksHigh; y++)
+				{
+					for (int x = 0; x < eyeBlocksWide; x++)
+					{
+						// flip the triangulation in opposite corners
+						if ((x < eyeBlocksWide / 2) ^ (y < (eyeBlocksHigh / 2)))
+						{
+							// 第一三象限，斜边从左上角到右下角,0与3、2与4重叠
+							/*
+							03 - - -1
+							| \     |
+							|   \   |
+							|     \ |
+							5 - - - 24
+							*/
+							pTessIndices[index + 0] = vertBase + y * (eyeBlocksWide + 1) + x;
+							pTessIndices[index + 1] = vertBase + y * (eyeBlocksWide + 1) + x + 1;
+							pTessIndices[index + 2] = vertBase + (y + 1) * (eyeBlocksWide + 1) + x + 1;
+
+							pTessIndices[index + 3] = vertBase + y * (eyeBlocksWide + 1) + x;
+							pTessIndices[index + 4] = vertBase + (y + 1) * (eyeBlocksWide + 1) + x + 1;
+							pTessIndices[index + 5] = vertBase + (y + 1) * (eyeBlocksWide + 1) + x;
+						}
+						else
+						{
+							// 第二四象限，斜边从右上角到左下角,1与4、2与3重叠
+							/*
+							0  - - -14
+							|     / |
+							|   /   |
+							| /     |
+							23- - - 5
+							*/
+							pTessIndices[index + 0] = vertBase + y * (eyeBlocksWide + 1) + x;
+							pTessIndices[index + 1] = vertBase + y * (eyeBlocksWide + 1) + x + 1;
+							pTessIndices[index + 2] = vertBase + (y + 1) * (eyeBlocksWide + 1) + x;
+
+							pTessIndices[index + 3] = vertBase + (y + 1) * (eyeBlocksWide + 1) + x;
+							pTessIndices[index + 4] = vertBase + y * (eyeBlocksWide + 1) + x + 1;
+							pTessIndices[index + 5] = vertBase + (y + 1) * (eyeBlocksWide + 1) + x + 1;
+						}
+
+						if (eye == 0)
+						{
+							mesh_820.indices.push_back(pTessIndices[index + 0]);
+							mesh_820.indices.push_back(pTessIndices[index + 1]);
+							mesh_820.indices.push_back(pTessIndices[index + 2]);
+							mesh_820.indices.push_back(pTessIndices[index + 3]);
+							mesh_820.indices.push_back(pTessIndices[index + 4]);
+							mesh_820.indices.push_back(pTessIndices[index + 5]);
+						}
+						index += 6;
+					}
+				}
+				verts += (eyeBlocksHigh + 1)*(eyeBlocksWide + 1);
+				//}
+			}
+			delete[] pTessIndices;
+			// end of Indices
 
 			delete pUnrealVertex;
 

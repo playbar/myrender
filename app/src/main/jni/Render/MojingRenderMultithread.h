@@ -59,7 +59,7 @@ namespace Baofeng
 			virtual RenderFrame * SelectDistortionFrame();
 #ifdef _DEBUG
 			// 调试模式下为了区分Render的类型，这里把中线设置成蓝色
-			virtual void SetCenterLine(int iWidth, int colR, int colG, int colB, int colA)
+			virtual void SetCenterLine(int iWidth, int colR, int colG, int colB, int colA) 
 			{
 				MojingRenderBase::SetCenterLine(iWidth, 0, 0, colB / 255.0, colA);
 			}

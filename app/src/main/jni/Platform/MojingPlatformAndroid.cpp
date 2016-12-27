@@ -14,7 +14,7 @@ namespace Baofeng
 			SetDisplayMetrics(DisplayMetrics);
 			SetEnv(pEnv);
 			
-			char StrOS[16] = "";
+			char StrOS[64] = "";
 			String OSType = "Android ";
 			AndroidProperties::GetAndroidVersion(StrOS);
 			if (*StrOS)

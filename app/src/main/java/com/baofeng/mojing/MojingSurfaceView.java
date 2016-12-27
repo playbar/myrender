@@ -1,32 +1,8 @@
-/*
- * Copyright (C) 2008 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.baofeng.mojing;
 
 import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-
-import android.opengl.GLDebugHelper;
-import android.opengl.GLSurfaceView.EGLContextFactory;
-import android.opengl.GLSurfaceView.Renderer;
-import android.os.Handler;
-import android.os.Message;
-import android.opengl.EGLExt;
-import android.opengl.EGL14;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGL11;
@@ -39,7 +15,12 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
-//import android.os.SystemProperties;
+import android.opengl.EGL14;
+import android.opengl.EGLExt;
+import android.opengl.GLDebugHelper;
+import android.opengl.GLSurfaceView.Renderer;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -168,20 +149,21 @@ import android.view.SurfaceView;
  * </pre>
  *
  */
-public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-	static 
-	{
-	 	System.loadLibrary("curl");
+public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Callback2 {
+    static
+    {
+        System.loadLibrary("curl");
+        System.loadLibrary("sqlite3");
         System.loadLibrary("mojing");
     }
 
-	private native static boolean EnterMojingWorld(String GlassesName, boolean bMultiThread, boolean bUseTimeWarp);
-	private native static boolean LeaveMojingWorld();
-	private native boolean ChangeMojingWorld(String GlassesName);
-	public static native boolean OnSurfaceChanged(int newWidth, int newHeight);
+    private native static boolean EnterMojingWorld(String GlassesName, boolean bMultiThread, boolean bUseTimeWarp);
+    private native static boolean LeaveMojingWorld();
+    private native boolean ChangeMojingWorld(String GlassesName);
+    public static native boolean OnSurfaceChanged(int newWidth, int newHeight);
 
-	
-    private final static String TAG = "GLSurfaceView";
+
+    private final static String TAG = "MojingSurfaceView";
     private final static boolean LOG_ATTACH_DETACH = false;
     private final static boolean LOG_THREADS = false;
     private final static boolean LOG_PAUSE_RESUME = false;
@@ -232,7 +214,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public MojingSurfaceView(Context context) {
         super(context);
         init();
-		this.setEGLContextClientVersion(2);
+        this.setEGLContextClientVersion(2);
     }
 
     /**
@@ -242,48 +224,48 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public MojingSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
-		this.setEGLContextClientVersion(2);
+        this.setEGLContextClientVersion(2);
     }
-    
+
     private static boolean mbMultiThread = false;
     public void setMultiThread(boolean multiThread)
     {
-    	mbMultiThread = multiThread;
+        mbMultiThread = multiThread;
     }
-    
+
     private static boolean mbTimeWarp = false;
     public void setTimeWarp(boolean timeWarp)
     {
-    	mbTimeWarp = timeWarp;
+        mbTimeWarp = timeWarp;
     }
-    
+
     private static String mGlassesKey = null;
     private Handler mMsgHandler = null;
     public static final int ON_CHANGE_MOJING_WORLD = 1;
-    
-	public void setMessageHandler(Handler handler) 
-	{
-		mMsgHandler = handler;
-	}
+
+    public void setMessageHandler(Handler handler)
+    {
+        mMsgHandler = handler;
+    }
     public void setGlassesKey(String glassesKey)
     {
-    	if (mGlassesKey == null)
-    	{
-    		if (glassesKey != null)
-    		{
-    			mGlassesKey = glassesKey;
-    		}
-    	}
-    	else if (!mGlassesKey.equalsIgnoreCase(glassesKey))
-    	{
-        	mGlassesKey = glassesKey;
-    		ChangeMojingWorld(mGlassesKey);
-    		
-			if (mMsgHandler != null) 
-			{
+        if (mGlassesKey == null)
+        {
+            if (glassesKey != null)
+            {
+                mGlassesKey = glassesKey;
+            }
+        }
+        else if (!mGlassesKey.equalsIgnoreCase(glassesKey))
+        {
+            mGlassesKey = glassesKey;
+            ChangeMojingWorld(mGlassesKey);
+
+            if (mMsgHandler != null)
+            {
                 mMsgHandler.sendMessage(Message.obtain(mMsgHandler, MojingSurfaceView.ON_CHANGE_MOJING_WORLD));
             }
-    	}	
+        }
     }
 
     @Override
@@ -500,7 +482,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
      *
      */
     public void setEGLConfigChooser(int redSize, int greenSize, int blueSize,
-            int alphaSize, int depthSize, int stencilSize) {
+                                    int alphaSize, int depthSize, int stencilSize) {
         setEGLConfigChooser(new ComponentSizeChooser(redSize, greenSize,
                 blueSize, alphaSize, depthSize, stencilSize));
     }
@@ -604,6 +586,18 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
     }
 
     /**
+     * This method is part of the SurfaceHolder.Callback interface, and is
+     * not normally called or subclassed by clients of GLSurfaceView.
+     */
+    @Override
+    public void surfaceRedrawNeeded(SurfaceHolder holder) {
+        if (mGLThread != null) {
+            mGLThread.requestRenderAndWait();
+        }
+    }
+
+
+    /**
      * Inform the view that the activity is paused. The owner of this view must
      * call this method when the activity is paused. Calling this method will
      * pause the rendering thread.
@@ -702,6 +696,17 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         GL wrap(GL gl);
     }
 
+    /**
+     * An interface for customizing the eglCreateContext and eglDestroyContext calls.
+     * <p>
+     * This interface must be implemented by clients wishing to call
+     * {@link MojingSurfaceView#setEGLContextFactory(EGLContextFactory)}
+     */
+    public interface EGLContextFactory {
+        EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig);
+        void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context);
+    }
+
     private class DefaultContextFactory implements EGLContextFactory {
         private int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
 
@@ -714,7 +719,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
 
         public void destroyContext(EGL10 egl, EGLDisplay display,
-                EGLContext context) {
+                                   EGLContext context) {
             if (!egl.eglDestroyContext(display, context)) {
                 Log.e("DefaultContextFactory", "display:" + display + " context: " + context);
                 if (LOG_THREADS) {
@@ -736,21 +741,17 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
          *  @return null if the surface cannot be constructed.
          */
         EGLSurface createWindowSurface(EGL10 egl, EGLDisplay display, EGLConfig config,
-                Object nativeWindow);
+                                       Object nativeWindow);
         void destroySurface(EGL10 egl, EGLDisplay display, EGLSurface surface);
     }
 
     private static class DefaultWindowSurfaceFactory implements EGLWindowSurfaceFactory {
 
         public EGLSurface createWindowSurface(EGL10 egl, EGLDisplay display,
-                EGLConfig config, Object nativeWindow) {
+                                              EGLConfig config, Object nativeWindow) {
             EGLSurface result = null;
             try {
-            	int params[] = {EGL10.EGL_RENDER_BUFFER , EGL10.EGL_SINGLE_BUFFER , EGL10.EGL_NONE};
-                if ((result = egl.eglCreateWindowSurface(display, config, nativeWindow, params)) == EGL10.EGL_NO_SURFACE)
-                {
-                	result = egl.eglCreateWindowSurface(display, config, nativeWindow, null);
-                }
+                result = egl.eglCreateWindowSurface(display, config, nativeWindow, null);
             } catch (IllegalArgumentException e) {
                 // This exception indicates that the surface flinger surface
                 // is not valid. This can happen if the surface flinger surface has
@@ -764,7 +765,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
 
         public void destroySurface(EGL10 egl, EGLDisplay display,
-                EGLSurface surface) {
+                                   EGLSurface surface) {
             egl.eglDestroySurface(display, surface);
         }
     }
@@ -822,7 +823,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
 
         abstract EGLConfig chooseConfig(EGL10 egl, EGLDisplay display,
-                EGLConfig[] configs);
+                                        EGLConfig[] configs);
 
         protected int[] mConfigSpec;
 
@@ -853,7 +854,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
      */
     private class ComponentSizeChooser extends BaseConfigChooser {
         public ComponentSizeChooser(int redSize, int greenSize, int blueSize,
-                int alphaSize, int depthSize, int stencilSize) {
+                                    int alphaSize, int depthSize, int stencilSize) {
             super(new int[] {
                     EGL10.EGL_RED_SIZE, redSize,
                     EGL10.EGL_GREEN_SIZE, greenSize,
@@ -869,11 +870,11 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
             mAlphaSize = alphaSize;
             mDepthSize = depthSize;
             mStencilSize = stencilSize;
-       }
+        }
 
         @Override
         public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display,
-                EGLConfig[] configs) {
+                                      EGLConfig[] configs) {
             for (EGLConfig config : configs) {
                 int d = findConfigAttrib(egl, display, config,
                         EGL10.EGL_DEPTH_SIZE, 0);
@@ -883,9 +884,9 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                     int r = findConfigAttrib(egl, display, config,
                             EGL10.EGL_RED_SIZE, 0);
                     int g = findConfigAttrib(egl, display, config,
-                             EGL10.EGL_GREEN_SIZE, 0);
+                            EGL10.EGL_GREEN_SIZE, 0);
                     int b = findConfigAttrib(egl, display, config,
-                              EGL10.EGL_BLUE_SIZE, 0);
+                            EGL10.EGL_BLUE_SIZE, 0);
                     int a = findConfigAttrib(egl, display, config,
                             EGL10.EGL_ALPHA_SIZE, 0);
                     if ((r == mRedSize) && (g == mGreenSize)
@@ -898,7 +899,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
 
         private int findConfigAttrib(EGL10 egl, EGLDisplay display,
-                EGLConfig config, int attribute, int defaultValue) {
+                                     EGLConfig config, int attribute, int defaultValue) {
 
             if (egl.eglGetConfigAttrib(display, config, attribute, mValue)) {
                 return mValue[0];
@@ -914,7 +915,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         protected int mAlphaSize;
         protected int mDepthSize;
         protected int mStencilSize;
-        }
+    }
 
     /**
      * This class will choose a RGB_888 surface with
@@ -938,7 +939,6 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         /**
          * Initialize EGL for a given configuration spec.
-         * @param configSpec
          */
         public void start() {
             if (LOG_EGL) {
@@ -1096,7 +1096,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         public void destroySurface() {
             if (LOG_EGL) {
                 Log.w("EglHelper", "destroySurface()  tid=" + Thread.currentThread().getId());
-            }            
+            }
             destroySurfaceImp();
         }
 
@@ -1107,7 +1107,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                         EGL10.EGL_NO_CONTEXT);
                 MojingSurfaceView view = mGLSurfaceViewWeakRef.get();
                 if (view != null) {
-                	LeaveMojingWorld();
+                    LeaveMojingWorld();
                     view.mEGLWindowSurfaceFactory.destroySurface(mEgl, mEglDisplay, mEglSurface);
                 }
                 mEglSurface = null;
@@ -1149,7 +1149,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
 
         public static String formatEglError(String function, int error) {
-            return function + " failed: " + error; // EGLLogWrapper.getErrorString(error);
+            return function + " failed: " + error;//EGLLogWrapper.getErrorString(error);
         }
 
         private WeakReference<MojingSurfaceView> mGLSurfaceViewWeakRef;
@@ -1177,6 +1177,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
             mHeight = 0;
             mRequestRender = true;
             mRenderMode = RENDERMODE_CONTINUOUSLY;
+            mWantRenderNotification = false;
             mGLSurfaceViewWeakRef = glSurfaceViewWeakRef;
         }
 
@@ -1222,6 +1223,8 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
             mEglHelper = new EglHelper(mGLSurfaceViewWeakRef);
             mHaveEglContext = false;
             mHaveEglSurface = false;
+            mWantRenderNotification = false;
+
             try {
                 GL10 gl = null;
                 boolean createEglContext = false;
@@ -1334,7 +1337,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                                 if (LOG_SURFACE) {
                                     Log.i("GLThread", "sending render notification tid=" + getId());
                                 }
-                                wantRenderNotification = false;
+                                mWantRenderNotification = false;
                                 doRenderNotification = false;
                                 mRenderComplete = true;
                                 sGLThreadManager.notifyAll();
@@ -1373,11 +1376,11 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                                         sizeChanged = true;
                                         w = mWidth;
                                         h = mHeight;
-                                        wantRenderNotification = true;
+                                        mWantRenderNotification = true;
                                         if (LOG_SURFACE) {
                                             Log.i("GLThread",
                                                     "noticing that we want render notification tid="
-                                                    + getId());
+                                                            + getId());
                                         }
 
                                         // Destroy and recreate the EGL surface.
@@ -1387,6 +1390,9 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                                     }
                                     mRequestRender = false;
                                     sGLThreadManager.notifyAll();
+                                    if (mWantRenderNotification) {
+                                        wantRenderNotification = true;
+                                    }
                                     break;
                                 }
                             }
@@ -1394,17 +1400,17 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                             // By design, this is the only place in a GLThread thread where we wait().
                             if (LOG_THREADS) {
                                 Log.i("GLThread", "waiting tid=" + getId()
-                                    + " mHaveEglContext: " + mHaveEglContext
-                                    + " mHaveEglSurface: " + mHaveEglSurface
-                                    + " mFinishedCreatingEglSurface: " + mFinishedCreatingEglSurface
-                                    + " mPaused: " + mPaused
-                                    + " mHasSurface: " + mHasSurface
-                                    + " mSurfaceIsBad: " + mSurfaceIsBad
-                                    + " mWaitingForSurface: " + mWaitingForSurface
-                                    + " mWidth: " + mWidth
-                                    + " mHeight: " + mHeight
-                                    + " mRequestRender: " + mRequestRender
-                                    + " mRenderMode: " + mRenderMode);
+                                        + " mHaveEglContext: " + mHaveEglContext
+                                        + " mHaveEglSurface: " + mHaveEglSurface
+                                        + " mFinishedCreatingEglSurface: " + mFinishedCreatingEglSurface
+                                        + " mPaused: " + mPaused
+                                        + " mHasSurface: " + mHasSurface
+                                        + " mSurfaceIsBad: " + mSurfaceIsBad
+                                        + " mWaitingForSurface: " + mWaitingForSurface
+                                        + " mWidth: " + mWidth
+                                        + " mHeight: " + mHeight
+                                        + " mRequestRender: " + mRequestRender
+                                        + " mRenderMode: " + mRenderMode);
                             }
                             sGLThreadManager.wait();
                         }
@@ -1420,7 +1426,6 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                         if (LOG_SURFACE) {
                             Log.w("GLThread", "egl createSurface");
                         }
-
                         if (mEglHelper.createSurface()) {
                             synchronized(sGLThreadManager) {
                                 mFinishedCreatingEglSurface = true;
@@ -1450,7 +1455,12 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                         }
                         MojingSurfaceView view = mGLSurfaceViewWeakRef.get();
                         if (view != null) {
-                            view.mRenderer.onSurfaceCreated(gl, mEglHelper.mEglConfig);
+                            try {
+//                                Trace.traceBegin(Trace.TRACE_TAG_VIEW, "onSurfaceCreated");
+                                view.mRenderer.onSurfaceCreated(gl, mEglHelper.mEglConfig);
+                            } finally {
+//                                Trace.traceEnd(Trace.TRACE_TAG_VIEW);
+                            }
                         }
                         createEglContext = false;
                     }
@@ -1461,8 +1471,14 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                         }
                         MojingSurfaceView view = mGLSurfaceViewWeakRef.get();
                         if (view != null) {
-                            view.mRenderer.onSurfaceChanged(gl, w, h);
+                            try {
+//                                Trace.traceBegin(Trace.TRACE_TAG_VIEW, "onSurfaceChanged");
+                                view.mRenderer.onSurfaceChanged(gl, w, h);
+                            } finally {
+//                                Trace.traceEnd(Trace.TRACE_TAG_VIEW);
+                            }
                         }
+
                         sizeChanged = false;
                     }
 
@@ -1472,39 +1488,44 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                     {
                         MojingSurfaceView view = mGLSurfaceViewWeakRef.get();
                         if (view != null) {
-                            view.mRenderer.onDrawFrame(gl);
+                            try {
+//                                Trace.traceBegin(Trace.TRACE_TAG_VIEW, "onDrawFrame");
+                                view.mRenderer.onDrawFrame(gl);
+                            } finally {
+//                                Trace.traceEnd(Trace.TRACE_TAG_VIEW);
+                            }
                         }
                     }
-                    
                     if (!mbMultiThread)
                     {
-	                    int swapError = mEglHelper.swap();
-	                    switch (swapError) {
-	                        case EGL10.EGL_SUCCESS:
-	                            break;
-	                        case EGL11.EGL_CONTEXT_LOST:
-	                            if (LOG_SURFACE) {
-	                                Log.i("GLThread", "egl context lost tid=" + getId());
-	                            }
-	                            lostEglContext = true;
-	                            break;
-	                        default:
-	                            // Other errors typically mean that the current surface is bad,
-	                            // probably because the SurfaceView surface has been destroyed,
-	                            // but we haven't been notified yet.
-	                            // Log the error to help developers understand why rendering stopped.
-	                            EglHelper.logEglErrorAsWarning("GLThread", "eglSwapBuffers", swapError);
-	
-	                            synchronized(sGLThreadManager) {
-	                                mSurfaceIsBad = true;
-	                                sGLThreadManager.notifyAll();
-	                            }
-	                            break;
-	                    }
+                        int swapError = mEglHelper.swap();
+                        switch (swapError) {
+                            case EGL10.EGL_SUCCESS:
+                                break;
+                            case EGL11.EGL_CONTEXT_LOST:
+                                if (LOG_SURFACE) {
+                                    Log.i("GLThread", "egl context lost tid=" + getId());
+                                }
+                                lostEglContext = true;
+                                break;
+                            default:
+                                // Other errors typically mean that the current surface is bad,
+                                // probably because the SurfaceView surface has been destroyed,
+                                // but we haven't been notified yet.
+                                // Log the error to help developers understand why rendering stopped.
+                                EglHelper.logEglErrorAsWarning("GLThread", "eglSwapBuffers", swapError);
+
+                                synchronized(sGLThreadManager) {
+                                    mSurfaceIsBad = true;
+                                    sGLThreadManager.notifyAll();
+                                }
+                                break;
+                        }
                     }
-                    
+
                     if (wantRenderNotification) {
                         doRenderNotification = true;
+                        wantRenderNotification = false;
                     }
                 }
 
@@ -1525,8 +1546,8 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         private boolean readyToDraw() {
             return (!mPaused) && mHasSurface && (!mSurfaceIsBad)
-                && (mWidth > 0) && (mHeight > 0)
-                && (mRequestRender || (mRenderMode == RENDERMODE_CONTINUOUSLY));
+                    && (mWidth > 0) && (mHeight > 0)
+                    && (mRequestRender || (mRenderMode == RENDERMODE_CONTINUOUSLY));
         }
 
         public void setRenderMode(int renderMode) {
@@ -1552,6 +1573,33 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
             }
         }
 
+        public void requestRenderAndWait() {
+            synchronized(sGLThreadManager) {
+                // If we are already on the GL thread, this means a client callback
+                // has caused reentrancy, for example via updating the SurfaceView parameters.
+                // We will return to the client rendering code, so here we don't need to
+                // do anything.
+                if (Thread.currentThread() == this) {
+                    return;
+                }
+
+                mWantRenderNotification = true;
+                mRequestRender = true;
+                mRenderComplete = false;
+
+                sGLThreadManager.notifyAll();
+
+                while (!mExited && !mPaused && !mRenderComplete && ableToDraw()) {
+                    try {
+                        sGLThreadManager.wait();
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+
+            }
+        }
+
         public void surfaceCreated() {
             synchronized(sGLThreadManager) {
                 if (LOG_THREADS) {
@@ -1561,8 +1609,8 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 mFinishedCreatingEglSurface = false;
                 sGLThreadManager.notifyAll();
                 while (mWaitingForSurface
-                       && !mFinishedCreatingEglSurface
-                       && !mExited) {
+                        && !mFinishedCreatingEglSurface
+                        && !mExited) {
                     try {
                         sGLThreadManager.wait();
                     } catch (InterruptedException e) {
@@ -1638,6 +1686,16 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 mSizeChanged = true;
                 mRequestRender = true;
                 mRenderComplete = false;
+
+                // If we are already on the GL thread, this means a client callback
+                // has caused reentrancy, for example via updating the SurfaceView parameters.
+                // We need to process the size change eventually though and update our EGLSurface.
+                // So we set the parameters and return so they can be processed on our
+                // next iteration.
+                if (Thread.currentThread() == this) {
+                    return;
+                }
+
                 sGLThreadManager.notifyAll();
 
                 // Wait for thread to react to resize and render a frame
@@ -1707,6 +1765,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         private int mHeight;
         private int mRenderMode;
         private boolean mRequestRender;
+        private boolean mWantRenderNotification;
         private boolean mRenderComplete;
         private ArrayList<Runnable> mEventQueue = new ArrayList<Runnable>();
         private boolean mSizeChanged = true;
@@ -1717,7 +1776,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         /**
          * Set once at thread construction time, nulled out when the parent view is garbage
-         * called. This weak reference allows the GLSurfaceView to be garbage collected while
+         * called. This weak reference allows the MojingSurfaceView to be garbage collected while
          * the GLThread is still alive.
          */
         private WeakReference<MojingSurfaceView> mGLSurfaceViewWeakRef;
@@ -1748,7 +1807,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         private void flushBuilder() {
             if (mBuilder.length() > 0) {
-                Log.v("GLSurfaceView", mBuilder.toString());
+                Log.v("MojingSurfaceView", mBuilder.toString());
                 mBuilder.delete(0, mBuilder.length());
             }
         }
@@ -1834,14 +1893,14 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 String renderer = gl.glGetString(GL10.GL_RENDERER);
                 if (mGLESVersion < kGLES_20) {
                     mMultipleGLESContextsAllowed =
-                        ! renderer.startsWith(kMSM7K_RENDERER_PREFIX);
+                            ! renderer.startsWith(kMSM7K_RENDERER_PREFIX);
                     notifyAll();
                 }
                 mLimitedGLESContexts = !mMultipleGLESContextsAllowed;
                 if (LOG_SURFACE) {
                     Log.w(TAG, "checkGLDriver renderer = \"" + renderer + "\" multipleContextsAllowed = "
-                        + mMultipleGLESContextsAllowed
-                        + " mLimitedGLESContexts = " + mLimitedGLESContexts);
+                            + mMultipleGLESContextsAllowed
+                            + " mLimitedGLESContexts = " + mLimitedGLESContexts);
                 }
                 mGLESDriverCheckComplete = true;
             }
@@ -1850,6 +1909,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         private void checkGLESVersion() {
             if (! mGLESVersionCheckComplete) {
                 mGLESVersion = MojingSDK.GetSystemIntProperty("ro.opengles.version", ConfigurationInfo.GL_ES_VERSION_UNDEFINED);
+
                 if (mGLESVersion >= kGLES_20) {
                     mMultipleGLESContextsAllowed = true;
                 }
@@ -1873,7 +1933,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
         private boolean mLimitedGLESContexts;
         private static final int kGLES_20 = 0x20000;
         private static final String kMSM7K_RENDERER_PREFIX =
-            "Q3Dimension MSM7500 ";
+                "Q3Dimension MSM7500 ";
         private GLThread mEglOwner;
     }
 

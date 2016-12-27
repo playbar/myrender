@@ -13,10 +13,6 @@ namespace Baofeng
 		{
 		}
 
-		RunInfoReporter::~RunInfoReporter()
-		{
-		}
-
 		void RunInfoReporter::CreateReportMsg()
 		{
 			MojingPlatformBase* platformBase = MojingPlatformBase::GetPlatform();

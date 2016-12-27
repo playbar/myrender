@@ -94,7 +94,7 @@ namespace Baofeng
 		bool MojingRenderMultiThread::WarpToScreen()
 		{
 			RenderFrame *pFR;
-			if (pFR = m_FrameManager.GetCurrentModleFrame())
+			if (NULL != (pFR = m_FrameManager.GetCurrentModleFrame()))
 			{
 				// Relase distortion thread to do real work
 				//MOJING_TRACE(g_APIlogger, "End of Model Render -- 1: " << pFR->GetFrameIndex());
@@ -108,7 +108,7 @@ namespace Baofeng
 		{
 			int iRet = 0;
 			RenderFrame *pFR;
-			if (pFR = m_FrameManager.GetCurrentModleFrame())
+			if (NULL != (pFR = m_FrameManager.GetCurrentModleFrame()))
 			{
 				// Relase distortion thread to do real work
 #ifdef _DEBUG
@@ -137,7 +137,7 @@ namespace Baofeng
 			unsigned int &iHeight, GLenum &format)
 		{
 			RenderFrame *pFR;
-			while (pFR = m_FrameManager.GetCurrentModleFrame())
+			while (NULL != (pFR = m_FrameManager.GetCurrentModleFrame()))
 			{
 				if (pFR->GetFrameWorkFlowState() == RENDER_MODLE_BOTH ||
 					(pFR->GetFrameWorkFlowState() == RENDER_MODLE_LEFT && ett == TEXTURE_LEFT_EYE) ||
@@ -165,7 +165,7 @@ namespace Baofeng
 		void MojingRenderMultiThread::SetEyeTexID(int leftEye, int rightEye)
 		{
 			RenderFrame *pFR;
-			if (pFR = m_FrameManager.GetCurrentModleFrame())
+			if (NULL != (pFR = m_FrameManager.GetCurrentModleFrame()))
 			{// 注意：这里要处理来自外部的Eye Texture
 				MojingRenderBase::SetEyeTexID(leftEye, rightEye, pFR);
 			}
@@ -176,7 +176,7 @@ namespace Baofeng
 		void MojingRenderMultiThread::UnityATW_SetEyeTexID(int leftEye, int rightEye, float *pViewMatrix)
 		{
 			RenderFrame *pFR;
-			if (pFR = m_FrameManager.GetCurrentModleFrame())
+			if (NULL != (pFR = m_FrameManager.GetCurrentModleFrame()))
 			{// 注意：这里要处理来自外部的Eye Texture
 #ifdef _DEBUG
 				MOJING_TRACE(g_APIlogger , "MojingRenderMultiThread::UnityATW_SetEyeTexID , Left = " << leftEye << " , Right = " << rightEye);

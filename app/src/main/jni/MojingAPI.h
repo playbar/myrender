@@ -104,6 +104,12 @@ bool MojingSDK_StartTracker(int nSampleFrequence, const char* szGlassName = NULL
 int MojingSDK_CheckSensors();
 int MojingSDK_GetMaxSensorsSampleRate(); // 返回最大的采样率或者-1表示出错
 #ifdef MJ_OS_ANDROID
+bool MojingSDK_IsUseUnityForSVR();
+int MojingSDK_GetSocketPort();
+int MojingSDK_Device_GetKeymask(int iID, int *pKeyMask);
+float MojingSDK_Device_GetCurrentPoaseInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition, unsigned int *pKeystatus);
+float MojingSDK_Device_GetFixPoaseInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition);
+float MojingSDK_Device_GetControlFixCurrentInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition, unsigned int *pKeystatus);
 int MojingSDK_StartTrackerChecker(int nSampleFrequence);
 int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
 #endif
@@ -112,6 +118,7 @@ void MojingSDK_ResetSensorOrientation2(void);
 void MojingSDK_ResetTracker(void);
 int MojingSDK_StartTrackerCalibration();
 float MojingSDK_IsTrackerCalibrated();
+double MojingSDK_getLastSensorState(float* fArray);
 uint64_t  MojingSDK_getLastHeadView(float* pfViewMatrix);
 int MojingSDK_getPredictionHeadView(float* pfViewMatrix, double time);
 void MojingSDK_getLastHeadEulerAngles(float* pfEulerAngles);
@@ -120,6 +127,7 @@ void MojingSDK_Math_DirectionalInScreen(float* fArray);
 
 void MojingSDK_StopTracker(void);
 void MojingSDK_SendSensorData(float* pArray, double dLastSampleTime);
+void MojingSDK_SendControllerData(const Baofeng::UByte* pArray, int dataLen);
 
 /************************************************************************/
 /* 厂商-产品-镜片-APP管理                                               */
@@ -129,6 +137,52 @@ String MojingSDK_GetProductList(const char* strManufacturerKey, const char* strL
 String MojingSDK_GetGlassList(const char* strProductKey, const char* strLanguageCodeByISO639);
 String MojingSDK_GetGlassInfo(const char* strGlassKey, const char* strLanguageCodeByISO639);
 String MojingSDK_GenerationGlassKey(const char* strProductQRCode, const char* strGlassQRCode);
+
+#if 0
+/************************************************************************/
+/* 智能设备连接管理														*/
+/************************************************************************/
+/*
+	{
+		"ClassName" : "DeviceList",
+		"DeviceList":[
+			{
+				"ID":1,
+				"DeviceName" : "MojingJoystick",
+				"Connect":0
+			},
+			{
+			"ID":2,
+			"DeviceName" : "BE-TOP",
+			"Connect":1
+			}
+		]
+	}	
+
+
+*/
+// 返回一个Json串，表示当前可以被连接/已经的连接的全部设备列表
+String MojingSDK_Device_GetDeviceList();
+
+// 连接指定的设备，传入的ID应该是MojingSDK_Device_GetDeviceList返回的JSON串中Device节点的ID值
+bool MojingSDK_Device_ConnectDevice(int iID);
+// 断开指定设备的连接。传入ID=0表示断开所有的设备。
+bool MojingSDK_Device_DisconnectDevice(int iID);
+// 检查设备的连接状态
+bool MojingSDK_Device_IsDeviceConnected(int iID);
+// 获取已经连接的设备上的按键列表的掩码，返回长度为32的int数组。分别表示按键状态码的第0位到第31位表示的键值。
+int MojingSDK_Device_GetKeymask(int iID,int *pKeyMask);
+
+// 获取设备的姿态信息和其他传感器信息,返回值为采样的时间。
+float MojingSDK_Device_IsDeviceConnected(int iID, 
+	float *pQuart, /*四元数表示的旋转，依次为XYZW*/
+	float *pAngularAccel, /*角加速度，依次为XYZ*/
+	float *pLinearAccel，/*线加速度，依次为XYZ*/
+	float *pPosition, /*设备的空间位置，以米为单位，默认是0,0,0。*/
+	unsigned int *pKeystatus/*设备上的按键状态，默认是0表示没有按键被按下*/ );
+#endif
+
+
 
 /************************************************************************/
 /* Texture Backer                                                       */ 
@@ -148,7 +202,7 @@ const char* MojingSDK_GetSDKVersion(void);
 const char* MojingSDK_GetGlasses(void);
 bool MojingSDK_IsGlassesNeedDistortion(void);
 bool MojingSDK_IsGlassesNeedDistortionByName(const char * szGlassesName);
-void MojingSDK_getProjectionMatrix(int eye,
+void MojingSDK_GetProjectionMatrix(int eye,
 	bool bVrMode,
 	float fFOV,
 	float fNear,
@@ -170,6 +224,8 @@ int MojingSDK_Math_SelectRectByDirectional(Matrix4f Direction, int iRectCounts, 
 
 void MojingSDK_Math_GetOverlayPosition3D(float fLeft, float fTop, float fWidth, float fHeight, float fDistanceInMetre, Vector4f &OverlayRectLeft, Vector4f &OverlayRectRight);
 
+// 计算矩形中心在考虑景深的情况下在近平面上的位置投影
+Rectf MojingSDK_Math_OverlayPosition3D(unsigned int eyeTextureType, Rectf rcRect, float fDistanceInMetre);
 /**
  * Get light sensation for Mojing5.
  * @return Current light sensation value in [UNIT]

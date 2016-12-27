@@ -17,11 +17,6 @@ namespace Baofeng
 			SetClassName(__FUNCTION__);
 		}
 
-		InfoReporter::~InfoReporter()
-		{
-
-		}
-
 		//run in other thread ?
 		void InfoReporter::SaveToDB()
 		{
@@ -152,7 +147,10 @@ namespace Baofeng
 			{
 				MOJING_TRACE(g_APIlogger, "InfoReporter post msg failed. errcode:" << RespCode);
 				InfoReporter* pReporter = (InfoReporter *)pCallBackParam;
-				pReporter->SaveToDB();
+				if (pReporter)
+				{
+					pReporter->SaveToDB();
+				}
 			}
 		}
 	}

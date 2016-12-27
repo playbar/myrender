@@ -222,6 +222,7 @@ namespace Baofeng
 			// Notifies SensorFusion object about a new BodyFrame message from a sensor.
 			// Should be called by user if not attaching to a sensor.
 			virtual void OnSensorData(MessageBodyFrame&);
+			virtual void OnSensorData(Quatf fOrientation, Vector3f fAngularAcceleration, Vector3f fLinearAcceleration, double dTimeInSeconds, float fTemperature);
 			//////////////////////////////////////////////////
 			float GetCalibrationRate()const;
 			//int GetCalibrationResetCount()const;

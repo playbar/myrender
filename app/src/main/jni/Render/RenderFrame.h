@@ -31,8 +31,8 @@ namespace Baofeng
 			EGLDisplay m_DistortionDisplay;
 			EGLSyncKHR m_DistortionGpuSync;
 #endif
-			static float m_fModelDrawTime[5];
-			static int	 m_uiCurrentDrawTimeIndex;
+			static float m_fModelDrawTime[5];// 记录历史5个帧的模型绘制时间开销，作为预测的采样基准
+			static int	 m_uiCurrentDrawTimeIndex;// 此对象仅用于对m_fModelDrawTime数组的索引，记录应该写入到哪一个采样中
 			float m_fStartDrawTime;
 			void  SetDrawTime(float time);
 			float GetDrawTime();
@@ -56,7 +56,7 @@ namespace Baofeng
 // 			virtual void SetFrameWorkFlowState(FrameWorkFlowState V); 
 // 			virtual FrameWorkFlowState GetFrameWorkFlowState()const{ return m_FrameWorkFlowState; };
 // #else
-			CLASS_MEMBER(FrameWorkFlowState, m_, FrameWorkFlowState);
+			CLASS_MEMBER(FrameWorkFlowState, m_, FrameWorkFlowState);// 状态机，表示当前这个Frame的状态
 /*#endif*/
 			// 帧序号，这个序号是从给出同步信号就开始计算，从初始化第一帧的时候开始使用.0表示尚未初始化
 			CLASS_INTERFACE(UInt64, m_ui64, FrameIndex);

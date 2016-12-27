@@ -9,7 +9,7 @@ namespace Baofeng
 		{
 		public:
 			ActiveTimeInfoReporter();
-			~ActiveTimeInfoReporter();
+			virtual ~ActiveTimeInfoReporter(){};
 			void PostMessage();
 			void SaveMessage();
 		private:

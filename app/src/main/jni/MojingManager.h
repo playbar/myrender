@@ -15,8 +15,9 @@ namespace Baofeng
 		class Parameters;
 		class Sensor;
 		class DatabaseInfoReporter;
-#ifdef ENABLE_DRMHELPER
 #ifdef MJ_OS_ANDROID
+		class ControllerTracker;
+#ifdef ENABLE_DRMHELPER
 		class DRMHelper;
 #endif
 #endif
@@ -28,8 +29,9 @@ namespace Baofeng
 			friend class MojingRenderBase;
 			friend class MobileConfigProfile;
 			friend class DatabaseInfoReporter;
-#ifdef ENABLE_DRMHELPER
 #ifdef MJ_OS_ANDROID
+			friend class ControllerTracker;
+#ifdef ENABLE_DRMHELPER
 			friend class DRMHelper;
 #endif
 #endif
@@ -45,8 +47,9 @@ namespace Baofeng
 			Distortion*	GetDistortion(void);
 			Parameters*	GetParameters(void); 
 			DatabaseInfoReporter* GetReporter(void);
-#ifdef ENABLE_DRMHELPER
 #ifdef MJ_OS_ANDROID
+			ControllerTracker* GetControlTracker(void);
+#ifdef ENABLE_DRMHELPER
 			DRMHelper* GetDRMHelper();
 #endif
 #endif
@@ -66,6 +69,7 @@ namespace Baofeng
 #ifdef MJ_OS_ANDROID
 			Sensor*		m_pGlassSensor;
 			Sensor*		m_pCheckSensor;
+			ControllerTracker* m_pControlTracker;
 #ifdef ENABLE_DRMHELPER
 			DRMHelper*	m_pDRMHelper;
 #endif
