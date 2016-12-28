@@ -10,8 +10,9 @@ if (propertiesFile.exists()) {
     ndkDir = properties.getProperty('ndk.dir')
 }
 model {
+
     android {
-        compileSdkVersion = 19
+        compileSdkVersion = 23
         buildToolsVersion = '23.0.2'
 
         defaultConfig {
@@ -62,7 +63,6 @@ model {
                         exclude "**/LogTraker/"
                         exclude "**/UnityWinAPI.cpp"
                         exclude "**/MojingParameterBase.cpp"
-//                        srcDirs "${ndkDir}/sources/android/cpufeatures"
                     }
                 }
             }
@@ -84,7 +84,7 @@ model {
 }
 
 dependencies {
-    //compile project(':svr')
+    compile project(':svr')
     //compile project(':nativeactivity')
     //compile files('libs/svrApi.jar')
 }

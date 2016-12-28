@@ -5,19 +5,33 @@ model {
     repositories {
         libs(PrebuiltLibraries) {
 
-            // Assimp prebuilt shared lib
-            my_assimp {
-
+            // Configure another pre-built lib: shared;[change to static after Studio supports]
+            // static lib generation. USING static lib is supported NOW, for that case,
+            // simple change:
+            //  SharedLibraryBinary --> StaticLibraryBinary
+            //  sharedLibraryFile  --> staticLibraryFile
+            //  *.so --> *.a
+            symphony {
+                headers.srcDir "src/main/jni/3rdparty/symphony/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("src/main/jni/3rdparty/symphony/lib/libsymphony-cpu.a")
+                }
+            }
+            symphonypower {
+                headers.srcDir "src/main/jni/3rdparty/symphony/include"
+                binaries.withType(StaticLibraryBinary) {
+                    staticLibraryFile = file("src/main/jni/3rdparty/symphony/lib/libsymphonypower-1.1.1.a")
+                }
             }
         }
     }
 
     android {
         compileSdkVersion 23
-        buildToolsVersion "23.0.3"
+        buildToolsVersion "23.0.2"
 
         defaultConfig {
-            minSdkVersion.apiLevel 13
+            minSdkVersion.apiLevel 19
             targetSdkVersion.apiLevel 23
             versionCode 1
             versionName "1.0"
@@ -41,8 +55,8 @@ model {
                             ])
 
             CFlags.addAll(['-Wall'])
-//            abiFilters.addAll(['armeabi-v7a'])
-            abiFilters.addAll(['armeabi'])
+            abiFilters.addAll(['armeabi-v7a'])
+//            abiFilters.addAll(['armeabi'])
             ldLibs.addAll(['android', 'log', 'GLESv3', 'EGL' ])
             ldLibs.addAll(['GLESv2', "stdc++"])
         }
@@ -54,6 +68,9 @@ model {
                         // we use some functions from ndk_helper to simplify native tasks
                         project ':ndk_helper' linkage 'static'
                         project ':native_app_glue' linkage 'static'
+                        // if gperf were *.a, change shared --> static
+                        library 'symphony' linkage 'static'
+                        library 'symphonypower' linkage 'static'
                     }
                     source {
                         srcDirs 'src/main/jni'
