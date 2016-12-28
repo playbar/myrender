@@ -2,60 +2,53 @@
 <items version="2" >
 
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\MojingSDKUnity.jar"
+        jar="S:\sdk\extras\android\m2repository\com\android\support\support-annotations\23.4.0\support-annotations-23.4.0.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="c0e5197a0d4586fa401b8973596cc3a837de0c9b">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\MojingSDKUnity_41638987162dc6f4bb6f6cf95c40fd15b343c543.jar" />
+        revision="23.0.2"
+        sha1="ffbe55fdb2bb456b1485831706a9eac3300bb6b8">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\support-annotations-23.4.0_11ebf1f9c2f23a64de0d777de7de746de5c22096.jar" />
     </item>
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\ZControllerLib-android-1.9.2.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.4.0\jars\libs\internal_impl-23.4.0.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="1c9d2f864c7e30aa3715a9d3a4a8789cea334849">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\ZControllerLib-android-1.9.2_2bc02c5a82158114a8e0311f00df1611174bad80.jar" />
+        revision="23.0.2"
+        sha1="ea3c07504d2c8f4b13aa17c45c1b68ed9c1c3674">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\internal_impl-23.4.0_3073d1bf85ad8066242e41cb5e95d5c7bac4c1fd.jar" />
     </item>
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\unity-classes.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\23.4.0\jars\classes.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="3c702aa56cf99d63d1d46dbf8a1293c2f817ae0e">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\unity-classes_04160e8a8a8793b5b5087703b20810647a5a4aa2.jar" />
+        revision="23.0.2"
+        sha1="548f06de403a9409f00554b3ee12a9fdea0e236c">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-appcompat-v7-23.4.0_a1a5606ab1005ededc38500cd1f88cc7dbdccbb8.jar" />
     </item>
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\ZControllerLib-android-ui-1.9.2.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\23.4.0\jars\classes.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="6e654e2ec55a02aeceb064b9c5f03b242da7a1cf">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\ZControllerLib-android-ui-1.9.2_e9f6ff1d5ee0487551840373c06b970223bdf56a.jar" />
+        revision="23.0.2"
+        sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-animated-vector-drawable-23.4.0_5a12ec85aea56e3cd3b33667119d8a1beeba35e7.jar" />
     </item>
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\svrApi.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\23.4.0\jars\classes.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="4a535b7cd91d2f3392f760c252c697c10491992d">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\svrApi_d82b1d2f829cc86cac7befa1a40eb4da6098635b.jar" />
+        revision="23.0.2"
+        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-support-vector-drawable-23.4.0_2b4bcea864c3a06ec113ea65303e95c6815e903d.jar" />
     </item>
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\MojingSDK.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\mjsdk\svr\unspecified\jars\classes.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="a7690c40a5322b24efb675d518aa186039848a34">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\MojingSDK_d5c50a73ebe87974ed2d36f1e30a9cf9a18bd8e3.jar" />
+        revision="23.0.2"
+        sha1="49b43c1d590271547d44088b3b5a36f9fea6b0c9">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\mjsdk-svr-unspecified_4e6cbec8b21d8664e5d527ae2195ba5f2e2a20ab.jar" />
     </item>
     <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\ZControllerLib-common-1.9.2.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.4.0\jars\classes.jar"
         jumboMode="false"
-        revision="24.0.1"
-        sha1="52869a1269311404d18fdf8976554c68c119ab2f">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\ZControllerLib-common-1.9.2_8e077ab12a4c8096c01a7e40ad8dc60930812e18.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\utest\libs\android-query.0.26.7.jar"
-        jumboMode="false"
-        revision="24.0.1"
-        sha1="aa997823bc89263500714864ff136de1e6025b4e">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\utest\build\intermediates\pre-dexed\debug\android-query.0.26.7_9d6a6e829db98c1451a6828e2c415e1708ce8d16.jar" />
+        revision="23.0.2"
+        sha1="67bd36ee9340ec7c254108936ad16b24bed160cc">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-support-v4-23.4.0_91c57f556d6370718d65afcdef81c532faa8c770.jar" />
     </item>
 
 </items>
