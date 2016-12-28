@@ -25,6 +25,7 @@ import java.lang.Math;
 
 import android.content.Context;
 import java.io.*;
+import com.mj.b4815.R;
 
 public class VrRomNativeRender implements GLSurfaceView.Renderer {
 	static int[] fboIds = { -1, -1};

@@ -16,7 +16,7 @@ model {
         buildToolsVersion = '23.0.2'
 
         defaultConfig {
-            applicationId = 'com.bn.mojing'
+            applicationId "com.mj.b4815"
             minSdkVersion.apiLevel = 19
             targetSdkVersion.apiLevel = 23
         }
@@ -84,7 +84,16 @@ model {
 }
 
 dependencies {
-    compile project(':svr')
+//    compile project(':svr')
+    compile files('libs/android-query.0.26.7.jar')
+    compile files('libs/MojingSDK.jar')
+    compile files('libs/MojingSDKUnity.jar')
+    compile files('libs/svrApi.jar')
+    compile files('libs/unity-classes.jar')
+    compile files('libs/zc-strings-1.9.2.jar')
+    compile files('libs/ZControllerLib-android-1.9.2.jar')
+    compile files('libs/ZControllerLib-android-ui-1.9.2.jar')
+    compile files('libs/ZControllerLib-common-1.9.2.jar')
     //compile project(':nativeactivity')
     //compile files('libs/svrApi.jar')
 }

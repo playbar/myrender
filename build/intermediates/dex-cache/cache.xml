@@ -2,53 +2,11 @@
 <items version="2" >
 
     <item
-        jar="S:\sdk\extras\android\m2repository\com\android\support\support-annotations\23.4.0\support-annotations-23.4.0.jar"
+        jar="D:\MyWorks\Baofeng\mjsdk\appall\libs\MojingSDK.jar"
         jumboMode="false"
         revision="23.0.2"
-        sha1="ffbe55fdb2bb456b1485831706a9eac3300bb6b8">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\support-annotations-23.4.0_11ebf1f9c2f23a64de0d777de7de746de5c22096.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.4.0\jars\libs\internal_impl-23.4.0.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="ea3c07504d2c8f4b13aa17c45c1b68ed9c1c3674">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\internal_impl-23.4.0_3073d1bf85ad8066242e41cb5e95d5c7bac4c1fd.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\23.4.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="548f06de403a9409f00554b3ee12a9fdea0e236c">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-appcompat-v7-23.4.0_a1a5606ab1005ededc38500cd1f88cc7dbdccbb8.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\23.4.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-animated-vector-drawable-23.4.0_5a12ec85aea56e3cd3b33667119d8a1beeba35e7.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\23.4.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-support-vector-drawable-23.4.0_2b4bcea864c3a06ec113ea65303e95c6815e903d.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\mjsdk\svr\unspecified\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="49b43c1d590271547d44088b3b5a36f9fea6b0c9">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\mjsdk-svr-unspecified_4e6cbec8b21d8664e5d527ae2195ba5f2e2a20ab.jar" />
-    </item>
-    <item
-        jar="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.4.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="67bd36ee9340ec7c254108936ad16b24bed160cc">
-        <dex dex="D:\MyWorks\Baofeng\mjsdk\app\build\intermediates\pre-dexed\arm7\debug\com.android.support-support-v4-23.4.0_91c57f556d6370718d65afcdef81c532faa8c770.jar" />
+        sha1="cc8b3d6f84a251bc4b18117753366b82488f5513">
+        <dex dex="D:\MyWorks\Baofeng\mjsdk\appall\build\intermediates\pre-dexed\arm7\debug\MojingSDK_dc4baf63a2377cae3ca6ed4fa5f7767c726aeea9.jar" />
     </item>
 
 </items>
