@@ -1,2 +1,2 @@
-include ':app', ':appall', ':svr', ':ndk_helper', ':native_app_glue', ':utest'
+include ':app', ':appall', ':render', ':ndk_helper', ':native_app_glue', ':utest'
 

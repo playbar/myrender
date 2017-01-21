@@ -84,7 +84,7 @@ model {
 }
 
 dependencies {
-    compile project(':svr')
+    compile project(':render')
     //compile project(':nativeactivity')
     //compile files('libs/svrApi.jar')
 }
