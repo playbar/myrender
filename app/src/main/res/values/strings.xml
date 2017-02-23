@@ -23,7 +23,7 @@
 
 <resources>
     <!-- Simple strings. -->
-    <string name="mojing_activity">魔镜SDK演示</string>
+    <string name="mojing_activity">mjsdk</string>
 
 </resources>
 
