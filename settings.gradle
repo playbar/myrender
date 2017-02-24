@@ -1,7 +1,6 @@
 include ':app'
 include ':appall'
+include ':gvr'
 //include ':render'
-//include  ':ndk_helper'
-//include  ':native_app_glue'
 include  ':utest'
 
