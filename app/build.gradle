@@ -1,87 +1,43 @@
-apply plugin: 'com.android.model.application'
-// Retrieve ndk path to config cpufeatures src code into this project
-// native_app_glue is configured as dependent module, so we avoid confusing
-// NOTICE/repo.prop files get displayed multiple times inside IDE
-def ndkDir = System.getenv("ANDROID_NDK_HOME")
-def propertiesFile = project.rootProject.file('local.properties')
-if (propertiesFile.exists()) {
-    Properties properties = new Properties()
-    properties.load(propertiesFile.newDataInputStream())
-    ndkDir = properties.getProperty('ndk.dir')
-}
-model {
+apply plugin: 'com.android.application'
 
-    android {
-        compileSdkVersion = 23
-        buildToolsVersion = '23.0.2'
+android {
+    compileSdkVersion = 23
+    buildToolsVersion = '23.0.2'
 
-        defaultConfig {
-            applicationId = 'com.bn.mojing'
-            minSdkVersion.apiLevel = 19
-            targetSdkVersion.apiLevel = 23
-        }
-        ndk {
-            platformVersion = 19
-            moduleName = 'mojing'
-            toolchain = "gcc"
-            //toolchainVersion = "4.9"
-            stl = 'gnustl_static'//'c++_static'
-            CFlags.addAll([
-                '-I' + file('src/main/jni/3rdPart/ktx/include'),
-            ])
-            cppFlags.addAll([
-                    '-I' + "${ndkDir}/sources/android/native_app_glue",
-                    '-I' + file('src/main/jni'),
-                    '-I' + file('src/main/jni/3rdPart/Curl/include'),
-                    '-I' + file('src/main/jni/3rdPart/ktx/include'),
-                    '-I' + file('src/main/jni/googlebreakpad/src'),
-            ])
-            cppFlags.addAll(['-std=c++11',
-                             '-Wall',
-                             '-fexceptions',
-                             '-DMJ_OS_ANDROID',
-            ])
-            ldFlags.add('-L' + file("src/main/jniLibs/armeabi-v7a"))
-            ldLibs.addAll(['android', 'log', 'EGL', 'GLESv3',
-                    'z',
-                    'sqlite',
-                    'curl',
-                    'mdklog',
-                    'breakpad_client'
-            ])
-        }
-        sources {
-            main {
-                jni {
-                    dependencies {
-                        //project ':nativeactivity' linkage 'static'
-                    }
-                    source {
-                        srcDirs "src/main/jni"
-                        exclude "**/iowin32.c"
-                        exclude "**/googlebreakpad/"
-                        exclude "**/LogTraker/"
-                        exclude "**/UnityWinAPI.cpp"
-                        exclude "**/MojingParameterBase.cpp"
-                    }
-                }
-            }
-        }
-
-        productFlavors {
-            create("arm7") {
-                ndk.abiFilters.add("armeabi-v7a")
-            }
-        }
-
-        buildTypes {
-            release {
-                minifyEnabled = false
-                proguardFiles.add(file('proguard-rules.txt'))
+    defaultConfig {
+        applicationId = 'com.bn.mojing'
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+        externalNativeBuild {
+            cmake {
+                abiFilters 'armeabi-v7a'
             }
         }
     }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles.add(file('../../proguard-gvr.txt'))
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+
 }
+
 
 dependencies {
 //    compile project(':render')

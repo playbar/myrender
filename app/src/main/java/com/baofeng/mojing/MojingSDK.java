@@ -218,21 +218,35 @@ public class MojingSDK
 
 	public static String getUserID(Context context) {	
 		String uniqueId = "UNKNOWN";
+		String tmDevice, androidId, cpuSerial, serial;
 		try {
-			final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-			final String tmDevice, androidId,cpuSerial,serial;
-
-			tmDevice = "" + tm.getDeviceId();
-			androidId = "" + android.provider.Settings.Secure.getString(
-						context.getContentResolver(),
-						android.provider.Settings.Secure.ANDROID_ID);
+			try {
+				final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+				tmDevice = "" + tm.getDeviceId();
+			} catch (Exception e) {
+				tmDevice = "00000000";
+				e.printStackTrace();
+			}
+			LogTrace("tmDevice : " + tmDevice);
+			try {
+				androidId = "" + android.provider.Settings.Secure.getString(
+							context.getContentResolver(),
+							android.provider.Settings.Secure.ANDROID_ID);
+			} catch (Exception e) {
+				androidId = "UNKNOWN";
+				e.printStackTrace();
+			}
+			//LogTrace("androidId : " + androidId);
 			//cpuSerial = "" + getCPUSerial();
+			//LogTrace("getCPUSerial : " + cpuSerial);
 			serial = getSerialNumber();
+			//LogTrace("getSerialNumber : " + serial);
 			UUID deviceUuid = new UUID(androidId.hashCode(), ((long) tmDevice.hashCode() << 32) |serial.hashCode());
 			uniqueId = deviceUuid.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		return uniqueId;
 	} 
 
@@ -292,6 +306,7 @@ public class MojingSDK
     }  
 
 	public static native boolean IsUseUnityForSVR();
+	public static native boolean ReportReInit();
 	public static native void AppExit();
 	public static native String AppGetRunID();
 	public static native boolean AppResume(String uniqueID);
@@ -327,6 +342,7 @@ public class MojingSDK
 	public static native void SendSensorData(float[] sensorArr , double second);
 	public static native void StopTracker();
 	public static native void SendControllerData(byte[] data, int len);
+	public static native void SendControllerDataV2(float[] data, long timestamp, boolean isRecenter);
 	// API FOR DISPLAY/DISTORTION
 	public static native boolean DrawTexture(int LeftTexID, int RightTexID);	
 	// public static native boolean DrawTextureWithSameOverlay(int LeftTexID, int RightTexID, int OverlayID);

@@ -1,14 +1,14 @@
-apply plugin: 'com.android.model.application'
+apply plugin: 'com.android.application'
 
-model {
+
     android {
         compileSdkVersion 24
         buildToolsVersion "24.0.1"
 
         defaultConfig {
             applicationId "com.mj.b4815"
-            minSdkVersion.apiLevel = 19
-            targetSdkVersion.apiLevel = 24
+            minSdkVersion 19
+            targetSdkVersion 24
         }
 
         buildTypes {
@@ -17,7 +17,7 @@ model {
             }
         }
     }
-}
+
 
 dependencies {
     compile files('libs/android-query.0.26.7.jar')

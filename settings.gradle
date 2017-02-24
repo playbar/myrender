@@ -1,7 +1,7 @@
 include ':app'
-include ':appall'
+//include ':appall'
 //include ':render'
-include  ':ndk_helper'
-include  ':native_app_glue'
+//include  ':ndk_helper'
+//include  ':native_app_glue'
 include  ':utest'
 
