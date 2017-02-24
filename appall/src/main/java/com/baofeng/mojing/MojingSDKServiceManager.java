@@ -51,7 +51,7 @@ public class MojingSDKServiceManager {
 				jsonObj.put("PackageName", packageName);
 				jsonObj.put("EnableSensorFusion", true);
 				jsonObj.put("SensorFromJava", com.baofeng.mojing.MojingSDK.IsSensorFromJava());
-				//jsonObj.put("UseSocket", true);
+				jsonObj.put("UseSocket", true);
 				mService.clientResume(jsonObj.toString(), callback);
 	        } catch (RemoteException e) {
 	            e.printStackTrace();

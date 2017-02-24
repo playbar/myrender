@@ -44,6 +44,11 @@ public class MojingSDKReport {
 	}
 */	
 
+	public static boolean onReportReInit()
+	{
+		return com.baofeng.mojing.MojingSDK.ReportReInit();
+	}
+
 	public static void setReportImmediate(boolean bImmediate)
 	{
 		com.baofeng.mojing.MojingSDK.AppSetReportImmediate(bImmediate);
