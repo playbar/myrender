@@ -61,7 +61,7 @@ VAR(int, gCpuLvl1Max, 50, kVariableNonpersistent);                  //Upper CPU 
 VAR(int, gCpuLvl2Min, 51, kVariableNonpersistent);                  //Lower CPU frequency (percentage) bound for medium performance level
 VAR(int, gCpuLvl2Max, 80, kVariableNonpersistent);                  //Upper CPU frequency (percentage) bound for medium performance level
 VAR(int, gCpuLvl3Min, 81, kVariableNonpersistent);                  //Lower CPU frequency (percentage) bound for max performance level
-VAR(int, gCpuLvl3Max, 100, kVariableNonpersistent);                 //Upper CPU frequency (percentage) bound for max performance level
+VAR(int, gCpuLvl3Max, 100, kVariableNonpersistent);                 //Upper CPU frequency (percentage) bound for max performance level  
 
 VAR(int, gForceGpuLevel, -1, kVariableNonpersistent);                //Override to force GPU performance level (-1: app defined, 0:system defined/off, 1/2/3 for min,medium,max)
 VAR(int, gGpuLvl1Min, 30, kVariableNonpersistent);                  //Lower GPU frequency (percentage) bound for min performance level
@@ -69,7 +69,7 @@ VAR(int, gGpuLvl1Max, 50, kVariableNonpersistent);                  //Upper GPU 
 VAR(int, gGpuLvl2Min, 51, kVariableNonpersistent);                  //Lower GPU frequency (percentage) bound for medium performance level
 VAR(int, gGpuLvl2Max, 80, kVariableNonpersistent);                  //Upper GPU frequency (percentage) bound for medium performance level
 VAR(int, gGpuLvl3Min, 81, kVariableNonpersistent);                  //Lower GPU frequency (percentage) bound for max performance level
-VAR(int, gGpuLvl3Max, 100, kVariableNonpersistent);                 //Upper GPU frequency (percentage) bound for max performance level
+VAR(int, gGpuLvl3Max, 100, kVariableNonpersistent);                 //Upper GPU frequency (percentage) bound for max performance level  
 
 //Tracking overrides
 VAR(int, gForceTrackingMode, 0, kVariableNonpersistent);            //Force a specific tracking mode 1 = rotational 3 = rotational & positional
@@ -93,41 +93,41 @@ int gRecenterTransition = 1000;
 namespace Svr
 {
     SvrAppContext* gAppContext = NULL;
-    VertexTable * gVertexTable = NULL;
+	VertexTable * gVertexTable = NULL;
     bool gTimewarpEnabled = true;
 }
 
 
 void ReleaseVertexTable()
 {
-    if (gVertexTable)
-    {
-        if (gVertexTable->m_pIndex)
-            delete[] gVertexTable->m_pIndex;
-        if (gVertexTable->m_pVertexLeft)
-            delete[] gVertexTable->m_pVertexLeft;
-        if (gVertexTable->m_pVertexRight)
-            delete[] gVertexTable->m_pVertexRight;
-        delete gVertexTable;
-    }
-    gVertexTable = NULL;
+	if (gVertexTable)
+	{
+		if (gVertexTable->m_pIndex)
+			delete[] gVertexTable->m_pIndex;
+		if (gVertexTable->m_pVertexLeft)
+			delete[] gVertexTable->m_pVertexLeft;
+		if (gVertexTable->m_pVertexRight)
+			delete[] gVertexTable->m_pVertexRight;
+		delete gVertexTable;
+	}
+	gVertexTable = NULL;
 }
 
 float *VertexAttribute8To10(const float * pVertex, size_t size, float * pVertexAppends)
 {
-    const unsigned int SizeOld = 8;
-    const unsigned int SizeNew = 10;
-    unsigned int iCount = size / SizeOld;
-    float *pRet = new float[iCount * SizeNew];
-    unsigned int iIndex = 0;
-    while (iIndex < iCount)
-    {
-        memcpy(pRet + iIndex * SizeNew, pVertex + iIndex * SizeOld, SizeOld * sizeof(float));
-        memcpy(pRet + iIndex * SizeNew+SizeOld, pVertexAppends , (SizeNew - SizeOld) * sizeof(float));
-        iIndex++;
-    }
-    LOGI("V8-10:0x%08X , Length = %d", (unsigned int)pRet, iCount * SizeNew);
-    return pRet;
+	const unsigned int SizeOld = 8;
+	const unsigned int SizeNew = 10;
+	unsigned int iCount = size / SizeOld;
+	float *pRet = new float[iCount * SizeNew];
+	unsigned int iIndex = 0;
+	while (iIndex < iCount)
+	{
+		memcpy(pRet + iIndex * SizeNew, pVertex + iIndex * SizeOld, SizeOld * sizeof(float));
+		memcpy(pRet + iIndex * SizeNew+SizeOld, pVertexAppends , (SizeNew - SizeOld) * sizeof(float));
+		iIndex++;
+	}
+	LOGI("V8-10:0x%08X , Length = %d", (unsigned int)pRet, iCount * SizeNew);
+	return pRet;
 }
 
 void ResetVertexTable(const float * pVertexL, const float * pVertexR, size_t VertexSize, const unsigned int * pIndex, size_t IndexSize)
@@ -162,33 +162,33 @@ static const char* gSvrConfigFilePath = "/data/misc/vr/svrapi_config.txt";
 
 extern "C"
 {
-void Java_com_qualcomm_svrapi_SvrApi_nativeVsync(JNIEnv *jni, jclass clazz, jlong frameTimeNanos)
-{
-    if (gAppContext != NULL && gAppContext->modeContext != NULL)
+    void Java_com_qualcomm_svrapi_SvrApi_nativeVsync(JNIEnv *jni, jclass clazz, jlong frameTimeNanos)
     {
-        const double periodNano = 1e9 / gAppContext->deviceInfo.displayRefreshRateHz;
-
-        pthread_mutex_lock(&gAppContext->modeContext->vsyncMutex);
-
-        uint64_t vsyncTimeStamp = frameTimeNanos;
-
-        if (gAppContext->modeContext->vsyncTimeNano == 0)
+        if (gAppContext != NULL && gAppContext->modeContext != NULL)
         {
-            //Don't count the first time through
-            gAppContext->modeContext->vsyncTimeNano = vsyncTimeStamp;
-            gAppContext->modeContext->vsyncCount = 1;
-        }
-        else
-        {
-            unsigned int nVsync = floor(0.5 + ((double)(vsyncTimeStamp - gAppContext->modeContext->vsyncTimeNano) / periodNano));
-            gAppContext->modeContext->vsyncCount += nVsync;
-            gAppContext->modeContext->vsyncTimeNano = vsyncTimeStamp;
-        }
+            const double periodNano = 1e9 / gAppContext->deviceInfo.displayRefreshRateHz;
 
-        pthread_mutex_unlock(&gAppContext->modeContext->vsyncMutex);
+            pthread_mutex_lock(&gAppContext->modeContext->vsyncMutex);
 
-    }   // gAppContext != NULL
-}
+            uint64_t vsyncTimeStamp = frameTimeNanos;
+
+            if (gAppContext->modeContext->vsyncTimeNano == 0)
+            {
+                //Don't count the first time through
+                gAppContext->modeContext->vsyncTimeNano = vsyncTimeStamp;
+                gAppContext->modeContext->vsyncCount = 1;
+            }
+            else
+            {
+                unsigned int nVsync = floor(0.5 + ((double)(vsyncTimeStamp - gAppContext->modeContext->vsyncTimeNano) / periodNano));
+                gAppContext->modeContext->vsyncCount += nVsync;
+                gAppContext->modeContext->vsyncTimeNano = vsyncTimeStamp;
+            }
+
+            pthread_mutex_unlock(&gAppContext->modeContext->vsyncMutex);
+
+        }   // gAppContext != NULL
+    }
 }
 
 
@@ -237,13 +237,13 @@ static void svrLinePtrCallback(void *ctx, uint64_t vsync_ts)
 void svrNotifyFailedQvrService()
 //-----------------------------------------------------------------------------
 {
-    // Find the method ...
+    // Find the method ...	
 	JNIEnv* pThreadJEnv;
 	if (gAppContext->javaVm->AttachCurrentThread(&pThreadJEnv, NULL) != JNI_OK)
 	{
 		LOGE("svrInitialize AttachCurrentThread failed.");
     }
-
+	
     jclass ParentClass = gAppContext->javaSvrApiClass;
     jmethodID MethodId = pThreadJEnv->GetStaticMethodID(ParentClass, "NotifyNoVr", "(Landroid/app/Activity;)V");
     if (MethodId == NULL)
@@ -288,73 +288,73 @@ void L_SetThreadPriority(const char *pName, int policy, int priority)
     int oldPolicy = sched_getscheduler(gettid());
     switch (oldPolicy)
     {
-        case SCHED_NORMAL:      // 0
-            LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_NORMAL", pName, (int)gettid(), (int)gettid());
-            break;
+    case SCHED_NORMAL:      // 0
+        LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_NORMAL", pName, (int)gettid(), (int)gettid());
+        break;
 
-        case SCHED_FIFO:        // 1
-            LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_FIFO", pName, (int)gettid(), (int)gettid());
-            break;
+    case SCHED_FIFO:        // 1
+        LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_FIFO", pName, (int)gettid(), (int)gettid());
+        break;
 
-        case SCHED_FIFO | SCHED_RESET_ON_FORK:        // 1
-            LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_FIFO | SCHED_RESET_ON_FORK", pName, (int)gettid(), (int)gettid());
-            break;
+    case SCHED_FIFO | SCHED_RESET_ON_FORK:        // 1
+        LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_FIFO | SCHED_RESET_ON_FORK", pName, (int)gettid(), (int)gettid());
+        break;
 
-        case SCHED_RR:          // 2
-            LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_RR", pName, (int)gettid(), (int)gettid());
-            break;
+    case SCHED_RR:          // 2
+        LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_RR", pName, (int)gettid(), (int)gettid());
+        break;
 
-        case SCHED_BATCH:       // 3
-            LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_BATCH", pName, (int)gettid(), (int)gettid());
-            break;
+    case SCHED_BATCH:       // 3
+        LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_BATCH", pName, (int)gettid(), (int)gettid());
+        break;
 
-            // case SCHED_ISO:         // 4
-            //     LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_ISO", pName, (int)gettid(), (int)gettid());
-            //     break;
+        // case SCHED_ISO:         // 4
+        //     LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_ISO", pName, (int)gettid(), (int)gettid());
+        //     break;
 
-        case SCHED_IDLE:        // 5
-            LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_IDLE", pName, (int)gettid(), (int)gettid());
-            break;
+    case SCHED_IDLE:        // 5
+        LOGI("Current %s (0x%x = %d) Scheduling policy: SCHED_IDLE", pName, (int)gettid(), (int)gettid());
+        break;
 
-        default:
-            LOGI("Current %s (0x%x = %d) Scheduling policy: %d", pName, (int)gettid(), (int)gettid(), oldPolicy);
-            break;
+    default:
+        LOGI("Current %s (0x%x = %d) Scheduling policy: %d", pName, (int)gettid(), (int)gettid(), oldPolicy);
+        break;
     }
 
     // Where is it going?
     switch (policy)
     {
-        case SCHED_NORMAL:      // 0
-            LOGI("    Setting => SCHED_NORMAL");
-            break;
+    case SCHED_NORMAL:      // 0
+        LOGI("    Setting => SCHED_NORMAL");
+        break;
 
-        case SCHED_FIFO:        // 1
-            LOGI("    Setting => SCHED_FIFO");
-            break;
+    case SCHED_FIFO:        // 1
+        LOGI("    Setting => SCHED_FIFO");
+        break;
 
-        case SCHED_FIFO | SCHED_RESET_ON_FORK:        // 1
-            LOGI("    Setting => SCHED_FIFO | SCHED_RESET_ON_FORK");
-            break;
+    case SCHED_FIFO | SCHED_RESET_ON_FORK:        // 1
+        LOGI("    Setting => SCHED_FIFO | SCHED_RESET_ON_FORK");
+        break;
+        
+    case SCHED_RR:          // 2
+        LOGI("    Setting => SCHED_RR");
+        break;
 
-        case SCHED_RR:          // 2
-            LOGI("    Setting => SCHED_RR");
-            break;
+    case SCHED_BATCH:       // 3
+        LOGI("    Setting => SCHED_BATCH");
+        break;
 
-        case SCHED_BATCH:       // 3
-            LOGI("    Setting => SCHED_BATCH");
-            break;
+        // case SCHED_ISO:         // 4
+        //     LOGI("    Setting => SCHED_ISO");
+        //     break;
 
-            // case SCHED_ISO:         // 4
-            //     LOGI("    Setting => SCHED_ISO");
-            //     break;
+    case SCHED_IDLE:        // 5
+        LOGI("    Setting => SCHED_IDLE");
+        break;
 
-        case SCHED_IDLE:        // 5
-            LOGI("    Setting => SCHED_IDLE");
-            break;
-
-        default:
-            LOGI("    Setting => UNKNOWN! (%d)", policy);
-            break;
+    default:
+        LOGI("    Setting => UNKNOWN! (%d)", policy);
+        break;
     }
 #ifdef USE_QVR_SERVICE
     if (gAppContext->qvrService->SetThreadPriority(gettid(), policy, priority) < 0)
@@ -366,37 +366,37 @@ void L_SetThreadPriority(const char *pName, int policy, int priority)
     int newPolicy = sched_getscheduler(gettid());
     switch (newPolicy)
     {
-        case SCHED_NORMAL:      // 0
-            LOGI("    Result => SCHED_NORMAL");
-            break;
+    case SCHED_NORMAL:      // 0
+        LOGI("    Result => SCHED_NORMAL");
+        break;
 
-        case SCHED_FIFO:        // 1
-            LOGI("    Result => SCHED_FIFO");
-            break;
+    case SCHED_FIFO:        // 1
+        LOGI("    Result => SCHED_FIFO");
+        break;
 
-        case SCHED_FIFO | SCHED_RESET_ON_FORK:        // 1
-            LOGI("    Result => SCHED_FIFO | SCHED_RESET_ON_FORK");
-            break;
+    case SCHED_FIFO | SCHED_RESET_ON_FORK:        // 1
+        LOGI("    Result => SCHED_FIFO | SCHED_RESET_ON_FORK");
+        break;
+        
+    case SCHED_RR:          // 2
+        LOGI("    Result => SCHED_RR");
+        break;
 
-        case SCHED_RR:          // 2
-            LOGI("    Result => SCHED_RR");
-            break;
+    case SCHED_BATCH:       // 3
+        LOGI("    Result => SCHED_BATCH");
+        break;
 
-        case SCHED_BATCH:       // 3
-            LOGI("    Result => SCHED_BATCH");
-            break;
+        // case SCHED_ISO:         // 4
+        //     LOGI("    Result => SCHED_ISO");
+        //     break;
 
-            // case SCHED_ISO:         // 4
-            //     LOGI("    Result => SCHED_ISO");
-            //     break;
+    case SCHED_IDLE:        // 5
+        LOGI("    Result => SCHED_IDLE");
+        break;
 
-        case SCHED_IDLE:        // 5
-            LOGI("    Result => SCHED_IDLE");
-            break;
-
-        default:
-            LOGI("    Result => UNKNOWN! (%d)", newPolicy);
-            break;
+    default:
+        LOGI("    Result => UNKNOWN! (%d)", newPolicy);
+        break;
     }
 }
 
@@ -429,11 +429,11 @@ bool svrInitialize(const svrInitParams* pInitParams)
 
     //Load the SvrApi Java class and cache necessary method references
     //Since we are utilizing a native activity we need to go through the activities class loader to find the SvrApi class
-
-    JNIEnv* pThreadJEnv;
-    if (gAppContext->javaVm->AttachCurrentThread(&pThreadJEnv, NULL) != JNI_OK)
-    {
-        LOGE("svrInitialize AttachCurrentThread failed.");
+        
+	JNIEnv* pThreadJEnv;
+	if (gAppContext->javaVm->AttachCurrentThread(&pThreadJEnv, NULL) != JNI_OK)
+	{
+		LOGE("svrInitialize AttachCurrentThread failed.");
         return false;
     }
 
@@ -465,9 +465,9 @@ bool svrInitialize(const svrInitParams* pInitParams)
         jclass          clazz;
         JNINativeMethod nm;
     } nativeMethods[] =
-            {
-                    { gAppContext->javaSvrApiClass, { "nativeVsync", "(J)V", (void*)Java_com_qualcomm_svrapi_SvrApi_nativeVsync } }
-            };
+    {
+        { gAppContext->javaSvrApiClass, { "nativeVsync", "(J)V", (void*)Java_com_qualcomm_svrapi_SvrApi_nativeVsync } }
+    };
 
     const int count = sizeof(nativeMethods) / sizeof(nativeMethods[0]);
 
@@ -482,7 +482,7 @@ bool svrInitialize(const svrInitParams* pInitParams)
 
     //Cache method ids for the start/stop vsync callback methods
     gAppContext->javaSvrApiStartVsyncMethodId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                                               "startVsync", "(Landroid/app/Activity;)V");
+        "startVsync", "(Landroid/app/Activity;)V");
     if (gAppContext->javaSvrApiStartVsyncMethodId == NULL)
     {
         LOGE("Failed to locate startVsync method");
@@ -490,7 +490,7 @@ bool svrInitialize(const svrInitParams* pInitParams)
     }
 
     gAppContext->javaSvrApiStopVsyncMethodId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                                              "stopVsync", "(Landroid/app/Activity;)V");
+        "stopVsync", "(Landroid/app/Activity;)V");
     if (gAppContext->javaSvrApiStopVsyncMethodId == NULL)
     {
         LOGE("Failed to locate stopVsync method");
@@ -501,7 +501,7 @@ bool svrInitialize(const svrInitParams* pInitParams)
     memset(&gAppContext->deviceInfo, 0, sizeof(svrDeviceInfo));
 
     jmethodID refreshRateId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                             "getRefreshRate", "(Landroid/app/Activity;)F");
+        "getRefreshRate", "(Landroid/app/Activity;)F");
     if (refreshRateId == NULL)
     {
         LOGE("svrGetDeviceInfo: Failed to locate getRefreshRate method");
@@ -515,7 +515,7 @@ bool svrInitialize(const svrInitParams* pInitParams)
     }
 
     jmethodID getDisplayWidthId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                                 "getDisplayWidth", "(Landroid/app/Activity;)I");
+        "getDisplayWidth", "(Landroid/app/Activity;)I");
     if (getDisplayWidthId == NULL)
     {
         LOGE("Failed to locate getDisplayWidth method");
@@ -529,7 +529,7 @@ bool svrInitialize(const svrInitParams* pInitParams)
     }
 
     jmethodID getDisplayHeightId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                                  "getDisplayHeight", "(Landroid/app/Activity;)I");
+        "getDisplayHeight", "(Landroid/app/Activity;)I");
     if (getDisplayHeightId == NULL)
     {
         LOGE("Failed to locate getDisplayHeight method");
@@ -542,9 +542,9 @@ bool svrInitialize(const svrInitParams* pInitParams)
         LOGI("Display Height : %d", displayHeight);
     }
 
-
+   
     jmethodID getDisplayOrientationId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                                       "getDisplayOrientation", "(Landroid/app/Activity;)I");
+        "getDisplayOrientation", "(Landroid/app/Activity;)I");
     if (getDisplayOrientationId == NULL)
     {
         LOGE("Failed to locate getDisplayOrientation method");
@@ -638,7 +638,7 @@ bool svrInitialize(const svrInitParams* pInitParams)
 
     //Log out some useful information
     jmethodID vsyncOffetId = pThreadJEnv->GetStaticMethodID(gAppContext->javaSvrApiClass,
-                                                            "getVsyncOffsetNanos", "(Landroid/app/Activity;)J");
+        "getVsyncOffsetNanos", "(Landroid/app/Activity;)J");
     if (vsyncOffetId == NULL)
     {
         LOGE("Failed to locate getVsyncOffsetNanos method");
@@ -812,11 +812,11 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     }
 	LOGI("svrBeginVr -- Check VrMode Succeeded");
 #endif // defined (USE_QVR_SERVICE)
-    LOGI("svrBeginVr -- PROFILE_INITIALIZE");
+	LOGI("svrBeginVr -- PROFILE_INITIALIZE");  
     PROFILE_INITIALIZE();
 
     PROFILE_THREAD_NAME(gTelemetryData.context, 0, "Eye Render Thread");
-    LOGI("svrBeginVr -- RenderThreadFifo");
+	LOGI("svrBeginVr -- RenderThreadFifo");  
     if (gEnableRenderThreadFifo)
     {
         L_SetThreadPriority("Render Thread", SCHED_FIFO | SCHED_RESET_ON_FORK, gFifoPriorityRender);
@@ -846,14 +846,14 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     {
         svrSetGpuPerfLevel((svrPerfLevel)gForceGpuLevel);
     }
-
-    //Set currently selected tracking mode. This is needed when the application resumes from suspension
+	
+	//Set currently selected tracking mode. This is needed when the application resumes from suspension
     LOGI("Set tracking mode context...");
     svrSetTrackingMode(gAppContext->currentTrackingMode);
 
     LOGI("Creating mode context...");
     gAppContext->modeContext = new SvrModeContext();
-
+    
     gAppContext->modeContext->nativeWindow = pBeginParams->nativeWindow;
 
     gAppContext->modeContext->vsyncCount = 0;
@@ -864,12 +864,12 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     pthread_mutex_init(&gAppContext->modeContext->warpThreadContextMutex, NULL);
     gAppContext->modeContext->warpContextCreated = false;
 
-    gAppContext->modeContext->warpThreadExit = false;
+    gAppContext->modeContext->warpThreadExit = false; 
     gAppContext->modeContext->vsyncThreadExit = false;
-
+  
     pthread_cond_init(&gAppContext->modeContext->warpBufferConsumedCv, NULL);
     pthread_mutex_init(&gAppContext->modeContext->warpBufferConsumedMutex, NULL);
-
+  
     gAppContext->modeContext->eyeRenderWarpSurface = EGL_NO_SURFACE;
     gAppContext->modeContext->eyeRenderOrigSurface = EGL_NO_SURFACE;
     gAppContext->modeContext->eyeRenderOrigConfigId = -1;
@@ -884,7 +884,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     gAppContext->modeContext->submitFrameCount = 0;
     gAppContext->modeContext->warpFrameCount = 0;
     gAppContext->modeContext->prevSubmitVsyncCount = 0;
-
+   
     // Recenter rotation
     gAppContext->modeContext->recenterRot = glm::fquat();
     gAppContext->modeContext->recenterPos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -924,7 +924,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     {
         LOGE("    svrBeginVr AttachCurrentThread failed.");
     }
-
+        
     LOGI("   Using Choreographer VSync Monitoring");
     pThreadJEnv->CallStaticVoidMethod(gAppContext->javaSvrApiClass, gAppContext->javaSvrApiStartVsyncMethodId, gAppContext->javaActivityObject);
 #endif
@@ -1046,10 +1046,10 @@ void svrEndVr()
     svrSetCpuPerfLevel(kPerfSystem);
     svrSetGpuPerfLevel(kPerfSystem);
 
-
+	
 #ifdef USE_QVR_SERVICE
     LOGI("Disconnecting from QVR Service...");
-
+   
     QVRSERVICE_VRMODE_STATE state;
     int ret = gAppContext->qvrService->StopVRMode();
     if (ret < 0)
@@ -1080,7 +1080,7 @@ void svrEndVr()
         pthread_mutex_destroy(&gAppContext->modeContext->warpThreadContextMutex);
         pthread_cond_destroy(&gAppContext->modeContext->warpThreadContextCv);
         pthread_mutex_destroy(&gAppContext->modeContext->vsyncMutex);
-
+        
         //Clean up any GPU fences still hanging around
         LOGI("Cleaning up frame fences...");
         for (int i = 0; i < NUM_SWAP_FRAMES; i++)
@@ -1096,7 +1096,7 @@ void svrEndVr()
         delete gAppContext->modeContext;
         gAppContext->modeContext = NULL;
     }
-
+  
     if (gEnableDebugServer)
     {
         svrStopDebugServer();
@@ -1188,12 +1188,12 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     {
         glDeleteSync(fp.frameSync);
     }
-    if (fp.warpSync != 0)
+	if (fp.warpSync != 0)
     {
-        glDeleteSync(fp.warpSync);
-        fp.warpSync = 0;
-    }
-
+    	glDeleteSync(fp.warpSync);
+    	fp.warpSync = 0;
+	}
+	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     /*
 	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 2]",
@@ -1204,12 +1204,12 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     PROFILE_ENTER(GROUP_WORLDRENDER, 0, "glFlush");
     glFlush();
     PROFILE_EXIT(GROUP_WORLDRENDER);
-    /*
-    LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 3]",
-        lastFrameCount,
-        nextFrameCount,
-        pFrameParams->eyeBufferArray[0]
-    );
+	/*
+	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 3]",
+		lastFrameCount,
+		nextFrameCount,
+		pFrameParams->eyeBufferArray[0]
+	);
    */
     gAppContext->modeContext->submitFrameCount = nextFrameCount;
     /*
@@ -1224,7 +1224,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
         pthread_cond_wait(&gAppContext->modeContext->warpBufferConsumedCv, &gAppContext->modeContext->warpBufferConsumedMutex);
         pthread_mutex_unlock(&gAppContext->modeContext->warpBufferConsumedMutex);
 
-        if (gAppContext->modeContext->warpFrameCount >= lastFrameCount )
+        if (gAppContext->modeContext->warpFrameCount >= lastFrameCount ) 
         {
             //Make sure we maintain the minSync interval
             /*
@@ -1235,46 +1235,46 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 				);*/
             gAppContext->modeContext->prevSubmitVsyncCount = glm::max(gAppContext->modeContext->vsyncCount, gAppContext->modeContext->prevSubmitVsyncCount + fp.frameParams.minVsyncs);
 
-            if (nextFrameCount > NUM_SWAP_FRAMES)
-            {// Check enable release a fream to modle
-                int iReleaseFrame = nextFrameCount - NUM_SWAP_FRAMES + 1;
-                svrFrameParamsInternal& ReleaseFP = gAppContext->modeContext->frameParams[iReleaseFrame % NUM_SWAP_FRAMES];
-                if(0 == ReleaseFP.warpSync)
-                {// this frame may never used.
-                    /*
-                    LOGV("-- HX --Release.warpSync is 0, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
-                    lastFrameCount,
-                    nextFrameCount,
-                    gAppContext->modeContext->submitFrameCount,
-                    gAppContext->modeContext->warpFrameCount);*/
-                    break;
-                }
-                else{
-                    // LOGV("-- HX --Release.warpSync is not 0");
-                    while(GL_TIMEOUT_EXPIRED == glClientWaitSync(ReleaseFP.warpSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0))
-                    {
-                        usleep(500);
-                        continue;
-                    }
-                }
-            }
+			if (nextFrameCount > NUM_SWAP_FRAMES)
+			{// Check enable release a fream to modle
+				int iReleaseFrame = nextFrameCount - NUM_SWAP_FRAMES + 1;
+				svrFrameParamsInternal& ReleaseFP = gAppContext->modeContext->frameParams[iReleaseFrame % NUM_SWAP_FRAMES];
+				if(0 == ReleaseFP.warpSync)
+				{// this frame may never used.
+					/*
+					LOGV("-- HX --Release.warpSync is 0, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
+					lastFrameCount,
+					nextFrameCount,
+					gAppContext->modeContext->submitFrameCount,  
+					gAppContext->modeContext->warpFrameCount);*/
+					break;
+				}
+				else{
+					// LOGV("-- HX --Release.warpSync is not 0");
+					while(GL_TIMEOUT_EXPIRED == glClientWaitSync(ReleaseFP.warpSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0))
+					{
+						usleep(500);
+						continue;
+					}
+				}
+			}
             // LOGV("Finished : %d [%llu]", gAppContext->modeContext->submitFrameCount, gAppContext->modeContext->vsyncCount);
             break;
         }
         else
         {
-            /*
-            LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 ...]",
-                lastFrameCount,
-                nextFrameCount,
-                pFrameParams->eyeBufferArray[0]
-                );
-                */
+        	/*
+        	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 ...]",
+				lastFrameCount,
+				nextFrameCount,
+				pFrameParams->eyeBufferArray[0]	
+				);
+				*/
         }
     }
-
+ 
     PROFILE_EXIT(GROUP_WORLDRENDER);
-
+   
     PROFILE_TICK();
 }
 
@@ -1292,7 +1292,7 @@ void svrSetPerformanceLevels(svrPerfLevel cpuPerfLevel, svrPerfLevel gpuPerfLeve
     {
         LOGI("Application CPU specified performance levels not being used.  Config file forcing to %d", gForceCpuLevel);
     }
-
+		
     if (gForceGpuLevel < 0)
     {
         svrSetGpuPerfLevel(gpuPerfLevel);
@@ -1530,12 +1530,12 @@ SVRP_EXPORT unsigned int svrGetSupportedTrackingModes()
     //Get the supported tracking modes
     unsigned int supportedTrackingModes;
     gAppContext->qvrService->GetTrackingMode(NULL, &supportedTrackingModes);
-
+    
     if (supportedTrackingModes & TRACKING_MODE_ROTATIONAL)
     {
         result |= kTrackingRotation;
     }
-
+    
     if (supportedTrackingModes & TRACKING_MODE_POSITIONAL)
     {
         //Note at this time the QVR service will report that it is capable of positional tracking
@@ -1552,7 +1552,7 @@ SVRP_EXPORT unsigned int svrGetSupportedTrackingModes()
 SVRP_EXPORT void svrSetTrackingMode(unsigned int trackingModes)
 //-----------------------------------------------------------------------------
 {
-#if defined (USE_QVR_SERVICE)
+#if defined (USE_QVR_SERVICE)  
     if (gAppContext == NULL || gAppContext->qvrService == NULL)
     {
         LOGE("svrSetTrackingMode failed: SnapdragonVR not initialized!");
@@ -1599,23 +1599,23 @@ SVRP_EXPORT void svrSetTrackingMode(unsigned int trackingModes)
 }
 
 SVRP_EXPORT void svrUpdateWarpmesh(
-        const float* pVertexLeft,
-        const float* pVertexRight,
-        const size_t numVertex,
-        const unsigned int* pIndex,
-        const size_t numIndex
-)
+    const float* pVertexLeft,
+    const float* pVertexRight,
+    const size_t numVertex,
+    const unsigned int* pIndex,
+    const size_t numIndex
+    )
 {
     /* setup warpMesh data: vertex, index */
 //     gAppContext->m_VertexLeft.clear();
 //     gAppContext->m_VertexRight.clear();
 //     gAppContext->m_Index.clear();
-//
+//     
 //     gAppContext->m_VertexLeft.assign(pVertexLeft, pVertexLeft + numVertex);
 //     gAppContext->m_VertexRight.assign(pVertexRight, pVertexRight + numVertex);
 //     gAppContext->m_Index.assign(pIndex, pIndex + numIndex);
     g_bMeshDirty = false;
-    ResetVertexTable(pVertexLeft,pVertexRight , numVertex , pIndex , numIndex);
+	ResetVertexTable(pVertexLeft,pVertexRight , numVertex , pIndex , numIndex);
 
     if (!g_bMeshDirty)
         g_bMeshDirty = true;
@@ -1623,7 +1623,7 @@ SVRP_EXPORT void svrUpdateWarpmesh(
 
 SVRP_EXPORT bool svrCheckServiceIsAvaliable()
 {
-// 杩欓噷濡傛灉濡傛鍒ゆ柇锛屼細瀵艰嚧鍚姩鏃堕棿杩囬暱
+// 这里如果如此判断，会导致启动时间过长
 // #ifdef USE_QVR_SERVICE
 //     QVRServiceClient* pSvrClient = new QVRServiceClient();
 //     if (pSvrClient == NULL)
@@ -1716,7 +1716,7 @@ bool svrInitializeQvrServiceOnly()
 
     LOGI("QVRService: Service Initalized");
 #endif
-
+    
     return true;
 }
 

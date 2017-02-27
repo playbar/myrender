@@ -21,7 +21,7 @@ set_target_properties(symphonypower_lib PROPERTIES IMPORTED_LOCATION
 
 add_library(libqvrservice_lib SHARED IMPORTED)
 set_target_properties(libqvrservice_lib  PROPERTIES IMPORTED_LOCATION
-    ${CMAKE_SOURCE_DIR}/3rdparty/qvr/lib/libqvrservice_client.so)
+     ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libqvrservice_client.so)
 
 #SET(USE_QVR_SERVICE true)
 
@@ -75,6 +75,9 @@ target_link_libraries(svrapi
                         symphony_lib
                         symphonypower_lib)
 
+#add_library(svrapi_lib SHARED IMPORTED)
+#set_target_properties(svrapi_lib  PROPERTIES IMPORTED_LOCATION
+#    ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libsvrapi.so)
 
 ##################################################
 #mojing so
@@ -182,7 +185,7 @@ add_library(mojing SHARED
 		   Render/MojingRenderMultiThread_THREAD.cpp
 		   Render/MultiThreadGLParam.cpp
 		   Render/MojingRenderMultiThread_FB.cpp
-             Reporter/ActiveTimeInfoReporter.cpp
+            Reporter/ActiveTimeInfoReporter.cpp
     		Reporter/CrashReporter.cpp
     		Reporter/DatabaseInfoReporter.cpp
     		Reporter/EventInfoReporter.cpp
