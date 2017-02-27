@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId = 'com.mj.b4815'
-        minSdkVersion 19
+        minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -51,5 +51,5 @@ dependencies {
     compile files('libs/ZControllerLib-common-1.9.2.jar')
     //compile project(':nativeactivity')
     //compile files('libs/svrApi.jar')
-    compile project(':gvr')
+    compile project(':render')
 }

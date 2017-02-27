@@ -3612,7 +3612,7 @@ bool svrBeginTimeWarp()
 
         sched_param schedParam;
         memset(&schedParam, 0, sizeof(schedParam));
-        schedParam.__sched_priority = gFifoPriorityWarp;
+        schedParam.sched_priority = gFifoPriorityWarp;
         status = pthread_attr_setschedparam(&threadAttribs, &schedParam);
         if (status != 0)
         {

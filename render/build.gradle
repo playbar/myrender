@@ -5,8 +5,8 @@ android {
     buildToolsVersion = '23.0.2'
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 23
+        minSdkVersion 23
+        targetSdkVersion 24
         externalNativeBuild {
             cmake {
                 abiFilters 'armeabi-v7a'
