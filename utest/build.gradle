@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 
 
     android {
-        compileSdkVersion 24
-        buildToolsVersion "24.0.1"
+        compileSdkVersion 23
+        buildToolsVersion "23.0.2"
 
         defaultConfig {
-            applicationId "com.mj.b4815"
+            applicationId "com.mj.svr"
             minSdkVersion 19
-            targetSdkVersion 24
+            targetSdkVersion 23
         }
 
         buildTypes {
@@ -21,6 +21,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile files('libs/android-query.0.26.7.jar')
+    compile files('libs/hid-device-scan.jar')
     compile files('libs/MojingSDK.jar')
     compile files('libs/MojingSDKUnity.jar')
     compile files('libs/svrApi.jar')
