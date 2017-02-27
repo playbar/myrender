@@ -1,4 +1,4 @@
-package com.mj.b4815;
+package com.mj.svr;
 
 import com.unity3d.player.*;
 import android.app.Activity;

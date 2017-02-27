@@ -5,7 +5,7 @@ android {
     buildToolsVersion = '23.0.2'
 
     defaultConfig {
-        applicationId = 'com.mj.b4815'
+        applicationId = 'com.mj.svr'
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
@@ -41,6 +41,7 @@ android {
 dependencies {
     compile files('libs/android-query.0.26.7.jar')
     compile files('libs/MojingSDK.jar')
+    compile files('libs/hid-device-scan.jar')
     //    compile files('libs/MojingSDKUnity.jar')
 //    compile files('libs/svrApi.jar')
     compile files('libs/unity-classes.jar')

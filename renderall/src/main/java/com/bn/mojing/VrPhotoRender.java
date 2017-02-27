@@ -16,12 +16,12 @@ import javax.microedition.khronos.opengles.GL10;
 import com.baofeng.mojing.MojingSDK;
 import com.bn.mojing.MatrixState;
 import com.bn.mojing.SphereModel;
+import com.mj.svr.R;
 
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import java.nio.IntBuffer;
 import java.lang.Math;
-import com.mj.b4815.R;
 
 public class VrPhotoRender implements GLSurfaceView.Renderer {
     	SphereModel sphere;

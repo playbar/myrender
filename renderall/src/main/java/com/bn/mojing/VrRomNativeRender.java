@@ -16,6 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
 import com.baofeng.mojing.MojingSDK;
 import com.bn.mojing.MatrixState;
 import com.bn.mojing.SphereModel;
+import com.mj.svr.R;
 
 import android.opengl.GLES20;
 import android.opengl.GLES30;
@@ -25,7 +26,6 @@ import java.lang.Math;
 
 import android.content.Context;
 import java.io.*;
-import com.mj.b4815.R;
 
 public class VrRomNativeRender implements GLSurfaceView.Renderer {
 	static int[] fboIds = { -1, -1};

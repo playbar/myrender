@@ -1,7 +1,7 @@
 ﻿{
   "Class": "JoyStickConfig",
   "FileVersion": 20150615,
-  "ReleaseDate": 20161220,
+  "ReleaseDate": 20160902,
   "JoyStickConfig":
   [
 		{
@@ -83,8 +83,7 @@
       "JoyStickList": 
       [
         "Mojing4-A",
-        "qikumojing",
-        "mojing"
+        "qikumojing"
       ],
        "KeyMap":
        [
@@ -769,8 +768,7 @@
       "JoyStickList": 
       [
         "Mojing4-A",
-        "qikumojing",
-        "mojing"
+        "qikumojing"
       ],
        "KeyMap":
        [
