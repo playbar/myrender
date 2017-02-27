@@ -113,7 +113,7 @@ bool SvrShader::Initialize(const char* pVertSrc, const char* pFragSrc, const cha
         uniform.type = uniformType;
         strncpy( uniform.name, nameBuffer, MAX_UNIFORM_NAME_LENGTH );
 
-        LOGI("    Uniform (%s) is a type 0x%x => Bound to location %d", nameBuffer, uniformType, location);
+        LOGI("Uniform (%s) is a type 0x%x => Bound to location %d", nameBuffer, uniformType, location);
 
         if (IsSamplerType(uniformType))
         {

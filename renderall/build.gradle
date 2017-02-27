@@ -42,7 +42,7 @@ dependencies {
     compile files('libs/android-query.0.26.7.jar')
     compile files('libs/MojingSDK.jar')
     compile files('libs/hid-device-scan.jar')
-    //    compile files('libs/MojingSDKUnity.jar')
+//    compile files('libs/MojingSDKUnity.jar')
 //    compile files('libs/svrApi.jar')
     compile files('libs/unity-classes.jar')
     compile files('libs/zc-strings-1.9.2.jar')

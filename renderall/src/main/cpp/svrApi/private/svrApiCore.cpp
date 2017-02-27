@@ -1623,7 +1623,6 @@ SVRP_EXPORT void svrUpdateWarpmesh(
 
 SVRP_EXPORT bool svrCheckServiceIsAvaliable()
 {
-// 这里如果如此判断，会导致启动时间过长
 // #ifdef USE_QVR_SERVICE
 //     QVRServiceClient* pSvrClient = new QVRServiceClient();
 //     if (pSvrClient == NULL)
