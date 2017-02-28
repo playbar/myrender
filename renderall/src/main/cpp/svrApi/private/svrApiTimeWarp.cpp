@@ -2457,7 +2457,7 @@ void* WarpThreadMain(void* arg)
     bool bHasWarpData = false;
     while (true)
     {
-        LOGE("begin while, threadid=%d", gettid());
+        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
         PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
 		/*
 		// CLEAR COLOR

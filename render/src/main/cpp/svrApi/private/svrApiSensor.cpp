@@ -323,6 +323,7 @@ void* SensorThreadMain(void* arg)
     LOGI("Sensor Thread starting loop...");
     while (1)
     {
+        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
         int id;
         int events;
 

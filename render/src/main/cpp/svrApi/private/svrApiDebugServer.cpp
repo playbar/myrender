@@ -188,6 +188,7 @@ void* DebugServerMain(void* arg)
 
     while (1)
     {
+        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
         if (gStopDebugServer)
         {
             break;
