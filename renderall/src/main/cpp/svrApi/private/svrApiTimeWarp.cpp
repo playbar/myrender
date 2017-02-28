@@ -169,10 +169,16 @@ svrWarpMeshOrder gMeshOrderEnum = kMeshOrderLeftToRight;
 
 int gFifoPriorityWarp = 98;
 int gNormalPriorityWarp = 0;    // Cause they want something :)
+int gUseCAC = 1;
 
 // Need to ignore reprojection if just recentered.
 // Handle here since may have frames in flight
 extern int gRecenterTransition;
+
+int SetUseCAC(int icac)
+{
+    gUseCAC = icac;
+}
 
 
 // Common local function that lives in svrApiCore.cpp
@@ -2180,6 +2186,7 @@ bool L_SetOverlayObjects(unsigned int &leftImage, unsigned int &rightImage, unsi
 }
 
 
+
 //-----------------------------------------------------------------------------
 Svr::SvrShader * L_GetCurrentShader(svrFrameParamsInternal* pWarpFrame, SvrAsyncWarpResources &warpData, bool overlayEnabled, bool chromaEnabled)
 //-----------------------------------------------------------------------------
@@ -2195,14 +2202,26 @@ Svr::SvrShader * L_GetCurrentShader(svrFrameParamsInternal* pWarpFrame, SvrAsync
     {
         if (!overlayEnabled)
         {
-#if (USE_MOJING_MERGED_MESH == 1)
-            //LOGI("--madi-- use drawcall-merged-WITHOUT-overlay shader");
-            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoOverlay];
-#elif (USE_MOJING_MERGED_MESH == 2)
-            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC];
-#else
-            pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate : kShaderSeparate_NoChroma];
-#endif
+            if( gUseCAC == 1)
+            {
+                pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoOverlay];
+            }
+            else if( gUseCAC == 2 )
+            {
+                pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC];
+            }
+            else
+            {
+                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate : kShaderSeparate_NoChroma];
+            }
+//#if (USE_MOJING_MERGED_MESH == 1)
+//            //LOGI("--madi-- use drawcall-merged-WITHOUT-overlay shader");
+//            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoOverlay];
+//#elif (USE_MOJING_MERGED_MESH == 2)
+//            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC];
+//#else
+//            pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate : kShaderSeparate_NoChroma];
+//#endif
         }
         else if (overlayEnabled)
         {
@@ -2438,6 +2457,7 @@ void* WarpThreadMain(void* arg)
     bool bHasWarpData = false;
     while (true)
     {
+        LOGE("begin while, threadid=%d", gettid());
         PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
 		/*
 		// CLEAR COLOR
@@ -3556,6 +3576,7 @@ void* WarpThreadMain(void* arg)
 			gAppContext->modeContext->warpFrameCount,
 			pWarpFrame->frameParams.eyeBufferArray[0]
 		);*/
+        LOGE("end while");
     }   // while(true)
 
     LOGI("WarpThreadMain while loop exited");

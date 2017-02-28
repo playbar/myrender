@@ -132,7 +132,7 @@ bool CSVRApi::CheckServiceIsAvaliable()
 //	}
 //	else
 //	{
-//		MOJING_ERROR(g_APIlogger, "function CheckServiceIsAvaliable is not found in libsvrapi.so");
+//		MOJING_ERROR(g_APIlogger, "fukEyeBufferStereoSeparatenction CheckServiceIsAvaliable is not found in libsvrapi.so");
 //		return false;
 //	}
 		
