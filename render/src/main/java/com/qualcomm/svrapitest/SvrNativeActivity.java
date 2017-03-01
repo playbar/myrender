@@ -7,18 +7,25 @@
 //=============================================================================
 package com.qualcomm.svrapitest;
 
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.app.Activity;
 
 public class SvrNativeActivity extends android.app.NativeActivity
 {
-	static
-	{
+//	static
+//	{
+//		System.loadLibrary( "svrapi" );
+//		System.loadLibrary( "apitest" );
+//	}
+
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 		System.loadLibrary( "svrapi" );
-		System.loadLibrary( "svrapitest" );
+//		System.loadLibrary( "apitest" );
+		Log.v("test","oncreate");
 	}
-	
 	@Override 
 	public void onWindowFocusChanged (boolean hasFocus)
 	{

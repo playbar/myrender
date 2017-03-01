@@ -201,7 +201,7 @@ void* DebugServerMain(void* arg)
             continue;
         }
 
-        newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, &clilen);
+        newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr, (socklen_t*)&clilen);
         if (newsockfd < 0)
         {
             LOGE("svrDebugServer: ERROR on accept");

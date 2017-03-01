@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-add_library(app_glue STATIC
-            ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+#add_library(app_glue STATIC
+#            ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DUSE_QVR_SERVICE -fexceptions")
 
@@ -73,24 +73,18 @@ target_link_libraries(svrapi
 ###################################
 
 
-add_library(svrapitest SHARED
-            apitest/app.cpp
-            framework/svrConfig.cpp
-            framework/svrContainers.cpp
+add_library(apitest SHARED
+            test/mtptest.cpp
+            android_native_app_glue.c
             framework/svrApplication.cpp
             framework/svrAndroidMain.cpp
             framework/svrInput.cpp
-            framework/svrGeometry.cpp
-            framework/svrShader.cpp
-            framework/svrUtil.cpp
-            framework/svrRenderTarget.cpp
-            framework/svrCpuTimer.cpp
             3rdparty/imgui/imgui.cpp
-            3rdparty/tinyobj/tiny_obj_loader.cc
             )
 
-target_include_directories(svrapitest PRIVATE
+target_include_directories(apitest PRIVATE
                            ${CMAKE_SOURCE_DIR}/apitest
+                           ${CMAKE_SOURCE_DIR}
                            ${CMAKE_SOURCE_DIR}/3rdparty/glm-0.9.7.0
                            ${CMAKE_SOURCE_DIR}/framework
                            ${CMAKE_SOURCE_DIR}/3rdparty/tinyobj
@@ -102,14 +96,29 @@ target_include_directories(svrapitest PRIVATE
                            ${CMAKE_SOURCE_DIR}/svrApi
                            ${CMAKE_SOURCE_DIR}/3rdparty/qvr/inc
                            ${CMAKE_SOURCE_DIR}/3rdparty/imgui
-                           ${ANDROID_NDK}/sources/android/native_app_glue
                            )
 
 # Include libraries needed for hello-jnicallback lib
-target_link_libraries(svrapitest
+target_link_libraries(apitest
                         log
                         android
                         EGL
                         GLESv3
-                        svrapi
-                        app_glue)
+                        svrapi)
+
+
+##############################
+add_library(nt SHARED
+            main.cpp
+             android_native_app_glue.c)
+
+target_include_directories(nt PRIVATE
+                            ${CMAKE_SOURCE_DIR})
+
+# add lib dependencies
+target_link_libraries(nt
+                      android
+                      EGL
+                      GLESv1_CM
+                      log)
+

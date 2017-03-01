@@ -12,7 +12,7 @@
 
 #include "svrProfile.h"
 #include "svrUtil.h"
-#include "app.h"
+#include "apitest.h"
 
 #include "svrConfig.h"
 

@@ -516,7 +516,7 @@ bool svrUpdateEyeContextSurface()
     //First we need to bind the eye calling threads context to a small pubffer surface so the
     //warp context can take over the window surface
     gAppContext->modeContext->eyeRenderContext = eglGetCurrentContext();
-    LOGI("   eyeRenderContext : %x", (unsigned int)gAppContext->modeContext->eyeRenderContext);
+//    LOGI("   eyeRenderContext : %x", (int)gAppContext->modeContext->eyeRenderContext);
 
     gAppContext->modeContext->eyeRenderWarpSurface = eglGetCurrentSurface(EGL_DRAW);
 
@@ -530,7 +530,7 @@ bool svrUpdateEyeContextSurface()
     {
         //Save the original surface the application created for the window and its configuration
         gAppContext->modeContext->eyeRenderOrigSurface = eglGetCurrentSurface(EGL_DRAW);
-        LOGI("   eyeRenderSurface : %x", (unsigned int)gAppContext->modeContext->eyeRenderOrigSurface);
+        LOGI("   eyeRenderSurface : %x", gAppContext->modeContext->eyeRenderOrigSurface);
         eglQuerySurface(eyeDisplay, gAppContext->modeContext->eyeRenderOrigSurface, EGL_CONFIG_ID,
             &gAppContext->modeContext->eyeRenderOrigConfigId);
 

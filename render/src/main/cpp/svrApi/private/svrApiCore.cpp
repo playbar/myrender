@@ -126,7 +126,7 @@ float *VertexAttribute8To10(const float * pVertex, size_t size, float * pVertexA
         memcpy(pRet + iIndex * SizeNew+SizeOld, pVertexAppends , (SizeNew - SizeOld) * sizeof(float));
         iIndex++;
     }
-    LOGI("V8-10:0x%08X , Length = %d", (unsigned int)pRet, iCount * SizeNew);
+    LOGI("V8-10:0x%08X , Length = %d", pRet, iCount * SizeNew);
     return pRet;
 }
 
@@ -147,12 +147,12 @@ void ResetVertexTable(const float * pVertexL, const float * pVertexR, size_t Ver
     memcpy(pVertexTable->m_pIndex , pIndex , IndexSize * sizeof(unsigned int));
 
     gVertexTable  = pVertexTable;
-    LOGI("gVertexTable = 0x%08X", (unsigned int)gVertexTable);
-    LOGI("m_pVertexLeft = 0x%08X", (unsigned int)gVertexTable->m_pVertexLeft);
-    LOGI("m_pVertexRight = 0x%08X", (unsigned int)gVertexTable->m_pVertexRight);
-    LOGI("m_iVertexSize = 0x%d", (unsigned int)gVertexTable->m_iVertexSize);
-    LOGI("m_pIndex = 0x%08X", (unsigned int)gVertexTable->m_pIndex);
-    LOGI("m_iIndexSize = 0x%d", (unsigned int)gVertexTable->m_iIndexSize);
+    LOGI("gVertexTable = 0x%08X", gVertexTable);
+    LOGI("m_pVertexLeft = 0x%08X", gVertexTable->m_pVertexLeft);
+    LOGI("m_pVertexRight = 0x%08X", gVertexTable->m_pVertexRight);
+    LOGI("m_iVertexSize = 0x%d", gVertexTable->m_iVertexSize);
+    LOGI("m_pIndex = 0x%08X", gVertexTable->m_pIndex);
+    LOGI("m_iIndexSize = 0x%d", gVertexTable->m_iIndexSize);
 }
 
 static const char* gSvrConfigFilePath = "/data/misc/vr/svrapi_config.txt";

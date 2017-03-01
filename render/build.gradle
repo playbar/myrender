@@ -5,14 +5,15 @@ android {
     buildToolsVersion = '23.0.2'
 
     defaultConfig {
+        applicationId = 'com.svrapi.app'
         minSdkVersion 23
         targetSdkVersion 23
         externalNativeBuild {
             cmake {
-                abiFilters 'armeabi-v7a'
+                abiFilters  'armeabi-v7a'
                 arguments '-DANDROID_PLATFORM=android-23',
-                        '-DANDROID_TOOLCHAIN=clang'
-//                        '-DANDROID_STL=stlport_static'
+                        '-DANDROID_TOOLCHAIN=clang',
+                        '-DANDROID_STL=gnustl_static'
             }
         }
     }

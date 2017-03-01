@@ -174,7 +174,7 @@ namespace Svr
                     for (int i = 0; i < mNumSamples; i++) 
                     {
                         /* See how much time the rendering of object i took in nanoseconds. */
-                        glGetQueryObjectui64vEXT(mQueries[mCurrentQueries][i], GL_QUERY_RESULT, &mTimeElapsed[i]);
+                        glGetQueryObjectui64vEXT(mQueries[mCurrentQueries][i], GL_QUERY_RESULT, (unsigned long long*)&mTimeElapsed[i]);
                     }
                 }
                 mQueriesReady[mCurrentQueries] = false;
