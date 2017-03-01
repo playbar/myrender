@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.4.1)
 #add_library(app_glue STATIC
 #            ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -DUSE_QVR_SERVICE -fexceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+                     -std=c++11 \
+                     -DNDEBUG \
+                     -fexceptions")
 
 add_library(symphony_lib STATIC IMPORTED)
 set_target_properties(symphony_lib PROPERTIES IMPORTED_LOCATION
@@ -15,7 +18,7 @@ set_target_properties(symphonypower_lib PROPERTIES IMPORTED_LOCATION
 
 add_library(libqvrservice_lib SHARED IMPORTED)
 set_target_properties(libqvrservice_lib  PROPERTIES IMPORTED_LOCATION
-    ${CMAKE_SOURCE_DIR}/3rdparty/qvr/lib/libqvrservice_client.so)
+     ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libqvrservice_client.so)
 
 #SET(USE_QVR_SERVICE true)
 
@@ -65,7 +68,7 @@ target_link_libraries(svrapi
                         android
                         EGL
                         GLESv3
-                        libqvrservice_lib
+                        #libqvrservice_lib
                         symphony_lib
                         symphonypower_lib)
 
@@ -74,12 +77,19 @@ target_link_libraries(svrapi
 
 
 add_library(apitest SHARED
-            test/mtptest.cpp
+            test/apitest.cpp
             android_native_app_glue.c
             framework/svrApplication.cpp
             framework/svrAndroidMain.cpp
             framework/svrInput.cpp
             3rdparty/imgui/imgui.cpp
+            framework/svrGeometry.cpp
+            framework/svrShader.cpp
+            framework/svrUtil.cpp
+            framework/svrRenderTarget.cpp
+            framework/svrCpuTimer.cpp
+            3rdparty/tinyobj/tiny_obj_loader.cc
+
             )
 
 target_include_directories(apitest PRIVATE
@@ -102,9 +112,9 @@ target_include_directories(apitest PRIVATE
 target_link_libraries(apitest
                         log
                         android
+                        svrapi
                         EGL
-                        GLESv3
-                        svrapi)
+                        GLESv3)
 
 
 ##############################

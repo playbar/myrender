@@ -2344,7 +2344,7 @@ void L_SetShaderUniforms(ShaderParamStruct *pParams, unsigned int flags, unsigne
     }
     else
     {
-        assert(leftOverlayBuffer != 0 && rightOverlayBuffer == 0 && "overlaybuffer: when merged mesh not used, use the left overlay buffer and leave right empty");
+//        assert(leftOverlayBuffer != 0 && rightOverlayBuffer == 0 && "overlaybuffer: when merged mesh not used, use the left overlay buffer and leave right empty");
 #if USE_MOJING_MERGED_MESH
 #else
         pParams->pShader->SetUniformMat4(5, pParams->overlayWarpMatrix);

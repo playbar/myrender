@@ -14,16 +14,13 @@ import android.app.Activity;
 
 public class SvrNativeActivity extends android.app.NativeActivity
 {
-//	static
-//	{
-//		System.loadLibrary( "svrapi" );
-//		System.loadLibrary( "apitest" );
-//	}
+	static
+	{
+		System.loadLibrary( "svrapi" );
+	}
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		System.loadLibrary( "svrapi" );
-//		System.loadLibrary( "apitest" );
 		Log.v("test","oncreate");
 	}
 	@Override 
