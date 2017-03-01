@@ -178,7 +178,7 @@ svrFrameParamsInternal* gpWarpFrame = NULL;
 // Handle here since may have frames in flight
 extern int gRecenterTransition;
 
-int SetUseCAC(int icac)
+void SetUseCAC(int icac)
 {
     gUseCAC = icac;
 }
@@ -1551,6 +1551,7 @@ glm::mat4 CalculateProjectionMatrix(float fovRad)
 bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 //-----------------------------------------------------------------------------
 {
+    LOGE("begin:%s", __FUNCTION__ );
     if( gpWarpFrame == NULL )
         return false;
     float minPos[2] = { -1.0f, -1.0f };
@@ -2052,7 +2053,7 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
         LOGE("Failed to initialize blitShader_Image");
         return false;
     }
-
+    LOGE("end:%s", __FUNCTION__ );
     return true;
 }
 
@@ -3821,7 +3822,9 @@ void* WarpThreadMain(void* arg)
         PROFILE_EXIT(GROUP_TIMEWARP); //eglSwapBuffers
 
         PROFILE_EXIT(GROUP_TIMEWARP); //PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
-        
+
+        gpWarpFrame = NULL;
+
        	/*
         LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 2]" ,
 			curSubmitFrameCount,
