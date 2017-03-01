@@ -92,6 +92,7 @@ void TextureBacker::StartBacker(GLuint width, GLuint height, int texID)
 	InitFBO(width, height, texID);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0f);
+	LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	pShader->UseProgram();
 

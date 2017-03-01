@@ -24,6 +24,7 @@
 #include <map>
 #include <string>
 #include <ctime>
+#include <Base/MojingLog.h>
 
 #ifdef MJ_OS_ANDROID
 #include "MojingRenderMultithread.h"
@@ -452,7 +453,7 @@ namespace Baofeng
 			{
 				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			}
-
+			LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -594,6 +595,7 @@ namespace Baofeng
 				else
 					glScissor(0, m_iScreenHeight_Half, m_iScreenWidth, m_iScreenHeight_Half);// 设置只有下半屏会被绘制
 
+				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_COLOR_BUFFER_BIT);
 				int eye = 0;
 				
@@ -614,6 +616,7 @@ namespace Baofeng
 				else
 					glScissor(0, 0, m_iScreenWidth, m_iScreenHeight_Half);
 
+				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_COLOR_BUFFER_BIT);
 				int eye = 1;
 				
@@ -947,6 +950,7 @@ namespace Baofeng
 				// floor(x)返回的是小于或等于x的最大整数。
 				glScissor(iLeft, 0, fCenterLineWidth, m_iScreenHeight);
 				glClearColor(m_CenterLineParam.m_fColR, m_CenterLineParam.m_fColG, m_CenterLineParam.m_fColB, 1.0);
+				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_COLOR_BUFFER_BIT);
 				glDisable(GL_SCISSOR_TEST);
 			}
@@ -1003,6 +1007,7 @@ namespace Baofeng
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glClearColor(0, 0, 0, 1);
+				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #else
 				DrawDistortionRange();

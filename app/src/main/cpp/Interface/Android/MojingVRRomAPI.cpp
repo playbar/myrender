@@ -176,6 +176,7 @@ bool MojingVRRomAPI_DrawDistortion(int iTextureBothEye, float * pM16A, float * p
 	glEnable(GL_SCISSOR_TEST);// 允许区域剪裁
 	glDisable(GL_BLEND);
 	glClearColor(0, 0, 0, 1);
+	LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 	glClear(GL_COLOR_BUFFER_BIT);
 	// BindWarpProgram
 	static Matrix4f LandscapeOrientationMatrix = Matrix4f(

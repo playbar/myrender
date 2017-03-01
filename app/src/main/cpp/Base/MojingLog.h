@@ -7,7 +7,7 @@
 #if defined MJ_OS_ANDROID
 #include <android/log.h>
 #define  LOG_TAG    __FILE__
-
+//#define LOG_TAG    (strrchr(__FILE__,'\\')+1)
 #define  LOGI(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, format, ##args); }
 #define  LOGV(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, format, ##args); }
 #define  LOGE(format, args...) { fprintf(stderr, format, ##args); __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, format, ##args); }

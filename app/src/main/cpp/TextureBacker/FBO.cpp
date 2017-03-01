@@ -110,6 +110,7 @@ bool FrambufferObject::CreateFBO(GLuint width, GLuint height, int texID)
 	
 	
 	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 	glClear(GL_COLOR_BUFFER_BIT);
 	m_Width = width;
 	m_Height = height;
@@ -169,6 +170,7 @@ bool FrambufferObject::SaveToBmp(const char* filename, GLuint x, GLuint y, GLuin
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelDate);
 #else
 
+	LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 	glClear(GL_COLOR_BUFFER_BIT);
 	//Generate a new FBO. It will contain your texture.
 	glGenFramebuffers(1, &offscreen_framebuffer);

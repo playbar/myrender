@@ -7,8 +7,9 @@
 //=============================================================================
 #pragma once
 
-#include <GLES3/gl3.h>
+#include <EGL/egl.h>
 #include <GLES/glext.h>
+#include <GLES3/gl3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion = 23
@@ -10,6 +10,9 @@ android {
         externalNativeBuild {
             cmake {
                 abiFilters 'armeabi-v7a'
+                arguments '-DANDROID_PLATFORM=android-23',
+                        '-DANDROID_TOOLCHAIN=clang'
+//                        '-DANDROID_STL=stlport_static'
             }
         }
     }

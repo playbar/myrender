@@ -1,5 +1,6 @@
 ﻿#include <unistd.h>
 #include <ctime>
+#include <Base/MojingLog.h>
 #include "Vsync.h"
 #include "MojingRenderMultithread.h"
 #include "MojingRenderBase.h"
@@ -57,6 +58,7 @@ namespace Baofeng
 				while (!m_bExitThread)
 				{
 					// 渲染到屏幕的函数
+					LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 					THREAD_DoDistortion();
 					m_bExitThread = m_bExitThread && m_FrameManager.GetExitState();
 				}

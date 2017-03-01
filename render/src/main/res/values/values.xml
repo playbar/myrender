@@ -11,6 +11,7 @@
 <dimen name="transition_bottom_bar_height">112dip</dimen>
 <!-- vr/gvr/platform/common/android/res/values/strings.xml -->
 <eat-comment/>
+    <string name="app_name">rendertest</string>
 <string name="back_button_content_description" description=" Accessibility description for the back button displayed in the top corner of the VR application to go back to the previous screen. [CHAR LIMIT=50]">
     back
   </string>
