@@ -169,7 +169,10 @@ svrWarpMeshOrder gMeshOrderEnum = kMeshOrderLeftToRight;
 
 int gFifoPriorityWarp = 98;
 int gNormalPriorityWarp = 0;    // Cause they want something :)
-int gUseCAC = 1;
+int gUseCAC = 2;
+bool gOverlayEnabled = false;
+bool gbChromaEnabled = false;
+svrFrameParamsInternal* gpWarpFrame = NULL;
 
 // Need to ignore reprojection if just recentered.
 // Handle here since may have frames in flight
@@ -1548,6 +1551,8 @@ glm::mat4 CalculateProjectionMatrix(float fovRad)
 bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 //-----------------------------------------------------------------------------
 {
+    if( gpWarpFrame == NULL )
+        return false;
     float minPos[2] = { -1.0f, -1.0f };
     float maxPos[2] = { 1.0f, 1.0f };
 
@@ -1663,123 +1668,376 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
         break;
     }
 
-    //Separate Eye Buffers from separate textures
-    if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
+    ////////////////////////////
+    // ********************************
+    // Separate Eye Buffers
+    // ********************************
+    if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferMono || gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSeparate)
     {
-        LOGE("Failed to initialize warpShaderSeparate");
-        return false;
+        if (!gOverlayEnabled)
+        {
+            if( gUseCAC == 1)
+            {
+                // Merged mesh without overlay
+                if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlay].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlay, svrEyeBufferSeparateFs_Mojing_NoOverlay, "svrEyeBufferSeparateVs_Mojing_NoOverlay", "svrEyeBufferSeparateFs_Mojing_NoOverlay"))
+                {
+                    LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
+                    return false;
+                }
+            }
+            else if( gUseCAC == 2 )
+            {
+                if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC, svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC, "svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC", "svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC"))
+                {
+                    LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlayAndCAC for merged mesh");
+                    return false;
+                }
+            }
+            else
+            {
+                if( gbChromaEnabled)
+                {
+                    if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
+                    {
+                        LOGE("Failed to initialize warpShaderSeparate");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!pWarpData->warpShaders[kShaderSeparate_NoChroma].Initialize(warpShaderSeparateVs_NoChroma, warpShaderSeparateFs_NoChroma, "warpShaderSeparateVs_NoChroma", "warpShaderSeparateFs_NoChroma"))
+                    {
+                        LOGE("Failed to initialize warpShaderSeparate_NoChroma");
+                        return false;
+                    }
+                }
+            }
+        }
+        else if (gOverlayEnabled)
+        {
+#if (USE_MOJING_MERGED_MESH == 1)
+            //LOGI("--madi-- use drawcall-merged-WITH-overlay shader");
+//            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing];
+            if (!pWarpData->warpShaders[kShaderSeparate_Mojing].Initialize(svrEyeBufferSeparateVs_Mojing, svrEyeBufferSeparateFs_Mojing, "svrEyeBufferSeparateVs_Mojing", "svrEyeBufferSeparateFs_Mojing"))
+            {
+                LOGE("Failed to initialize warpShaderSeparate_Mojing for merged mesh");
+                return false;
+            }
+#elif (USE_MOJING_MERGED_MESH == 2)
+//            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoCAC];
+            if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoCAC, svrEyeBufferSeparateFs_Mojing_NoCAC, "svrEyeBufferSeparateVs_Mojing_NoCAC", "svrEyeBufferSeparateFs_Mojing_NoCAC"))
+            {
+                LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
+                return false;
+            }
+#else
+            if (gpWarpFrame->frameParams.overlayFormat == kOverlayImage && gpWarpFrame->frameParams.overlayType != kOverlayLayers)
+            {
+//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate_ImageOverlay : kShaderSeparate_ImageOverlay_NoChroma];
+                if( gbChromaEnabled)
+                {
+                    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_ImageOverlay, "warpShaderSeparateVs_ImageOverlay", "warpShaderSeparateFs_ImageOverlay"))
+                    {
+                        LOGE("Failed to initialize kShaderSeparate_ImageOverlay");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_ImageOverlay_NoChroma, "warpShaderSeparateVs_ImageOverlay_NoChroma", "warpShaderSeparateFs_ImageOverlay_NoChroma"))
+                    {
+                        LOGE("Failed to initialize kShaderSeparate_ImageOverlay_NoChroma");
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate_Overlay : kShaderSeparate_Overlay_NoChroma];
+                if( gbChromaEnabled )
+                {
+                    if (!pWarpData->warpShaders[kShaderSeparate_Overlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_Overlay, "warpShaderSeparateVs_Overlay", "warpShaderSeparateFs_Overlay"))
+                    {
+                        LOGE("Failed to initialize kShaderSeparate_Overlay");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!pWarpData->warpShaders[kShaderSeparate_Overlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_Overlay_NoChroma, "warpShaderSeparateVs_Overlay_NoChroma", "warpShaderSeparateFs_Overlay_NoChroma"))
+                    {
+                        LOGE("Failed to initialize kShaderSeparate_Overlay_NoChroma");
+                        return false;
+                    }
+                }
+            }
+#endif
+
+
+        }
     }
 
-    if (!pWarpData->warpShaders[kShaderSeparate_NoChroma].Initialize(warpShaderSeparateVs_NoChroma, warpShaderSeparateFs_NoChroma, "warpShaderSeparateVs_NoChroma", "warpShaderSeparateFs_NoChroma"))
+        // ********************************
+        // Single Eye Buffer
+        // ********************************
+    else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
     {
-        LOGE("Failed to initialize warpShaderSeparate_NoChroma");
-        return false;
+        if (!gOverlayEnabled)
+        {
+//            pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSingle : kShaderSingle_NoChroma];
+            if( gbChromaEnabled )
+            {
+                if (!pWarpData->warpShaders[kShaderSingle].Initialize(warpShaderSingleVs, warpShaderSingleFs, "warpShaderSingleVs", "warpShaderSingleFs"))
+                {
+                    LOGE("Failed to initialize warpShaderSingle");
+                    return false;
+                }
+            }
+            else
+            {
+                if (!pWarpData->warpShaders[kShaderSingle_NoChroma].Initialize(warpShaderSingleVs_NoChroma, warpShaderSingleFs_NoChroma, "warpShaderSingleVs_NoChroma", "warpShaderSingleFs_NoChroma"))
+                {
+                    LOGE("Failed to initialize warpShaderSingle_NoChroma");
+                    return false;
+                }
+            }
+        }
+
+        else if (gOverlayEnabled)
+        {
+            if (gpWarpFrame->frameParams.overlayFormat == kOverlayImage && gpWarpFrame->frameParams.overlayType != kOverlayLayers)
+            {
+//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSingle_ImageOverlay : kShaderSingle_ImageOverlay_NoChroma];
+                if( gbChromaEnabled)
+                {
+                    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_ImageOverlay, "warpShaderSingleVs_ImageOverlay", "warpShaderSingleFs_ImageOverlay"))
+                    {
+                        LOGE("Failed to initialize kShaderSingle_ImageOverlay");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_ImageOverlay_NoChroma, "warpShaderSingleVs_ImageOverlay_NoChroma", "warpShaderSingleFs_ImageOverlay_NoChroma"))
+                    {
+                        LOGE("Failed to initialize kShaderSingle_ImageOverlay_NoChroma");
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSingle_Overlay : kShaderSingle_Overlay_NoChroma];
+                if( gbChromaEnabled )
+                {
+                    if (!pWarpData->warpShaders[kShaderSingle_Overlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_Overlay, "warpShaderSingleVs_Overlay", "warpShaderSingleFs_Overlay"))
+                    {
+                        LOGE("Failed to initialize kShaderSingle_Overlay");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!pWarpData->warpShaders[kShaderSingle_Overlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_Overlay_NoChroma, "warpShaderSingleVs_Overlay_NoChroma", "warpShaderSingleFs_Overlay_NoChroma"))
+                    {
+                        LOGE("Failed to initialize kShaderSingle_Overlay_NoChroma");
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
-    if (!pWarpData->warpShaders[kShaderSeparate_Overlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_Overlay, "warpShaderSeparateVs_Overlay", "warpShaderSeparateFs_Overlay"))
+        // ********************************
+        // Eye Buffer Array
+        // ********************************
+    else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
     {
-        LOGE("Failed to initialize kShaderSeparate_Overlay");
-        return false;
+        if (!gOverlayEnabled)
+        {
+//            pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderArray : kShaderArray_NoChroma];
+            if( gbChromaEnabled)
+            {
+                if (!pWarpData->warpShaders[kShaderArray].Initialize(warpShaderArrayVs, warpShaderArrayFs, "warpShaderArrayVs", "warpShaderArrayFs"))
+                {
+                    LOGE("Failed to initialize warpShaderArray");
+                    return false;
+                }
+            }
+            else
+            {
+                //no shader       kShaderArray_NoChroma
+            }
+        }
+
+
+        else if (gOverlayEnabled)
+        {
+            if (gpWarpFrame->frameParams.overlayFormat == kOverlayImage && gpWarpFrame->frameParams.overlayType != kOverlayLayers)
+            {
+//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderArray_ImageOverlay : kShaderArray_ImageOverlay_NoChroma];
+                if( gbChromaEnabled)
+                {
+                    if (!pWarpData->warpShaders[kShaderArray_ImageOverlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_ImageOverlay, "warpShaderArrayVs_ImageOverlay", "warpShaderArrayFs_ImageOverlay"))
+                    {
+                        LOGE("Failed to initialize kShaderArray_ImageOverlay");
+                        return false;
+                    }
+                }
+                else
+                {
+                   // no shader  kShaderArray_ImageOverlay_NoChroma
+                }
+            }
+            else
+            {
+//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderArray_Overlay : kShaderArray_Overlay_NoChroma];
+                if( gbChromaEnabled )
+                {
+                    if (!pWarpData->warpShaders[kShaderArray_Overlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_Overlay, "warpShaderArrayVs_Overlay", "warpShaderArrayFs_Overlay"))
+                    {
+                        LOGE("Failed to initialize kShaderArray_Overlay");
+                        return false;
+                    }
+                }
+                else
+                {
+                    // no shader  kShaderArray_Overlay_NoChroma
+                }
+            }
+        }
+    }
+    else
+    {
+        LOGE("Invalid State!  No shader determined.  Defaulting to separate eye buffers");
+//        pCurrentShader = &warpData.warpShaders[kShaderSeparate];
+        if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
+        {
+            LOGE("Failed to initialize warpShaderSeparate");
+            return false;
+        }
     }
 
-    if (!pWarpData->warpShaders[kShaderSeparate_Overlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_Overlay_NoChroma, "warpShaderSeparateVs_Overlay_NoChroma", "warpShaderSeparateFs_Overlay_NoChroma"))
-    {
-        LOGE("Failed to initialize kShaderSeparate_Overlay_NoChroma");
-        return false;
-    }
 
-    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_ImageOverlay, "warpShaderSeparateVs_ImageOverlay", "warpShaderSeparateFs_ImageOverlay"))
-    {
-        LOGE("Failed to initialize kShaderSeparate_ImageOverlay");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_ImageOverlay_NoChroma, "warpShaderSeparateVs_ImageOverlay_NoChroma", "warpShaderSeparateFs_ImageOverlay_NoChroma"))
-    {
-        LOGE("Failed to initialize kShaderSeparate_ImageOverlay_NoChroma");
-        return false;
-    }
-
-    //Single double wide eye buffer in a single separate texture
-    if (!pWarpData->warpShaders[kShaderSingle].Initialize(warpShaderSingleVs, warpShaderSingleFs, "warpShaderSingleVs", "warpShaderSingleFs"))
-    {
-        LOGE("Failed to initialize warpShaderSingle");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderSingle_NoChroma].Initialize(warpShaderSingleVs_NoChroma, warpShaderSingleFs_NoChroma, "warpShaderSingleVs_NoChroma", "warpShaderSingleFs_NoChroma"))
-    {
-        LOGE("Failed to initialize warpShaderSingle_NoChroma");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderSingle_Overlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_Overlay, "warpShaderSingleVs_Overlay", "warpShaderSingleFs_Overlay"))
-    {
-        LOGE("Failed to initialize kShaderSingle_Overlay");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderSingle_Overlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_Overlay_NoChroma, "warpShaderSingleVs_Overlay_NoChroma", "warpShaderSingleFs_Overlay_NoChroma"))
-    {
-        LOGE("Failed to initialize kShaderSingle_Overlay_NoChroma");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_ImageOverlay, "warpShaderSingleVs_ImageOverlay", "warpShaderSingleFs_ImageOverlay"))
-    {
-        LOGE("Failed to initialize kShaderSingle_ImageOverlay");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_ImageOverlay_NoChroma, "warpShaderSingleVs_ImageOverlay_NoChroma", "warpShaderSingleFs_ImageOverlay_NoChroma"))
-    {
-        LOGE("Failed to initialize kShaderSingle_ImageOverlay_NoChroma");
-        return false;
-    }
-
-    //Separate Eye Buffers from separate slices of an array texture
-    if (!pWarpData->warpShaders[kShaderArray].Initialize(warpShaderArrayVs, warpShaderArrayFs, "warpShaderArrayVs", "warpShaderArrayFs"))
-    {
-        LOGE("Failed to initialize warpShaderArray");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderArray_Overlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_Overlay, "warpShaderArrayVs_Overlay", "warpShaderArrayFs_Overlay"))
-    {
-        LOGE("Failed to initialize kShaderArray_Overlay");
-        return false;
-    }
-
-    if (!pWarpData->warpShaders[kShaderArray_ImageOverlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_ImageOverlay, "warpShaderArrayVs_ImageOverlay", "warpShaderArrayFs_ImageOverlay"))
-    {
-        LOGE("Failed to initialize kShaderArray_ImageOverlay");
-        return false;
-    }
-
-	// Merged mesh
-	if (!pWarpData->warpShaders[kShaderSeparate_Mojing].Initialize(svrEyeBufferSeparateVs_Mojing, svrEyeBufferSeparateFs_Mojing, "svrEyeBufferSeparateVs_Mojing", "svrEyeBufferSeparateFs_Mojing"))
-    {
-        LOGE("Failed to initialize warpShaderSeparate_Mojing for merged mesh");
-        return false;
-    }
-    // Merged mesh without overlay
-    if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlay].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlay, svrEyeBufferSeparateFs_Mojing_NoOverlay, "svrEyeBufferSeparateVs_Mojing_NoOverlay", "svrEyeBufferSeparateFs_Mojing_NoOverlay"))
-    {
-        LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
-        return false;
-    }
-    // Merged mesh no CAC
-    if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoCAC, svrEyeBufferSeparateFs_Mojing_NoCAC, "svrEyeBufferSeparateVs_Mojing_NoCAC", "svrEyeBufferSeparateFs_Mojing_NoCAC"))
-    {
-        LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
-        return false;
-    }
-    // no overlay and cac
-    if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC, svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC, "svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC", "svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC"))
-    {
-        LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlayAndCAC for merged mesh");
-        return false;
-    }
+//
+//    ////////////////////////////////////
+//    //Separate Eye Buffers from separate textures
+//    if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
+//    {
+//        LOGE("Failed to initialize warpShaderSeparate");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSeparate_NoChroma].Initialize(warpShaderSeparateVs_NoChroma, warpShaderSeparateFs_NoChroma, "warpShaderSeparateVs_NoChroma", "warpShaderSeparateFs_NoChroma"))
+//    {
+//        LOGE("Failed to initialize warpShaderSeparate_NoChroma");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSeparate_Overlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_Overlay, "warpShaderSeparateVs_Overlay", "warpShaderSeparateFs_Overlay"))
+//    {
+//        LOGE("Failed to initialize kShaderSeparate_Overlay");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSeparate_Overlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_Overlay_NoChroma, "warpShaderSeparateVs_Overlay_NoChroma", "warpShaderSeparateFs_Overlay_NoChroma"))
+//    {
+//        LOGE("Failed to initialize kShaderSeparate_Overlay_NoChroma");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_ImageOverlay, "warpShaderSeparateVs_ImageOverlay", "warpShaderSeparateFs_ImageOverlay"))
+//    {
+//        LOGE("Failed to initialize kShaderSeparate_ImageOverlay");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_ImageOverlay_NoChroma, "warpShaderSeparateVs_ImageOverlay_NoChroma", "warpShaderSeparateFs_ImageOverlay_NoChroma"))
+//    {
+//        LOGE("Failed to initialize kShaderSeparate_ImageOverlay_NoChroma");
+//        return false;
+//    }
+//
+//    //Single double wide eye buffer in a single separate texture
+//    if (!pWarpData->warpShaders[kShaderSingle].Initialize(warpShaderSingleVs, warpShaderSingleFs, "warpShaderSingleVs", "warpShaderSingleFs"))
+//    {
+//        LOGE("Failed to initialize warpShaderSingle");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSingle_NoChroma].Initialize(warpShaderSingleVs_NoChroma, warpShaderSingleFs_NoChroma, "warpShaderSingleVs_NoChroma", "warpShaderSingleFs_NoChroma"))
+//    {
+//        LOGE("Failed to initialize warpShaderSingle_NoChroma");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSingle_Overlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_Overlay, "warpShaderSingleVs_Overlay", "warpShaderSingleFs_Overlay"))
+//    {
+//        LOGE("Failed to initialize kShaderSingle_Overlay");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSingle_Overlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_Overlay_NoChroma, "warpShaderSingleVs_Overlay_NoChroma", "warpShaderSingleFs_Overlay_NoChroma"))
+//    {
+//        LOGE("Failed to initialize kShaderSingle_Overlay_NoChroma");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_ImageOverlay, "warpShaderSingleVs_ImageOverlay", "warpShaderSingleFs_ImageOverlay"))
+//    {
+//        LOGE("Failed to initialize kShaderSingle_ImageOverlay");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_ImageOverlay_NoChroma, "warpShaderSingleVs_ImageOverlay_NoChroma", "warpShaderSingleFs_ImageOverlay_NoChroma"))
+//    {
+//        LOGE("Failed to initialize kShaderSingle_ImageOverlay_NoChroma");
+//        return false;
+//    }
+//
+//    //Separate Eye Buffers from separate slices of an array texture
+//    if (!pWarpData->warpShaders[kShaderArray].Initialize(warpShaderArrayVs, warpShaderArrayFs, "warpShaderArrayVs", "warpShaderArrayFs"))
+//    {
+//        LOGE("Failed to initialize warpShaderArray");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderArray_Overlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_Overlay, "warpShaderArrayVs_Overlay", "warpShaderArrayFs_Overlay"))
+//    {
+//        LOGE("Failed to initialize kShaderArray_Overlay");
+//        return false;
+//    }
+//
+//    if (!pWarpData->warpShaders[kShaderArray_ImageOverlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_ImageOverlay, "warpShaderArrayVs_ImageOverlay", "warpShaderArrayFs_ImageOverlay"))
+//    {
+//        LOGE("Failed to initialize kShaderArray_ImageOverlay");
+//        return false;
+//    }
+//
+//	// Merged mesh
+//	if (!pWarpData->warpShaders[kShaderSeparate_Mojing].Initialize(svrEyeBufferSeparateVs_Mojing, svrEyeBufferSeparateFs_Mojing, "svrEyeBufferSeparateVs_Mojing", "svrEyeBufferSeparateFs_Mojing"))
+//    {
+//        LOGE("Failed to initialize warpShaderSeparate_Mojing for merged mesh");
+//        return false;
+//    }
+//    // Merged mesh without overlay
+//    if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlay].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlay, svrEyeBufferSeparateFs_Mojing_NoOverlay, "svrEyeBufferSeparateVs_Mojing_NoOverlay", "svrEyeBufferSeparateFs_Mojing_NoOverlay"))
+//    {
+//        LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
+//        return false;
+//    }
+//    // Merged mesh no CAC
+//    if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoCAC, svrEyeBufferSeparateFs_Mojing_NoCAC, "svrEyeBufferSeparateVs_Mojing_NoCAC", "svrEyeBufferSeparateFs_Mojing_NoCAC"))
+//    {
+//        LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
+//        return false;
+//    }
+//    // no overlay and cac
+//    if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC, svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC, "svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC", "svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC"))
+//    {
+//        LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlayAndCAC for merged mesh");
+//        return false;
+//    }
 
     InitializeBlitMesh(pWarpData->blitMeshGeom);
 
@@ -1799,6 +2057,7 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 }
 
 namespace Svr{ bool g_bMeshDirty = true; }
+
 bool UpdateAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 {
     bool bRet = false;
@@ -2078,7 +2337,7 @@ void L_SetSurfaceScissor(svrSurfaceSubset whichPart)
 }
 
 //-----------------------------------------------------------------------------
-void L_SetEyeObjects(unsigned int &leftEye, unsigned int &rightEye, unsigned int &samplerType, svrFrameParamsInternal* pWarpFrame, SvrAsyncWarpResources &warpData)
+void L_SetEyeObjects(unsigned int &leftEye, unsigned int &rightEye, unsigned int &samplerType, svrFrameParamsInternal* pWarpFrame )
 //-----------------------------------------------------------------------------
 {
     // ********************************
@@ -2487,6 +2746,7 @@ void* WarpThreadMain(void* arg)
         double framePct = (double)gAppContext->modeContext->vsyncCount + ((double)timestamp - gAppContext->modeContext->vsyncTimeNano) / (framePeriodNano);
         pthread_mutex_unlock(&gAppContext->modeContext->vsyncMutex);
 
+
         uint64_t warpVsyncCount = ceil(framePct);
 
         double fractFrame = framePct - ((long)framePct);
@@ -2502,7 +2762,6 @@ void* WarpThreadMain(void* arg)
         }
 
         PROFILE_ENTER(GROUP_TIMEWARP, 0, "Left EyeBuffer Wait");
-
         WarpSleep(waitTime);
 
         PROFILE_EXIT(GROUP_TIMEWARP); // Left EyeBuffer Wait
@@ -2511,9 +2770,6 @@ void* WarpThreadMain(void* arg)
 
         unsigned int curSubmitFrameCount = gAppContext->modeContext->submitFrameCount;
 
-
-        svrFrameParamsInternal* pWarpFrame = NULL;
-   
         //Get the frame parameters for the frame we will be warping
         for (int i = 0; i < NUM_SWAP_FRAMES - 1; i++)
         {
@@ -2522,7 +2778,7 @@ void* WarpThreadMain(void* arg)
             if (checkFrameCount <= 0)
             {
                 //This is the first time through and no frames have been submitted yet so bail out
-                pWarpFrame = NULL;
+                gpWarpFrame = NULL;
                 break;
             }
 
@@ -2543,18 +2799,18 @@ void* WarpThreadMain(void* arg)
                 continue;
             }
 
-            pWarpFrame = pCheckFrame;
+            gpWarpFrame = pCheckFrame;
+            // madi: ChangeMojingWorld
+            bHasWarpData |= UpdateAsyncWarpData(&gWarpData);
             //LOGI("set warpFrameCount = %d,  checkFrameCount: %d", gAppContext->modeContext->warpFrameCount, checkFrameCount);    
             gAppContext->modeContext->warpFrameCount = checkFrameCount;
 
             break;
         }
 
+
         LOGV("Warping %d [vc : %llu]", gAppContext->modeContext->warpFrameCount, gAppContext->modeContext->vsyncCount);
 
-		
-		
-			
         //Signal the eye render thread that it can continue on
         if (!pthread_mutex_trylock(&gAppContext->modeContext->warpBufferConsumedMutex))
         {
@@ -2562,36 +2818,36 @@ void* WarpThreadMain(void* arg)
             pthread_mutex_unlock(&gAppContext->modeContext->warpBufferConsumedMutex);
         }
 
-        if (pWarpFrame == NULL)
+        if (gpWarpFrame == NULL)
         {
             //No frame to warp (just started rendering??) so start over...
             LOGI("No valid frame to warp...");
             continue;
         }
 
-		if (pWarpFrame->warpSync != 0)
+		if (gpWarpFrame->warpSync != 0)
     	{
-    		glDeleteSync(pWarpFrame->warpSync);
-    		pWarpFrame->warpSync = 0;
+    		glDeleteSync(gpWarpFrame->warpSync);
+    		gpWarpFrame->warpSync = 0;
 		}
 		/*LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 1]" ,
 			curSubmitFrameCount,
 			gAppContext->modeContext->submitFrameCount,
 			gAppContext->modeContext->warpFrameCount,
-			pWarpFrame->frameParams.eyeBufferArray[0]
+			gpWarpFrame->frameParams.eyeBufferArray[0]
 		);*/
 		
         int frameDoubled = 0;
-        if (gLogFrameDoubles && pWarpFrame->frameParams.minVsyncs == 1 && gAppContext->modeContext->warpFrameCount == prevWarpFrameCount)
+        if (gLogFrameDoubles && gpWarpFrame->frameParams.minVsyncs == 1 && gAppContext->modeContext->warpFrameCount == prevWarpFrameCount)
         {
             LOGI("Frame doubled on %d [%llu,%llu]", gAppContext->modeContext->warpFrameCount, warpVsyncCount, gAppContext->modeContext->vsyncCount);
             frameDoubled = 1;
         }
         prevWarpFrameCount = gAppContext->modeContext->warpFrameCount;
 
-        if (pWarpFrame->warpFrameLeftTimeStamp == 0)
+        if (gpWarpFrame->warpFrameLeftTimeStamp == 0)
         {
-            pWarpFrame->warpFrameLeftTimeStamp = postLeftWaitTimeStamp;
+            gpWarpFrame->warpFrameLeftTimeStamp = postLeftWaitTimeStamp;
         }
 
         PROFILE_ENTER(GROUP_TIMEWARP, 0, "Warp Submission : VSync %d Frame %d Doubled %d",
@@ -2610,8 +2866,8 @@ void* WarpThreadMain(void* arg)
         shaderParams.ipdoffset = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 #if USE_MOJING_MERGED_MESH
-        svrRect rcOverlayRectL = pWarpFrame->frameParams.overlayRect[0];
-        svrRect rcOverlayRectR = pWarpFrame->frameParams.overlayRect[1];
+        svrRect rcOverlayRectL = gpWarpFrame->frameParams.overlayRect[0];
+        svrRect rcOverlayRectR = gpWarpFrame->frameParams.overlayRect[1];
         // LOGI("--madi-- overlay rect left:%f,%f,%f,%f right:%f, %f, %f, %f",
         //     rcOverlayRectL.fX, rcOverlayRectL.fY, rcOverlayRectL.fW, rcOverlayRectL.fH,
         //     rcOverlayRectR.fX, rcOverlayRectR.fY, rcOverlayRectR.fW, rcOverlayRectR.fH
@@ -2622,16 +2878,16 @@ void* WarpThreadMain(void* arg)
         shaderParams.overlayWarpMatrix = CalculateProjectionMatrix(gAppContext->deviceInfo.targetFovXRad);
 #endif
 
-        bool bDistortionEnabled = !((pWarpFrame->frameParams.frameOptions & kDisableDistortionCorrection) > 0);
-        bool bChromaEnabled = !((pWarpFrame->frameParams.frameOptions & kDisableChromaticCorrection) > 0);
-        //bool bTimeWarpEnabled = !((pWarpFrame->frameParams.frameOptions & kDisableReprojection) > 0);
+        bool bDistortionEnabled = !((gpWarpFrame->frameParams.frameOptions & kDisableDistortionCorrection) > 0);
+        gbChromaEnabled = !((gpWarpFrame->frameParams.frameOptions & kDisableChromaticCorrection) > 0);
+        //bool bTimeWarpEnabled = !((gpWarpFrame->frameParams.frameOptions & kDisableReprojection) > 0);
         bool bTimeWarpEnabled = gTimewarpEnabled;//gAppContext->m_TimewarpEnabled;
         //LOGI("--madi-- timewarp enabled: %s", bTimeWarpEnabled ? "true" : "false");
 
         // If distortion is disabled then there is no reason to do chromatic aberration
         if (!bDistortionEnabled)
         {
-            bChromaEnabled = false;
+            gbChromaEnabled = false;
         }
 
         if (gRecenterTransition < gRecenterFrames)
@@ -2647,11 +2903,11 @@ void* WarpThreadMain(void* arg)
         // This is done by CalculateWarpMatrix() so no special code is needed.
         // Check and see if the predicted time is close to where we are now.
         uint64_t timeNowNano = Svr::GetTimeNano();
-        uint64_t diffTimeNano = timeNowNano - pWarpFrame->frameParams.headPoseState.poseTimeStampNs;
+        uint64_t diffTimeNano = timeNowNano - gpWarpFrame->frameParams.headPoseState.poseTimeStampNs;
         float diffTimeMs = diffTimeNano * NANOSECONDS_TO_MILLISECONDS;
 
         float adjustedTimeMs = 0.0f;
-        if (pWarpFrame->frameParams.headPoseState.predictedTimeMs > 0.0f && !(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+        if (gpWarpFrame->frameParams.headPoseState.predictedTimeMs > 0.0f && !(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
         {
             //Predict ahead
             adjustedTimeMs = (0.5 * framePeriodNano) * 1e-6;
@@ -2666,14 +2922,14 @@ void* WarpThreadMain(void* arg)
         }
 
 
-        //LOGI("Left Eye Predicted %0.2f ms but it took %0.2f ms [%0.2f]", pWarpFrame->frameParams.headPoseState.predictedTimeMs, diffTimeMs, adjustedTimeMs);
+        //LOGI("Left Eye Predicted %0.2f ms but it took %0.2f ms [%0.2f]", gpWarpFrame->frameParams.headPoseState.predictedTimeMs, diffTimeMs, adjustedTimeMs);
         glm::fquat origQuat, latestQuat;
 
         int64_t timeToLeftEye = 0L;
         int64_t timeToRightEye = 0L;
 
         // If this is the first submitted frame with an overlay of type kOverlayLayers then create the render target
-        if (pWarpFrame->frameParams.overlayType == kOverlayLayers && gWarpData.overlayTarget.GetFrameBufferId() == 0)
+        if (gpWarpFrame->frameParams.overlayType == kOverlayLayers && gWarpData.overlayTarget.GetFrameBufferId() == 0)
         {
             int localWidth = gAppContext->modeContext->warpRenderSurfaceWidth / 2;
             int localHeight = gAppContext->modeContext->warpRenderSurfaceHeight;
@@ -2686,20 +2942,17 @@ void* WarpThreadMain(void* arg)
 
         // Determine the "Left/Right" eye buffers.  "Left/Right" are really "First/Second" because
         // sometimes we are rendering left-to-right and sometimes right-to-left
-        unsigned int leftEyeBuffer = pWarpFrame->frameParams.eyeBufferArray[0];
-        unsigned int rightEyeBuffer = pWarpFrame->frameParams.eyeBufferArray[1];
+        unsigned int leftEyeBuffer = gpWarpFrame->frameParams.eyeBufferArray[0];
+        unsigned int rightEyeBuffer = gpWarpFrame->frameParams.eyeBufferArray[1];
         unsigned int eyeSamplerType = GL_TEXTURE_2D;
-        L_SetEyeObjects(leftEyeBuffer, rightEyeBuffer, eyeSamplerType, pWarpFrame, gWarpData);
+        L_SetEyeObjects(leftEyeBuffer, rightEyeBuffer, eyeSamplerType, gpWarpFrame);
 
 
         // Determine the overlay buffer
         unsigned int leftOverlayBuffer = 0;
         unsigned int rightOverlayBuffer = 0;
         unsigned int overlaySamplerType = GL_TEXTURE_2D;
-        bool overlayEnabled = L_SetOverlayObjects(leftOverlayBuffer, rightOverlayBuffer, overlaySamplerType, pWarpFrame, gWarpData);
-
-        // madi: ChangeMojingWorld
-        bHasWarpData |= UpdateAsyncWarpData(&gWarpData);
+        gOverlayEnabled = L_SetOverlayObjects(leftOverlayBuffer, rightOverlayBuffer, overlaySamplerType, gpWarpFrame, gWarpData);
 
         // Up to 4 meshes are rendered each pass.  If Left/Right order then 2 are rendered (Each half of screen)
         // If Top/Bottom order then 4 are rendered (Each corner of the screen).
@@ -2809,7 +3062,7 @@ void* WarpThreadMain(void* arg)
         // TODO: Does "gAppContext->deviceInfo.displayOrientation == 0|180" and Top/Bottom mesh order require special handling?
 
         // Determine the current shader...
-        shaderParams.pShader = L_GetCurrentShader(pWarpFrame, gWarpData, overlayEnabled, bChromaEnabled);
+        shaderParams.pShader = L_GetCurrentShader(gpWarpFrame, gWarpData, gOverlayEnabled, gbChromaEnabled);
 
         // ... and then bind it
         shaderParams.pShader->Bind();
@@ -2832,18 +3085,18 @@ void* WarpThreadMain(void* arg)
             //Get the updated sensor state
             //LOGI("TimeWarp left eye predicted time: %0.2f ms", adjustedTimeMs);
             svrHeadPoseState latestPoseState = svrGetPredictedHeadPose(adjustedTimeMs);
-            origQuat = glmQuatFromSvrQuat(pWarpFrame->frameParams.headPoseState.pose.rotation);
+            origQuat = glmQuatFromSvrQuat(gpWarpFrame->frameParams.headPoseState.pose.rotation);
             latestQuat = glmQuatFromSvrQuat(latestPoseState.pose.rotation);
             leftWarpMatrix = CalculateWarpMatrix(origQuat, latestQuat);
 
-            timeToLeftEye = latestPoseState.poseTimeStampNs - pWarpFrame->frameParams.headPoseState.poseTimeStampNs;
+            timeToLeftEye = latestPoseState.poseTimeStampNs - gpWarpFrame->frameParams.headPoseState.poseTimeStampNs;
         }
         shaderParams.texWarpMatrix = leftWarpMatrix * (CalculateProjectionMatrix(gAppContext->deviceInfo.targetFovXRad));
 
         PROFILE_EXIT(GROUP_TIMEWARP); //Left Eye - Pose Update
 
 #ifdef MOTION_TO_PHOTON_TEST
-        if (pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton)
+        if (gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton)
         {
             // Compute the difference of quaternions between the current sample and the last
             glm::fquat inverseLast = glm::inverse(gMotionToPhotonLast);
@@ -2923,7 +3176,7 @@ void* WarpThreadMain(void* arg)
         }
 
 #ifdef MOTION_TO_PHOTON_TEST
-        if ((pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton) && !gTimeWarpClearBuffer)
+        if ((gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton) && !gTimeWarpClearBuffer)
         {
             // Not already cleared above so clear now
             glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -2951,11 +3204,11 @@ void* WarpThreadMain(void* arg)
         }
 #endif // MOTION_TO_PHOTON_TEST
         // Left eye
-        if (pWarpFrame->frameParams.eyeBufferType == kEyeBufferMono ||
-            pWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSeparate)
+        if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferMono ||
+            gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSeparate)
         {
 #ifdef MOTION_TO_PHOTON_TEST
-            if (!(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+            if (!(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
             {
 #endif // MOTION_TO_PHOTON_TEST
 
@@ -3012,11 +3265,11 @@ void* WarpThreadMain(void* arg)
 #endif // MOTION_TO_PHOTON_TEST
 
         }
-        else if (pWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
+        else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
         {
             //Each eye is using half the width of the source texture
 #ifdef MOTION_TO_PHOTON_TEST
-            if (!(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+            if (!(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
             {
 #endif // MOTION_TO_PHOTON_TEST
 
@@ -3078,12 +3331,12 @@ void* WarpThreadMain(void* arg)
 #endif // MOTION_TO_PHOTON_TEST
 
         }
-        else if (pWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
+        else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
         {
             // This is the case for why following code can't be common.  We have a new offset: gMeshIpdOffset
             // This has not been tested.
 #ifdef MOTION_TO_PHOTON_TEST
-            if (!(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+            if (!(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
             {
 #endif // MOTION_TO_PHOTON_TEST
 
@@ -3175,9 +3428,9 @@ void* WarpThreadMain(void* arg)
             PROFILE_EXIT(GROUP_TIMEWARP); // Right EyeBuffer Wait
         }
 
-        if (pWarpFrame->warpFrameRightTimeStamp == 0)
+        if (gpWarpFrame->warpFrameRightTimeStamp == 0)
         {
-            pWarpFrame->warpFrameRightTimeStamp = GetTimeNano();
+            gpWarpFrame->warpFrameRightTimeStamp = GetTimeNano();
         }
 
         //*******************
@@ -3191,11 +3444,11 @@ void* WarpThreadMain(void* arg)
 
         // Update the time warp adjustment
         timeNowNano = Svr::GetTimeNano();
-        diffTimeNano = timeNowNano - pWarpFrame->frameParams.headPoseState.poseTimeStampNs;
+        diffTimeNano = timeNowNano - gpWarpFrame->frameParams.headPoseState.poseTimeStampNs;
         diffTimeMs = (float)diffTimeNano / 1000000.0f;
 
         adjustedTimeMs = 0.0f;
-        if (pWarpFrame->frameParams.headPoseState.predictedTimeMs > 0.0f)
+        if (gpWarpFrame->frameParams.headPoseState.predictedTimeMs > 0.0f)
         {
             adjustedTimeMs = (0.5 * framePeriodNano) * 1e-6;
         }
@@ -3205,7 +3458,7 @@ void* WarpThreadMain(void* arg)
         adjustedTimeMs = 0.0f;
 #endif
 
-        //LOGI("Right Eye Predicted %0.2f ms but it took %0.2f ms [%0.2f]", pWarpFrame->frameParams.headPoseState.predictedTimeMs, diffTimeMs, adjustedTimeMs);
+        //LOGI("Right Eye Predicted %0.2f ms but it took %0.2f ms [%0.2f]", gpWarpFrame->frameParams.headPoseState.predictedTimeMs, diffTimeMs, adjustedTimeMs);
 
         // It is possible that the recenter event came in between eyes so whe need to check again
         if (bTimeWarpEnabled && gRecenterTransition < gRecenterFrames)
@@ -3230,12 +3483,12 @@ void* WarpThreadMain(void* arg)
                 //Get the updated sensor state
                 // LOGI("TimeWarp right eye predicted time: %0.2f ms", adjustedTimeMs);
                 latestPoseState = svrGetPredictedHeadPose(adjustedTimeMs);
-                origQuat = glmQuatFromSvrQuat(pWarpFrame->frameParams.headPoseState.pose.rotation);
+                origQuat = glmQuatFromSvrQuat(gpWarpFrame->frameParams.headPoseState.pose.rotation);
                 latestQuat = glmQuatFromSvrQuat(latestPoseState.pose.rotation);
                 rightWarpMatrix = CalculateWarpMatrix(origQuat, latestQuat);
             }
 
-            timeToRightEye = latestPoseState.poseTimeStampNs - pWarpFrame->frameParams.headPoseState.poseTimeStampNs;
+            timeToRightEye = latestPoseState.poseTimeStampNs - gpWarpFrame->frameParams.headPoseState.poseTimeStampNs;
         }
 
         shaderParams.texWarpMatrix = rightWarpMatrix * (CalculateProjectionMatrix(gAppContext->deviceInfo.targetFovXRad));
@@ -3243,7 +3496,7 @@ void* WarpThreadMain(void* arg)
         PROFILE_EXIT(GROUP_TIMEWARP); // Right Eye Pose Update
 
 #ifdef MOTION_TO_PHOTON_TEST
-        if (pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton)
+        if (gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton)
         {
             // Compute the difference of quaternions between the current sample and the last
             glm::fquat inverseLast = glm::inverse(gMotionToPhotonLast);
@@ -3322,7 +3575,7 @@ void* WarpThreadMain(void* arg)
         }
 
 #ifdef MOTION_TO_PHOTON_TEST
-        if ((pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton) && !gTimeWarpClearBuffer)
+        if ((gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton) && !gTimeWarpClearBuffer)
         {
             // Not already cleared above so clear now
             glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -3354,12 +3607,12 @@ void* WarpThreadMain(void* arg)
         shaderParams.scaleoffset.z = 0.0f;
         shaderParams.scaleoffset.w = 0.0f;
 
-        if (pWarpFrame->frameParams.eyeBufferType == kEyeBufferMono ||
-            pWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSeparate)
+        if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferMono ||
+            gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSeparate)
         {
 
 #ifdef MOTION_TO_PHOTON_TEST
-            if (!(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+            if (!(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
             {
 #endif // MOTION_TO_PHOTON_TEST
 
@@ -3416,10 +3669,10 @@ void* WarpThreadMain(void* arg)
             }
 #endif // MOTION_TO_PHOTON_TEST
         }
-        else if (pWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
+        else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
         {
 #ifdef MOTION_TO_PHOTON_TEST
-            if (!(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+            if (!(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
             {
 #endif // MOTION_TO_PHOTON_TEST
 
@@ -3480,13 +3733,13 @@ void* WarpThreadMain(void* arg)
             }
 #endif // MOTION_TO_PHOTON_TEST
         }
-        else if (pWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
+        else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
         {
 
             // This is the case for why following code can't be common.  We have a new offset: gMeshIpdOffset
             // This has not been tested.
 #ifdef MOTION_TO_PHOTON_TEST
-            if (!(pWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
+            if (!(gpWarpFrame->frameParams.frameOptions & kEnableMotionToPhoton))
             {
 #endif // MOTION_TO_PHOTON_TEST
 
@@ -3555,7 +3808,7 @@ void* WarpThreadMain(void* arg)
         PROFILE_ENTER(GROUP_TIMEWARP, 0, "Right Eye Finalize");
         // if (gSingleBufferWindow)
         {
-        	pWarpFrame->warpSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        	gpWarpFrame->warpSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
             glFlush();
             
         }
@@ -3574,7 +3827,7 @@ void* WarpThreadMain(void* arg)
 			curSubmitFrameCount,
 			gAppContext->modeContext->submitFrameCount,
 			gAppContext->modeContext->warpFrameCount,
-			pWarpFrame->frameParams.eyeBufferArray[0]
+			gpWarpFrame->frameParams.eyeBufferArray[0]
 		);*/
         LOGE("end while");
     }   // while(true)

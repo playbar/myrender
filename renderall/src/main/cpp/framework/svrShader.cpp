@@ -44,6 +44,9 @@ SvrShader::SvrShader()
 
 bool SvrShader::Initialize(const char* pVertSrc, const char* pFragSrc, const char* pVertDbgName, const char* pFragDbgName)
 {
+    if( mShaderId > 0 )
+        return true;
+
     static char errMsg[4096];
     int result;
 
