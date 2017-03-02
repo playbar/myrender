@@ -1675,243 +1675,141 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
     // ********************************
     if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferMono || gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSeparate)
     {
-        if (!gOverlayEnabled)
+        if( gUseCAC == 1)
         {
-            if( gUseCAC == 1)
+            // Merged mesh without overlay
+            if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlay].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlay, svrEyeBufferSeparateFs_Mojing_NoOverlay, "svrEyeBufferSeparateVs_Mojing_NoOverlay", "svrEyeBufferSeparateFs_Mojing_NoOverlay"))
             {
-                // Merged mesh without overlay
-                if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlay].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlay, svrEyeBufferSeparateFs_Mojing_NoOverlay, "svrEyeBufferSeparateVs_Mojing_NoOverlay", "svrEyeBufferSeparateFs_Mojing_NoOverlay"))
-                {
-                    LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
-                    return false;
-                }
+                LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
+                return false;
             }
-            else if( gUseCAC == 2 )
-            {
-                if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC, svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC, "svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC", "svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC"))
-                {
-                    LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlayAndCAC for merged mesh");
-                    return false;
-                }
-            }
-            else
-            {
-                if( gbChromaEnabled)
-                {
-                    if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
-                    {
-                        LOGE("Failed to initialize warpShaderSeparate");
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!pWarpData->warpShaders[kShaderSeparate_NoChroma].Initialize(warpShaderSeparateVs_NoChroma, warpShaderSeparateFs_NoChroma, "warpShaderSeparateVs_NoChroma", "warpShaderSeparateFs_NoChroma"))
-                    {
-                        LOGE("Failed to initialize warpShaderSeparate_NoChroma");
-                        return false;
-                    }
-                }
-            }
-        }
-        else if (gOverlayEnabled)
-        {
-#if (USE_MOJING_MERGED_MESH == 1)
-            //LOGI("--madi-- use drawcall-merged-WITH-overlay shader");
-//            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing];
             if (!pWarpData->warpShaders[kShaderSeparate_Mojing].Initialize(svrEyeBufferSeparateVs_Mojing, svrEyeBufferSeparateFs_Mojing, "svrEyeBufferSeparateVs_Mojing", "svrEyeBufferSeparateFs_Mojing"))
             {
                 LOGE("Failed to initialize warpShaderSeparate_Mojing for merged mesh");
                 return false;
             }
-#elif (USE_MOJING_MERGED_MESH == 2)
-//            pCurrentShader = &warpData.warpShaders[kShaderSeparate_Mojing_NoCAC];
+        }
+        else if( gUseCAC == 2 )
+        {
+            if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoOverlayAndCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC, svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC, "svrEyeBufferSeparateVs_Mojing_NoOverlayAndCAC", "svrEyeBufferSeparateFs_Mojing_NoOverlayAndCAC"))
+            {
+                LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlayAndCAC for merged mesh");
+                return false;
+            }
             if (!pWarpData->warpShaders[kShaderSeparate_Mojing_NoCAC].Initialize(svrEyeBufferSeparateVs_Mojing_NoCAC, svrEyeBufferSeparateFs_Mojing_NoCAC, "svrEyeBufferSeparateVs_Mojing_NoCAC", "svrEyeBufferSeparateFs_Mojing_NoCAC"))
             {
                 LOGE("Failed to initialize warpShaderSeparate_Mojing_NoOverlay for merged mesh");
                 return false;
             }
-#else
-            if (gpWarpFrame->frameParams.overlayFormat == kOverlayImage && gpWarpFrame->frameParams.overlayType != kOverlayLayers)
-            {
-//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate_ImageOverlay : kShaderSeparate_ImageOverlay_NoChroma];
-                if( gbChromaEnabled)
-                {
-                    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_ImageOverlay, "warpShaderSeparateVs_ImageOverlay", "warpShaderSeparateFs_ImageOverlay"))
-                    {
-                        LOGE("Failed to initialize kShaderSeparate_ImageOverlay");
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_ImageOverlay_NoChroma, "warpShaderSeparateVs_ImageOverlay_NoChroma", "warpShaderSeparateFs_ImageOverlay_NoChroma"))
-                    {
-                        LOGE("Failed to initialize kShaderSeparate_ImageOverlay_NoChroma");
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSeparate_Overlay : kShaderSeparate_Overlay_NoChroma];
-                if( gbChromaEnabled )
-                {
-                    if (!pWarpData->warpShaders[kShaderSeparate_Overlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_Overlay, "warpShaderSeparateVs_Overlay", "warpShaderSeparateFs_Overlay"))
-                    {
-                        LOGE("Failed to initialize kShaderSeparate_Overlay");
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!pWarpData->warpShaders[kShaderSeparate_Overlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_Overlay_NoChroma, "warpShaderSeparateVs_Overlay_NoChroma", "warpShaderSeparateFs_Overlay_NoChroma"))
-                    {
-                        LOGE("Failed to initialize kShaderSeparate_Overlay_NoChroma");
-                        return false;
-                    }
-                }
-            }
-#endif
-
-
         }
-    }
-
-        // ********************************
-        // Single Eye Buffer
-        // ********************************
-    else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
-    {
-        if (!gOverlayEnabled)
+        else
         {
-//            pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSingle : kShaderSingle_NoChroma];
-            if( gbChromaEnabled )
-            {
-                if (!pWarpData->warpShaders[kShaderSingle].Initialize(warpShaderSingleVs, warpShaderSingleFs, "warpShaderSingleVs", "warpShaderSingleFs"))
-                {
-                    LOGE("Failed to initialize warpShaderSingle");
-                    return false;
-                }
-            }
-            else
-            {
-                if (!pWarpData->warpShaders[kShaderSingle_NoChroma].Initialize(warpShaderSingleVs_NoChroma, warpShaderSingleFs_NoChroma, "warpShaderSingleVs_NoChroma", "warpShaderSingleFs_NoChroma"))
-                {
-                    LOGE("Failed to initialize warpShaderSingle_NoChroma");
-                    return false;
-                }
-            }
-        }
-
-        else if (gOverlayEnabled)
-        {
-            if (gpWarpFrame->frameParams.overlayFormat == kOverlayImage && gpWarpFrame->frameParams.overlayType != kOverlayLayers)
-            {
-//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSingle_ImageOverlay : kShaderSingle_ImageOverlay_NoChroma];
-                if( gbChromaEnabled)
-                {
-                    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_ImageOverlay, "warpShaderSingleVs_ImageOverlay", "warpShaderSingleFs_ImageOverlay"))
-                    {
-                        LOGE("Failed to initialize kShaderSingle_ImageOverlay");
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_ImageOverlay_NoChroma, "warpShaderSingleVs_ImageOverlay_NoChroma", "warpShaderSingleFs_ImageOverlay_NoChroma"))
-                    {
-                        LOGE("Failed to initialize kShaderSingle_ImageOverlay_NoChroma");
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderSingle_Overlay : kShaderSingle_Overlay_NoChroma];
-                if( gbChromaEnabled )
-                {
-                    if (!pWarpData->warpShaders[kShaderSingle_Overlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_Overlay, "warpShaderSingleVs_Overlay", "warpShaderSingleFs_Overlay"))
-                    {
-                        LOGE("Failed to initialize kShaderSingle_Overlay");
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!pWarpData->warpShaders[kShaderSingle_Overlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_Overlay_NoChroma, "warpShaderSingleVs_Overlay_NoChroma", "warpShaderSingleFs_Overlay_NoChroma"))
-                    {
-                        LOGE("Failed to initialize kShaderSingle_Overlay_NoChroma");
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-
-        // ********************************
-        // Eye Buffer Array
-        // ********************************
-    else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
-    {
-        if (!gOverlayEnabled)
-        {
-//            pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderArray : kShaderArray_NoChroma];
             if( gbChromaEnabled)
             {
-                if (!pWarpData->warpShaders[kShaderArray].Initialize(warpShaderArrayVs, warpShaderArrayFs, "warpShaderArrayVs", "warpShaderArrayFs"))
+                if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
                 {
-                    LOGE("Failed to initialize warpShaderArray");
+                    LOGE("Failed to initialize warpShaderSeparate");
+                    return false;
+                }
+                if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_ImageOverlay, "warpShaderSeparateVs_ImageOverlay", "warpShaderSeparateFs_ImageOverlay"))
+                {
+                    LOGE("Failed to initialize kShaderSeparate_ImageOverlay");
+                    return false;
+                }
+                if (!pWarpData->warpShaders[kShaderSeparate_Overlay].Initialize(warpShaderSeparateVs_Overlay, warpShaderSeparateFs_Overlay, "warpShaderSeparateVs_Overlay", "warpShaderSeparateFs_Overlay"))
+                {
+                    LOGE("Failed to initialize kShaderSeparate_Overlay");
                     return false;
                 }
             }
             else
             {
-                //no shader       kShaderArray_NoChroma
+                if (!pWarpData->warpShaders[kShaderSeparate_NoChroma].Initialize(warpShaderSeparateVs_NoChroma, warpShaderSeparateFs_NoChroma, "warpShaderSeparateVs_NoChroma", "warpShaderSeparateFs_NoChroma"))
+                {
+                    LOGE("Failed to initialize warpShaderSeparate_NoChroma");
+                    return false;
+                }
+                if (!pWarpData->warpShaders[kShaderSeparate_ImageOverlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_ImageOverlay_NoChroma, "warpShaderSeparateVs_ImageOverlay_NoChroma", "warpShaderSeparateFs_ImageOverlay_NoChroma"))
+                {
+                    LOGE("Failed to initialize kShaderSeparate_ImageOverlay_NoChroma");
+                    return false;
+                }
+                if (!pWarpData->warpShaders[kShaderSeparate_Overlay_NoChroma].Initialize(warpShaderSeparateVs_Overlay_NoChroma, warpShaderSeparateFs_Overlay_NoChroma, "warpShaderSeparateVs_Overlay_NoChroma", "warpShaderSeparateFs_Overlay_NoChroma"))
+                {
+                    LOGE("Failed to initialize kShaderSeparate_Overlay_NoChroma");
+                    return false;
+                }
             }
         }
 
-
-        else if (gOverlayEnabled)
+    }
+    else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferStereoSingle)
+    {
+        if( gbChromaEnabled )
         {
-            if (gpWarpFrame->frameParams.overlayFormat == kOverlayImage && gpWarpFrame->frameParams.overlayType != kOverlayLayers)
+            if (!pWarpData->warpShaders[kShaderSingle].Initialize(warpShaderSingleVs, warpShaderSingleFs, "warpShaderSingleVs", "warpShaderSingleFs"))
             {
-//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderArray_ImageOverlay : kShaderArray_ImageOverlay_NoChroma];
-                if( gbChromaEnabled)
-                {
-                    if (!pWarpData->warpShaders[kShaderArray_ImageOverlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_ImageOverlay, "warpShaderArrayVs_ImageOverlay", "warpShaderArrayFs_ImageOverlay"))
-                    {
-                        LOGE("Failed to initialize kShaderArray_ImageOverlay");
-                        return false;
-                    }
-                }
-                else
-                {
-                   // no shader  kShaderArray_ImageOverlay_NoChroma
-                }
+                LOGE("Failed to initialize warpShaderSingle");
+                return false;
             }
-            else
+            if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_ImageOverlay, "warpShaderSingleVs_ImageOverlay", "warpShaderSingleFs_ImageOverlay"))
             {
-//                pCurrentShader = &warpData.warpShaders[chromaEnabled ? kShaderArray_Overlay : kShaderArray_Overlay_NoChroma];
-                if( gbChromaEnabled )
-                {
-                    if (!pWarpData->warpShaders[kShaderArray_Overlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_Overlay, "warpShaderArrayVs_Overlay", "warpShaderArrayFs_Overlay"))
-                    {
-                        LOGE("Failed to initialize kShaderArray_Overlay");
-                        return false;
-                    }
-                }
-                else
-                {
-                    // no shader  kShaderArray_Overlay_NoChroma
-                }
+                LOGE("Failed to initialize kShaderSingle_ImageOverlay");
+                return false;
             }
+            if (!pWarpData->warpShaders[kShaderSingle_Overlay].Initialize(warpShaderSingleVs_Overlay, warpShaderSingleFs_Overlay, "warpShaderSingleVs_Overlay", "warpShaderSingleFs_Overlay"))
+            {
+                LOGE("Failed to initialize kShaderSingle_Overlay");
+                return false;
+            }
+        }
+        else
+        {
+            if (!pWarpData->warpShaders[kShaderSingle_NoChroma].Initialize(warpShaderSingleVs_NoChroma, warpShaderSingleFs_NoChroma, "warpShaderSingleVs_NoChroma", "warpShaderSingleFs_NoChroma"))
+            {
+                LOGE("Failed to initialize warpShaderSingle_NoChroma");
+                return false;
+            }
+            if (!pWarpData->warpShaders[kShaderSingle_ImageOverlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_ImageOverlay_NoChroma, "warpShaderSingleVs_ImageOverlay_NoChroma", "warpShaderSingleFs_ImageOverlay_NoChroma"))
+            {
+                LOGE("Failed to initialize kShaderSingle_ImageOverlay_NoChroma");
+                return false;
+            }
+            if (!pWarpData->warpShaders[kShaderSingle_Overlay_NoChroma].Initialize(warpShaderSingleVs_Overlay_NoChroma, warpShaderSingleFs_Overlay_NoChroma, "warpShaderSingleVs_Overlay_NoChroma", "warpShaderSingleFs_Overlay_NoChroma"))
+            {
+                LOGE("Failed to initialize kShaderSingle_Overlay_NoChroma");
+                return false;
+            }
+        }
+    }
+    else if (gpWarpFrame->frameParams.eyeBufferType == kEyeBufferArray)
+    {
+        if( gbChromaEnabled)
+        {
+            if (!pWarpData->warpShaders[kShaderArray].Initialize(warpShaderArrayVs, warpShaderArrayFs, "warpShaderArrayVs", "warpShaderArrayFs"))
+            {
+                LOGE("Failed to initialize warpShaderArray");
+                return false;
+            }
+            if (!pWarpData->warpShaders[kShaderArray_ImageOverlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_ImageOverlay, "warpShaderArrayVs_ImageOverlay", "warpShaderArrayFs_ImageOverlay"))
+            {
+                LOGE("Failed to initialize kShaderArray_ImageOverlay");
+                return false;
+            }
+            if (!pWarpData->warpShaders[kShaderArray_Overlay].Initialize(warpShaderArrayVs_Overlay, warpShaderArrayFs_Overlay, "warpShaderArrayVs_Overlay", "warpShaderArrayFs_Overlay"))
+            {
+                LOGE("Failed to initialize kShaderArray_Overlay");
+                return false;
+            }
+        }
+        else
+        {
+            LOGE("Failed to initialize warpShaderSeparate");//no shader       kShaderArray_NoChroma
         }
     }
     else
     {
         LOGE("Invalid State!  No shader determined.  Defaulting to separate eye buffers");
-//        pCurrentShader = &warpData.warpShaders[kShaderSeparate];
         if (!pWarpData->warpShaders[kShaderSeparate].Initialize(warpShaderSeparateVs, warpShaderSeparateFs, "warpShaderSeparateVs", "warpShaderSeparateFs"))
         {
             LOGE("Failed to initialize warpShaderSeparate");

@@ -1,7 +1,7 @@
 //include ':apiTest'
 include ':app'
 include ':appall'
-include ':render'
+//include ':render'
 include ':renderall'
 include  ':utest'
 

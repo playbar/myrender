@@ -44,9 +44,6 @@ SvrShader::SvrShader()
 
 bool SvrShader::Initialize(const char* pVertSrc, const char* pFragSrc, const char* pVertDbgName, const char* pFragDbgName)
 {
-    if( mShaderId > 0 )
-        return true;
-
     static char errMsg[4096];
     int result;
 
@@ -143,16 +140,19 @@ void SvrShader::Destroy()
     if (mShaderId != 0)
     {
         GL(glDeleteProgram(mShaderId));
+        mShaderId = 0;
     }
 
     if (mVsId != 0)
     {
         GL(glDeleteShader(mVsId));
+        mVsId = 0;
     }
 
     if (mFsId != 0)
     {
         GL(glDeleteShader(mFsId));
+        mVsId = 0;
     }
 }
 
