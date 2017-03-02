@@ -272,7 +272,8 @@
       "Connection": "bluetooth",
       "JoyStickList": 
       [
-        "mojing5_BL"
+        "mojing5_BL",
+        "hzn"
       ],
        "KeyMap":
        [
