@@ -550,6 +550,23 @@ namespace Baofeng
 						-m_HeadPoseState.pose.rotation.y,
 						-m_HeadPoseState.pose.rotation.z,
 						m_HeadPoseState.pose.rotation.w);
+#ifdef _DEBUG
+				{	
+					float x = Pos.x;
+					float y = Pos.y;
+					float z = Pos.z;
+					float w = Pos.w;
+#define CLAMP(x , min , max) ((x) > (max) ? (max) : ((x) < (min) ? (min) : x))
+					float roll = atan2(2 * (w * z + x * y), 1 - 2 * (z * z + x * x));
+					float pitch = asin(CLAMP(2 * (w * x - y * z), -1.0f, 1.0f));
+					float yaw = atan2(2 * (w * y + z * x), 1 - 2 * (x * x + y * y));
+					char szLog[512];
+					sprintf(szLog, "Rotation = ( %1.4f , %1.4f , %1.4f , %1.4f) , EulerAngles = (%3.4f , %3.4f , %3.4f )", 
+						x,y,z,w,roll, pitch, yaw);
+					MOJING_TRACE(g_APIlogger, szLog);
+				}
+#endif
+
 				}
 			}
 			else

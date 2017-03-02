@@ -151,6 +151,7 @@ namespace Baofeng
 				}
 				else
 				{
+					MOJING_TRACE(g_APIlogger , "Disable PID = " << pNewNode->GetID());
 					delete pNewNode;
 				}
 			}
@@ -253,6 +254,7 @@ namespace Baofeng
 		}
 		bool GlassesConfigProfileV2::UpdateFromProfile(const char * lpszProfilePath, JSON * pJsonFromUpdate)
 		{
+			MOJING_FUNC_TRACE(g_APIlogger);
 			/*来自安装包的节点*/
 			char filename[256];
 			char* szError = NULL;
@@ -837,6 +839,10 @@ namespace Baofeng
 		{
 			bool bRet = false;
 			MojingProfileKey UsingKey;
+
+// 			const char szKey_S1[] = "ST8MXV-2B9GHU-DQHHC8-WBEYEB-XGYNZT-FG2C2H";
+// 			lpszKey = szKey_S1;
+
 			if (UsingKey.SetString(lpszKey))
 			{
 				if (UsingKey.GetAppID() == 0)
@@ -865,6 +871,11 @@ namespace Baofeng
 #endif
 //				MOJING_TRACE(g_APIlogger, "APP_ID " << UsingKey.GetAppID() << ":" << GetAppID());
 				MOJING_TRACE(g_APIlogger, "CheckIDs " << bCheckManufacturerID << bProductID << bGlassID << bAppID << bPlatformID);
+				if (!bProductID)
+				{
+					MOJING_TRACE(g_APIlogger, "PID = " << UsingKey.GetProductID() << " , PMap.Count = " << m_ProductMap.size());
+				}
+
 				// 适配检查
 				if (bCheckManufacturerID && bProductID && bGlassID && bAppID && bPlatformID)
 				{// 所有ID都存在,且APP ID 和 PLATFORM ID匹配
@@ -960,7 +971,7 @@ namespace Baofeng
 						}
 						SetCurrentKey(UsingKey);
 						pDistortion->SetGlassKey(lpszKey);
-#if 1
+#if 0
 						float *pFVectex = NULL, * pFUV = NULL;
 						int *pIndex = NULL;
 						int iCount = pDistortion->UNITY_BuildDistortionMesh(40, 40, NULL, NULL, NULL);

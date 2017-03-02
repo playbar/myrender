@@ -526,7 +526,11 @@ namespace Baofeng
 					{
 						continue;
 					}
-
+#ifdef _DEBUG
+					char szLog[512];
+					sprintf(szLog, "SURFACE_TYPE : 0x%04X (Version = ES %d) , ", value, esVersion);
+					MOJING_TRACE(g_APIlogger, szLog);
+#endif
 					int	j = 0;
 					for (; configAttribs[j] != EGL_NONE; j += 2)
 					{
@@ -695,6 +699,8 @@ namespace Baofeng
 			// TODO: check for external HDMI displays
 			egl.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 			
+
+
 			if (EGL_NO_DISPLAY != egl.display)
 			{
 				// Initialize EGL
@@ -707,6 +713,9 @@ namespace Baofeng
 				// 				sprintf(outEGLInfo + strlen(outEGLInfo), "\"minorVersion\":%d,\n", minorVersion);
 				// 			}
 				//LOG("eglInitialize gives majorVersion %i, minorVersion %i", majorVersion, minorVersion);
+#ifdef _DEBUG
+				ChooseColorConfig(egl.display, redBits, greenBits, blueBits, depthBits, multisamples , false);
+#endif
 
 				const char * eglVendorString = eglQueryString(egl.display, EGL_VENDOR);
 				//LOG("EGL_VENDOR: %s", eglVendorString);

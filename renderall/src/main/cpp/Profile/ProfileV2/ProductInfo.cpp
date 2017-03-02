@@ -66,8 +66,7 @@ namespace Baofeng
 #endif
 			MachineListNode CurrentMachineType = pDeviceParameters->GetCurrentMachine();
 			bool bCheckOS = szOS == NULL || *szOS == 0 || m_szOS.GetLength() < 1 || 0 == MJ_stricmp(szOS , m_szOS.ToCStr());
-			//bool bCheckBrand = pDeviceParameters->GetBrand() == NULL || *pDeviceParameters->GetBrand() == 0 || m_szBrand.GetLength() < 1 || 0 == MJ_stricmp(pDeviceParameters->GetBrand(), m_szBrand.ToCStr());
-			//bool bCheckModel = pDeviceParameters->GetModel() == NULL || *pDeviceParameters->GetModel() == 0 || m_szModel.GetLength() < 1 || 0 == MJ_stricmp(pDeviceParameters->GetModel(), m_szModel.ToCStr());
+
 			bool bCheckMachine = GetMachineID() == CurrentMachineType.m_iID;
 			bool bRet = bCheckOS && bCheckMachine;
 			return bRet;

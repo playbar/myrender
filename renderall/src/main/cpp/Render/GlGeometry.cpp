@@ -118,6 +118,7 @@ namespace Baofeng
 			const int indexCount = m_IndexCount / 2;
 			const int indexOffset = eye * indexCount;
 			glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (void*)(indexOffset * 2));
+			// glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_SHORT, (void*)(indexOffset * 2));
 		}
 		void GlGeometryTriangles::DrawElementsRange(int eye)
 		{
@@ -232,31 +233,31 @@ namespace Baofeng
 #else
 							v[0] = -1.0 + eye + xf;	// 目标双眼[-1,+1]区间的X坐标,左眼固定于[-1 ， 0]，右眼固定于[0 ， 1]
 							v[1] = yf*2.0f - 1.0f;	// 目标双眼[-1,+1]区间的Y坐标
-
+							
 							// Copy the offsets from the file
 							// 下标2到7依次为Rx,Ry,Gx,Gy,Bx,By
 							for (int i = 0; i < 6; i++)
 							{
 								v[2 + i] = fovScale * bufferVerts
-									[(y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
+									[(y*(tesselationsX + 1) * 2 + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
 							}
 
 							// 下标8是X坐标在条带内的位置比值，越靠近条带右边界数值越大，越靠近条带左边界数值越小
-							v[8] = (float)x / sliceTess;
+							v[8] = (float)x / tesselationsX;
 							// Enable this to allow fading at the edges.
 							// Samsung recommends not doing this, because it could cause
 							// visible differences in pixel wear on the screen over long
 							// periods of time.
 
 							// 下标9恒定为1
-							if (0 && (y == 0 || y == tesselationsY || sx == 0 || sx == tesselationsX))
+							if (0 && (y == 0 || y == tesselationsY   ))
 							{
 								v[9] = 0.0f;	// fade to black at edge
 							}
 							else
 							{
 								//v[9] = 1.0f;
-								v[9] = bufferVerts[(y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + 6];
+								v[9] = bufferVerts[(y*(tesselationsX + 1) * 2 + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + 6];
 							}
 #endif
 						}

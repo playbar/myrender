@@ -666,7 +666,6 @@ namespace Baofeng
 		// The actual first function called on thread start
 		void* Thread_PthreadStartFn(void* phandle)
 		{
-			LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
 			Thread* pthread = (Thread*)phandle;
 			int     result = pthread->PRun();
 			// Signal the thread as done and release it atomically.

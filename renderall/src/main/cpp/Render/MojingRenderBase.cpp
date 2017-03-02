@@ -478,13 +478,36 @@ namespace Baofeng
 			注意：	以下M44矩阵将在Shader中与表示[-1,1]区间的色散畸变颜色分量系数V4(x,y,-1,1)相乘
 			即M44 * V4 ，得到原始图的颜色采样坐标
 			*/
-			const Matrix4f SingleEye(
-				0.5, 0.0, 0.0, 0,				// 这是第一列
+			
+			float fFOV = MojingSDK_GetFOV();
+			float fT = 1 / tanf(fFOV / 2 / 180 * PI);
+			Matrix4f SingleEye(
+				0.5 , 0.0, 0.0, 0,				// 这是第一列
 				0.0, 0.5, 0.0, 0,
 				-0.5, -0.5, -1.0, 1,
 				0.0, 0.0, 0.0, 0					// 这是第四列
 				);
 
+			const Matrix4f TimeWarpProjection(
+				0.25, 0, 0, 0,
+				0, 0.5, 0, 0,
+				-0.25, -0.5, -1, -1,
+				0, 0, 0, 0
+				);
+// 			/*glm::mat4 CalculateProjectionMatrix(float fovRad)
+// 				//-----------------------------------------------------------------------------
+// 			{
+// 				//Project the UVs in NDC onto the far plane and convert from NDC to viewport space
+// 				glm::mat4 retMtx;
+// 				float tanHalfFov = tanf(0.5* fovRad);
+// 
+// 				retMtx[0] = glm::vec4(1.0f / tanHalfFov, 0.0f, 0.0f, 0.0f);
+// 				retMtx[1] = glm::vec4(0.0f, 1.0f / tanHalfFov, 0.0f, 0.0f);
+// 				retMtx[2] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+// 				retMtx[3] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+// 
+// 				return glm::transpose(retMtx);
+// 			}*/
 			const Matrix4f LeftEye(
 				0.25, 0, 0, 0,
 				0, 0.5, 0, 0,

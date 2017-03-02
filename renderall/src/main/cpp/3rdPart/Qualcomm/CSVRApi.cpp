@@ -264,7 +264,11 @@ bool CSVRApi::CheckServiceIsAvaliable()
 	else
 	{
 		MOJING_ERROR(g_APIlogger, "function CheckServiceIsAvaliable is not found in libsvrapi.so");
+#ifdef _DEBUG
+		return true;
+#else
 		return false;
+#endif
 	}
 		
 }

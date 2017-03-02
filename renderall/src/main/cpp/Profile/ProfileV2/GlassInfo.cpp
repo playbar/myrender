@@ -1,5 +1,17 @@
 ﻿#include "GlassInfo.h"
 
+#ifdef LOG4CPLUS_IMPORT
+#include "../../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../../LogTraker/LogInterface.h"
+#endif
+
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
+
+#include "../../MojingSDKStatus.h"
+
 namespace Baofeng
 {
 	namespace Mojing
@@ -78,6 +90,13 @@ namespace Baofeng
 			JSON* pRet = JSON::CreateObject();
 			URLToJson(pRet);
 			IDToJson(pRet);
+			if ((Mojing::MojingSDKStatus::GetSDKStatus()->GetEngineStatus() & ENGINE_UNITY) == 0)
+			{// 注意：因为现在Unity还不支持这个节点，所以暂时不要给Unity返回
+				if (m_szDURL.GetLength())
+				{					
+					DURLToJson(pRet);
+				}
+			}
 			return pRet;
 		}
 		JSON* GlassInfo::ToJson(unsigned short wLanguageCode)
@@ -96,6 +115,11 @@ namespace Baofeng
 				IDFromJson(pJson) &&
 				URLFromJson(pJson))
 			{
+
+				if (DURLFromJson(pJson))
+				{
+					MOJING_TRACE(g_APIlogger, "Find DURL @ GID = "<< GetID() <<"....");
+				}
 				/*Display被要求修改为可选节点*/
 				JSON *pDisplay = pJson->GetItemByName("Display");
 				if (pDisplay && pDisplay->Type == JSON_Object)

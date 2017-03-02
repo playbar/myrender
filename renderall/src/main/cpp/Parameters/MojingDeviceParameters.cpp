@@ -20,25 +20,44 @@ namespace Baofeng
 {
 	namespace Mojing
 	{
+		void f()
+		{
+			float fFOV;
+			Vector4f gl_Position;// Position in near
+			float fr = 0.5 / sin(fFOV / 180 / 2 * PI);
+			float fT2 = fr * fr / (gl_Position.x * gl_Position.x + gl_Position.y * gl_Position.y + gl_Position.z * gl_Position.z);
+			float fT = sqrt(fT2);
+			gl_Position *= fT;
+			gl_Position.w = 1;
+		}
+
+
+
+
+
+
 		MojingDeviceParameters::MojingDeviceParameters():
 			m_iAbility(DEVICE_ABILITY_NONE)
 		{
 			SetClassName(__FUNCTION__);
 			m_bIsMachine = false;
 			m_bSensorDataFromJava = false;
+			if (1)
 			{
 #ifdef MJ_OS_ANDROID
 				// 注意：因为SVR的代码里面有硬代码exit(1)，所以不能直接调用初始化测试硬件能力
 				// 需要先检查是否是存在以下文件
+				
 #ifdef _DEBUG
 				MOJING_TRACE(g_APIlogger, "Check qvrservice....");
 #endif
-				if (-1 != access("/vendor/bin/qvrservice", 0))
+				
+				if (-1 != access("/vendor/bin/qvrservice", 0) &&
+					0 == (m_iAbility & DEVICE_ABILITY_SVR))
 				{// 程序执行到这里表示疑似存在qvrservice，下面检查可靠性
 #ifdef _DEBUG
 					MOJING_TRACE(g_APIlogger, "Qvrservice exist, try init....");
 #endif
-
 					CSVRApi svrApi;
 					if (svrApi.Init() && svrApi.CheckServiceIsAvaliable())
 					{
@@ -57,6 +76,7 @@ namespace Baofeng
 #endif
 				}
 #endif // MJ_OS_ANDROID
+				
 			}
 		}
 

@@ -192,6 +192,10 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 			// MojingPlatformBase::GetPlatform()->SetPacketProfilePath(ProfilePath);
 			MobileConfigProfile::UpdateFromProfile(MojingPlatformBase::GetPlatform()->GetPacketProfilePath());
 		}
+		else
+		{
+
+		}
 		// 注意：读取本地配置文件必须在MobileConfigUpdate::GetMobileConfigUpdate()->UpdateConfig();之前，以保证优先使用本机配置文件
 		pManager->GetParameters()->GetFactoryCalibrationParameters()->Load();
 		pManager->GetParameters()->GetGyroOffsetReportSet()->Load();
@@ -257,6 +261,13 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 	PRINT_KEY(1, 100, 100);
 	PRINT_KEY(1, 10, 18);
 	PRINT_KEY(235, 235, 235);
+	// From = (-0.074446 , 0.143870 ,0.259640 , 0.952022)  , 
+	Quatf qFrom (-0.074446 , 0.143870 ,0.259640 , 0.952022);
+	// To = (-0.090886 , 0.143829 ,0.262451 , 0.949828) ,
+	Quatf qTo (-0.090886 , 0.143829 ,0.262451 , 0.949828);
+	//  Fix = (-0.015399 , -0.003783 ,-0.005614 , 0.999858)
+	Quatf qFix = Tracker::CalculateTimeWarpMatrix(qFrom, qTo);
+
 // 	PRINT_KEY(201, 201, 201);
 // 	PRINT_KEY(202, 202, 202);
 // 	PRINT_KEY(203, 203, 203);
@@ -1219,6 +1230,8 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 			8, 8, 8, 0, 4, // r g b
 			EGL_CONTEXT_PRIORITY_MEDIUM_IMG,
 			EGL, GLES, GPUNAME);
+
+
 #elif defined(MJ_OS_WIN32)
 
 #endif 
@@ -1345,7 +1358,7 @@ bool MojingSDK_ChangeMojingWorld(const char * szGlassesName)
 			bool bRet = profileKey.SetString(szGlassesName);
 			if (!bRet)
 			{
-				MOJING_ERROR(g_APIlogger, "MojingSDK_ChangeMojingWorld GlassesName is invalid!");
+				MOJING_ERROR(g_APIlogger, "MojingSDK_ChangeMojingWorld GlassesName is invalid! --- " << szGlassesName);
 				return false;
 			}
 
@@ -3120,8 +3133,14 @@ float MojingSDK_Device_GetCurrentPoaseInfo(int iID/*设备ID*/,
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
-		pPosition[0] = pPosition[1] = pPosition[2] = 0;
-		*pKeystatus = 0;
+		if (pPosition)
+		{
+			pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		}
+		if (pKeystatus)
+		{
+			*pKeystatus = 0;
+		}
 		return pManager->GetControlTracker()->GetControlCurrentPose(iID, pQuart, pAngularAccel, pLinearAccel);
 	}
 

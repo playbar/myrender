@@ -1,4 +1,5 @@
 ﻿#include "ActiveTimeInfoReporter.h"
+#include "GyroTempCalibrationReporter.h"
 
 namespace Baofeng
 {
@@ -22,7 +23,16 @@ namespace Baofeng
 			joMsg->AddNumberItem("date", pReporter->GetCurrentRunTime());
 			joMsg->AddNumberItem("time", pReporter->GetCurrentActiveTime());
 			joMsg->AddNumberItem("exitdate", pReporter->GetCurrentExitTime());
-			
+			const char* szGlasseeName = GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->GetGlassesName();
+			if (strlen(szGlasseeName) == 0 || strcmp(szGlasseeName, "UNKNOWN") == 0)
+			{
+				joMsg->AddStringItem("myglasses", "noglass");
+			}
+			else
+			{
+				joMsg->AddStringItem("myglasses", szGlasseeName);
+			}
+
 			char *pJsonValue = joMsg->PrintValue(0, false);
 			SetReportMsg(pJsonValue);
 			MJ_FREE(pJsonValue);

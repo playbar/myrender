@@ -32,6 +32,7 @@ namespace Baofeng
 			CLASS_INTERFACE_J(unsigned int, m_ui, ID);
 			CLASS_INTERFACE_STR_J(String, m_sz, GlassesName);
 			CLASS_INTERFACE_STR_J(String, m_sz, URL);
+			CLASS_INTERFACE_STR_J(String, m_sz, DURL);
 			CLASS_INTERFACE(bool, m_b, ReCalculationKT);
 			
 			DisplayInfo m_Display;
