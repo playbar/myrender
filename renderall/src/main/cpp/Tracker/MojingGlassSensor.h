@@ -5,6 +5,7 @@
 #include <semaphore.h>
 
 #include "MojingSensor.h"
+#include "../Parameters/MojingParameters.h"
 
 namespace Baofeng
 {
@@ -76,6 +77,10 @@ namespace Baofeng
 			ASensorRef pMagneticFieldSensor;
 //			jclass clazz_MojingSDKServiceManager;
 //			jmethodID mid_onLowPowerStateChanged;
+		private:
+			void ReceiveSocketData(MojingSensorParameters * pSensorParameters);
+			void ReadMMapData(MojingSensorParameters * pSensorParameters);
+
 		};
 	}
 }

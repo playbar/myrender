@@ -608,7 +608,7 @@ namespace Baofeng
 			SetWarpState(TRUE);
 			// SetWarpState(FALSE);
 #endif // !MJ_OS_WIN32			
-			
+			glViewport(0, 0, m_iScreenWidth, m_iScreenHeight);
 			// Warp each eye to the display surface
 			if (DrawEyes & TEXTURE_LEFT_EYE)
 			{

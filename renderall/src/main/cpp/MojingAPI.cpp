@@ -781,7 +781,7 @@ void MojingSDK_SendControllerData(const Baofeng::UByte* pArray, int dataLen)
 void MojingSDK_SendControllerDataV2(float* pArray, double dTimestamp, bool bRecenter)
 {
 	ENTER_MINIDUMP_FUNCTION;
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	mj_Initialize();
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled())

@@ -167,6 +167,15 @@ namespace Baofeng
 				return;
 			}
 			g_pUpdateDataLocker->DoLock();
+
+			if ( (pControllerData[0] == 0) &&
+				(pControllerData[1] == 0) &&
+				(pControllerData[2] == 0) &&
+				(pControllerData[3] == 0))
+			{
+				MOJING_ERROR(g_APIlogger, "INVALID Orientation DATA！");
+				pControllerData[3] = 1.0f;
+			}
 			
 			m_CurrentDataInfo.m_Orientation = Quatf(pControllerData[0], pControllerData[1], pControllerData[2], pControllerData[3]);
 			m_CurrentDataInfo.m_Orientation.Normalized();
@@ -184,6 +193,17 @@ namespace Baofeng
 				m_FixDataInfo = m_CurrentDataInfo;
 				m_fFixSampleTime = dTimestamp;
 			}
+
+			if ( (pControllerData[10] == 0) &&
+				(pControllerData[11] == 0) &&
+				(pControllerData[12] == 0) &&
+				(pControllerData[13] == 0))
+			{
+				MOJING_ERROR(g_APIlogger, "INVALID Fix Orientation DATA！");
+				pControllerData[13] = 1.0f;
+			}
+			m_FixDataInfo.m_Orientation = Quatf(pControllerData[10], pControllerData[11], pControllerData[12], pControllerData[13]);
+			m_FixDataInfo.m_Orientation.Normalized();
 			
 			g_pUpdateDataLocker->Unlock();	
 #ifdef ENABLE_SENSOR_LOGGER

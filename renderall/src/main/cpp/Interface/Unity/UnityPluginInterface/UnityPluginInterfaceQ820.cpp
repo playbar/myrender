@@ -446,7 +446,6 @@ namespace Baofeng
 #endif
 		void UnityPluginInterfaceQ820::OnEvent_DistortFrame()
 		{
-			//LOGI("UnityPluginInterfaceQ820::OnEvent_DistortFrame");
 			/*
 			struct svrFrameParams
 			{

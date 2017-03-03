@@ -235,3 +235,22 @@ target_link_libraries(mojing
                       breakpad_client
                       svrapi
                       z)
+
+#make mojingvrrom.so
+
+add_library(mojingvrrom SHARED
+            Interface/Android/MojingVRRom.cpp
+            Interface/Android/MojingVRRomAPI.cpp
+            Render/Models/Model.cpp
+            Render/Models/SkyboxModel.cpp
+            Render/Models/SphereModel.cpp
+            Render/Models/RectangleModel.cpp)
+
+target_include_directories(mojingvrrom PRIVATE
+                           ${CMAKE_SOURCE_DIR}/
+                           ${CMAKE_SOURCE_DIR}/googlebreakpad/src
+                           ${CMAKE_SOURCE_DIR}/Render/Model)
+
+target_link_libraries(mojingvrrom
+                      GLESv2
+                      mojing)
