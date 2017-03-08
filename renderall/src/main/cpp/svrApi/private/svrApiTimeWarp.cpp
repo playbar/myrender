@@ -516,6 +516,65 @@ void svrEndEye(svrEyeBufferType eyeBufferType, svrWhichEye whichEye)
 }
 #endif // HIDE_STENCIL_WIP
 
+void getLastMsg()
+{
+    GLint  err = eglGetError();
+    const char *pmsg = NULL;
+    switch (err)
+    {
+        case EGL_SUCCESS:
+            pmsg = "EGL_SUCCESS";
+            break;
+        case EGL_NOT_INITIALIZED:
+            pmsg = "EGL_NOT_INITIALIZED";
+            break;
+        case EGL_BAD_ACCESS:
+            pmsg = "EGL_BAD_ACCESS";
+            break;
+        case EGL_BAD_ALLOC:
+            pmsg = "EGL_BAD_ALLOC";
+            break;
+        case EGL_BAD_ATTRIBUTE:
+            pmsg = "EGL_BAD_ATTRIBUTE";
+            break;
+        case  EGL_BAD_CONFIG:
+            pmsg ="EGL_BAD_CONFIG";
+            break;
+        case EGL_BAD_CONTEXT:
+            pmsg = "EGL_BAD_CONTEXT";
+            break;
+        case EGL_BAD_CURRENT_SURFACE:
+            pmsg = "EGL_BAD_CURRENT_SURFACE";
+            break;
+        case EGL_BAD_DISPLAY:
+            pmsg = "EGL_BAD_DISPLAY";
+            break;
+        case EGL_BAD_MATCH:
+            pmsg = "EGL_BAD_MATCH";
+            break;
+        case EGL_BAD_NATIVE_PIXMAP:
+            pmsg = "EGL_BAD_NATIVE_PIXMAP";
+            break;
+        case EGL_BAD_NATIVE_WINDOW:
+            pmsg = "EGL_BAD_NATIVE_WINDOW";
+            break;
+        case EGL_BAD_PARAMETER:
+            pmsg = "EGL_BAD_PARAMETER";
+            break;
+        case EGL_BAD_SURFACE:
+            pmsg = "EGL_BAD_SURFACE";
+            break;
+        case EGL_CONTEXT_LOST:
+            pmsg = "EGL_CONTEXT_LOST";
+            break;
+        default:
+            pmsg = "other error code";
+            break;
+    }
+    LOGI("eglGetError, errmsg:%s", pmsg );
+    return;
+}
+
 //-----------------------------------------------------------------------------
 bool svrUpdateEyeContextSurface()
 //-----------------------------------------------------------------------------
@@ -738,8 +797,8 @@ bool svrCreateWarpContext()
     };
     LOGI("begin eglCreateContext:%d", __LINE__ );
     context = eglCreateContext(display, config, gAppContext->modeContext->eyeRenderContext, contextAttribs);
-    GLint  err = eglGetError();
-    LOGI("end eglCreateContext, L:%d, errno:%d, context:%0X", __LINE__, err, context );
+    getLastMsg();
+    LOGI("end eglCreateContext, L:%d, context:%0X", __LINE__, context );
     if (context == EGL_NO_CONTEXT)
     {
         LOGE("svrCreateWarpContext: Failed to create EGL context");
@@ -851,8 +910,8 @@ void svrDestroyWarpContext()
         gAppContext->modeContext->warpRenderSurface = EGL_NO_SURFACE;
         LOGI("begin eglDestroyContext:%d, context:%0X", __LINE__, gAppContext->modeContext->warpRenderContext );
         eglDestroyContext(display, gAppContext->modeContext->warpRenderContext);
-        GLint  err = eglGetError();
-        LOGI("end eglDestroyContext L:%d, errno:%d", __LINE__,  err);
+        getLastMsg();
+        LOGI("end eglDestroyContext L:%d", __LINE__);
         gAppContext->modeContext->warpRenderContext = EGL_NO_CONTEXT;
     }
     else

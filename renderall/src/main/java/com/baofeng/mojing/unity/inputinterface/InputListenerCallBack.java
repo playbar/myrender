@@ -1,28 +1,24 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.baofeng.mojing.unity.inputinterface;
 
-public interface InputListenerCallBack {
-    void OnButtonDown(String var1);
+public abstract interface InputListenerCallBack
+{
+    public abstract void OnButtonDown(String paramString);
 
-    void OnButtonUp(String var1);
+    public abstract void OnButtonUp(String paramString);
 
-    void OnButtonLongPress(String var1);
+    public abstract void OnButtonLongPress(String paramString);
 
-    void onDeviceAttached(String var1);
+    public abstract void onDeviceAttached(String paramString);
 
-    void onDeviceDetached(String var1);
+    public abstract void onDeviceDetached(String paramString);
 
-    void onMove(String var1);
+    public abstract void onMove(String paramString);
 
-    void OnTouchEvent(String var1);
+    public abstract void OnTouchEvent(String paramString);
 
-    void onBluetoothAdapterStateChanged(String var1);
+    public abstract void onBluetoothAdapterStateChanged(String paramString);
 
-    void onTouchPadStatusChange(String var1);
+    public abstract void onTouchPadStatusChange(String paramString);
 
-    void onTouchPadPos(String var1);
+    public abstract void onTouchPadPos(String paramString);
 }

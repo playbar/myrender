@@ -5,7 +5,7 @@ android {
     buildToolsVersion = '23.0.1'
 
     defaultConfig {
-        applicationId = 'com.mj.svr'
+        applicationId = 'com.mojingsdk.demo.SDKControllerDemo'
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
@@ -45,10 +45,10 @@ dependencies {
 //    compile files('libs/MojingSDKUnity.jar')
 //    compile files('libs/svrApi.jar')
 //    compile files('libs/unity-classes.jar')
-    compile files('libs/zc-strings-1.9.2.jar')
-    compile files('libs/ZControllerLib-android-1.9.2.jar')
-    compile files('libs/ZControllerLib-android-ui-1.9.2.jar')
-    compile files('libs/ZControllerLib-common-1.9.2.jar')
+//    compile files('libs/zc-strings-1.9.2.jar')
+//    compile files('libs/ZControllerLib-android-1.9.2.jar')
+//    compile files('libs/ZControllerLib-android-ui-1.9.2.jar')
+//    compile files('libs/ZControllerLib-common-1.9.2.jar')
 
 //    compile project(':render')
 }

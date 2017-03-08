@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string-array name="ail__known_location_redirects_regex">
-    <item>((http|https)\:\/\/)*graph.facebook.com</item>
-  </string-array>
-  <string name="app_name">renderall</string>
+  <string name="app_name">SDKControllerDemo</string>
 </resources>

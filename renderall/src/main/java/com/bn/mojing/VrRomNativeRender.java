@@ -16,7 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
 import com.baofeng.mojing.MojingSDK;
 import com.bn.mojing.MatrixState;
 import com.bn.mojing.SphereModel;
-import com.mj.svr.R;
+import com.mojingsdk.demo.SDKControllerDemo.R;
 
 import android.opengl.GLES20;
 import android.opengl.GLES30;
@@ -208,7 +208,7 @@ public class VrRomNativeRender implements GLSurfaceView.Renderer {
 		fboTexs[1] = initImageTexture(R.drawable.strip1);
 		//fboTexs[2] = initImageTexture(R.drawable.sphere_v_split_00);
 		//fboTexs[3] = initImageTexture(R.drawable.sphere_h_split_00);
-		fboTexs[4] = initImageTexture(R.drawable.atlas_settings); 
+		fboTexs[4] = initImageTexture(R.drawable.atlas_settings);
 
 		g_LeftTexLayout = initImageTexture(R.drawable.star);
 		g_RightTexLayout = initImageTexture(R.drawable.bird);
