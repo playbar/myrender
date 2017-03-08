@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <integer name="ail__thread_pool_size">8</integer>
+
+    <integer name="ail__lru_available_memory_reciprical">8</integer>
+
+</resources>

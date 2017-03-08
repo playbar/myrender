@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <bool name="ail__debug_log_enabled">false</bool>
+
+    <bool name="ail__show_stub_on_execute">true</bool>
+    <bool name="ail__show_stub_on_error">false</bool>
+    <bool name="ail__use_old_resource_stubs">false</bool>
+
+    <bool name="ail__local_execution_stubs">false</bool>
+
+    <bool name="ail__external_storage_enabled">true</bool>
+    <bool name="ail__use_cache_dir">true</bool>
+
+    <bool name="ail__lru_cache_enabled">true</bool>
+
+    <bool name="ail__tag_request_prevention_enabled">false</bool>
+
+    <bool name="ail__gif_auto_start_enabled">true</bool>
+
+</resources>

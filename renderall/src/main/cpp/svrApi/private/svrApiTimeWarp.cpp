@@ -736,8 +736,10 @@ bool svrCreateWarpContext()
         EGL_CONTEXT_PRIORITY_LEVEL_IMG, EGL_CONTEXT_PRIORITY_HIGH_IMG,
         EGL_NONE
     };
-
+    LOGI("begin eglCreateContext:%d", __LINE__ );
     context = eglCreateContext(display, config, gAppContext->modeContext->eyeRenderContext, contextAttribs);
+    GLint  err = eglGetError();
+    LOGI("end eglCreateContext, L:%d, errno:%d, context:%0X", __LINE__, err, context );
     if (context == EGL_NO_CONTEXT)
     {
         LOGE("svrCreateWarpContext: Failed to create EGL context");
@@ -847,7 +849,10 @@ void svrDestroyWarpContext()
     {
         eglDestroySurface(display, gAppContext->modeContext->warpRenderSurface);
         gAppContext->modeContext->warpRenderSurface = EGL_NO_SURFACE;
+        LOGI("begin eglDestroyContext:%d, context:%0X", __LINE__, gAppContext->modeContext->warpRenderContext );
         eglDestroyContext(display, gAppContext->modeContext->warpRenderContext);
+        GLint  err = eglGetError();
+        LOGI("end eglDestroyContext L:%d, errno:%d", __LINE__,  err);
         gAppContext->modeContext->warpRenderContext = EGL_NO_CONTEXT;
     }
     else
