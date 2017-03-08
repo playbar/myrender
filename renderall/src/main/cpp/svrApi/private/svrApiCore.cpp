@@ -791,9 +791,10 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
         return;
     }
     //Ensure the VR Service is currently in the stopped state (e.g. another application isn't using it)
+    LOGI("svrBeginVr  GetVRMode begin");
     QVRSERVICE_VRMODE_STATE serviceState;
     serviceState = gAppContext->qvrService->GetVRMode();
-	LOGI("svrBeginVr -- Check VrMode...");
+	LOGI("svrBeginVr -- GetVRMode end");
     const int maxTries = 8;
     const int waitTime = 500000;
     int attempt = 0;

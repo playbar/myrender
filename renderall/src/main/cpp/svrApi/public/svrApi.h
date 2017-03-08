@@ -230,6 +230,10 @@ extern "C" {
     //! \param pInitParams svrInitParams structure
     SVRP_EXPORT bool svrInitialize(const svrInitParams* pInitParams);
 
+    SVRP_EXPORT bool svrInitializeQvrServiceOnly();
+
+    SVRP_EXPORT void svrReleaseQvrServiceOnly();
+
     //! \brief Releases VR components
     SVRP_EXPORT void svrShutdown();
 
