@@ -965,6 +965,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
             if(!mEgl.eglInitialize(mEglDisplay, version)) {
                 throw new RuntimeException("eglInitialize failed");
             }
+            Log.w("EglHelper", "eglInitialize  -- eglInitialize");
             MojingSurfaceView view = mGLSurfaceViewWeakRef.get();
             if (view == null) {
                 mEglConfig = null;
@@ -1127,6 +1128,7 @@ public class MojingSurfaceView extends SurfaceView implements SurfaceHolder.Call
             }
             if (mEglDisplay != null) {
                 mEgl.eglTerminate(mEglDisplay);
+                Log.w("EglHelper", "eglInitialize  -- eglTerminate");
                 mEglDisplay = null;
             }
         }

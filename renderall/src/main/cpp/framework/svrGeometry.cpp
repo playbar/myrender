@@ -65,12 +65,14 @@ void SvrGeometry::Initialize(SvrProgramAttribute* pAttribs, int nAttribs,
 
     mVertexCount = nVertices;
     mIndexCount = nIndices;
+    LOGE("SvrGeometry::%s, IbId:%d, VbId:%d, VaoId:%d", __FUNCTION__, mIbId, mVbId, mVaoId );
 }
 
 void SvrGeometry::Destroy()
 {
     GL(glDeleteBuffers( 1, &mIbId ));
 	GL(glDeleteBuffers( 1, &mVbId ));
+    GL(glDeleteBuffers( 1, &mVaoId));
 }
 
 void SvrGeometry::Submit()

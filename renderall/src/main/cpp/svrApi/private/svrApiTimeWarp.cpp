@@ -913,6 +913,10 @@ void svrDestroyWarpContext()
         getLastMsg();
         LOGI("end eglDestroyContext L:%d", __LINE__);
         gAppContext->modeContext->warpRenderContext = EGL_NO_CONTEXT;
+//        if( display != EGL_NO_DISPLAY)
+//        {
+//            eglTerminate(display);
+//        }
     }
     else
     {
@@ -2679,7 +2683,7 @@ void* WarpThreadMain(void* arg)
     bool bHasWarpData = false;
     while (true)
     {
-        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
+//        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
         PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
 		/*
 		// CLEAR COLOR
@@ -3794,7 +3798,7 @@ void* WarpThreadMain(void* arg)
 			gAppContext->modeContext->warpFrameCount,
 			gpWarpFrame->frameParams.eyeBufferArray[0]
 		);*/
-        LOGE("end while");
+//        LOGE("end while");
     }   // while(true)
 
     LOGI("WarpThreadMain while loop exited");
