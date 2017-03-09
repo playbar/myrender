@@ -913,10 +913,7 @@ void svrDestroyWarpContext()
         getLastMsg();
         LOGI("end eglDestroyContext L:%d", __LINE__);
         gAppContext->modeContext->warpRenderContext = EGL_NO_CONTEXT;
-//        if( display != EGL_NO_DISPLAY)
-//        {
-//            eglTerminate(display);
-//        }
+
     }
     else
     {

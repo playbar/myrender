@@ -1668,7 +1668,16 @@ bool svrInitializeQvrServiceOnly()
     LOGI("svrApi Version : %s", svrGetVersion());
 
     gAppContext = new SvrAppContext();
+#ifdef USE_QVR_SERVICE
     gAppContext->qvrService = NULL;
+    gAppContext->inVrMode = false;
+#endif
+
+    //Get the current OS version
+    int osVersion = svrGetAndroidOSVersion();
+    LOGI("Device OS Version = %d", osVersion);
+
+    gAppContext->currentTrackingMode = 0;
 
 #ifdef USE_QVR_SERVICE
     //Connect to the QVR Service
@@ -1692,13 +1701,80 @@ bool svrInitializeQvrServiceOnly()
         LOGI("  QVR Service supports positional tracking");
     }
 
-    //Set the default tracking mode to rotational only
-    svrSetTrackingMode(kTrackingRotation);
+    //Load SVR configuration options
+    if (osVersion >= 24)
+    {
+        //If we are on Android-N or greater we need to get the configuration from
+        //the QVR service rather than loading it from the sdcard
+        unsigned int len = 0;
+        int r = gAppContext->qvrService->GetParam(QVRSERVICE_SDK_CONFIG_FILE, &len, NULL);
+        if (r == 0)
+        {
+            LOGI("Loading variables from QVR Service [len=%d]", len);
+            if (len > 0)
+            {
+                char *p = new char[len];
+                r = gAppContext->qvrService->GetParam(QVRSERVICE_SDK_CONFIG_FILE, &len, p);
+                LoadVariableBuffer(p);
+                delete[] p;
+            }
+        }
+        else
+        {
+            LOGE("QVR Service GetParam 'QVRSERVICE_SDK_CONFIG_FILE' Failed");
+        }
+    }
+    else
+    {
+        LoadVariableFile(gSvrConfigFilePath);
+    }
+#else
+    LoadVariableFile(gSvrConfigFilePath);
 #endif
+
+    //Set the default tracking mode to rotational only
+    // Need to be AFTER reading the config file so overrides will work
+    svrSetTrackingMode(kTrackingRotation);
+
+    // from svrBeginVr
+    LOGI("svrBeginVr");
+
+#if defined (USE_QVR_SERVICE)
+    if(gAppContext->qvrService == NULL)
+    {
+        LOGE("svrBeginVr Failed: SnapdragonVR not initialized!");
+        return false;
+    }
+    //Ensure the VR Service is currently in the stopped state (e.g. another application isn't using it)
+    QVRSERVICE_VRMODE_STATE serviceState;
+    serviceState = gAppContext->qvrService->GetVRMode();
+    LOGI("svrBeginVr -- Check VrMode...");
+    const int maxTries = 8;
+    const int waitTime = 500000;
+    int attempt = 0;
+    while (serviceState != VRMODE_STOPPED && (attempt < maxTries))
+    {
+        LOGE("svrBeginVr called but VR service is currently in use by another aplication, waiting... (attempt %d)", attempt);
+        usleep(waitTime);
+        serviceState = gAppContext->qvrService->GetVRMode();
+        attempt++;
+    }
+
+    if (serviceState != VRMODE_STOPPED)
+    {
+        LOGE("svrBeginVr, VR service is currently unavailable for this application.");
+        return false;
+    }
+    LOGI("svrBeginVr -- Check VrMode Succeeded");
+#endif // defined (USE_QVR_SERVICE)
+
+    //Set currently selected tracking mode. This is needed when the application resumes from suspension
+    LOGI("Set tracking mode context...");
+    svrSetTrackingMode(gAppContext->currentTrackingMode);
 
     LOGI("Creating mode context...");
     gAppContext->modeContext = new SvrModeContext();
-
+    
     // Recenter rotation
     gAppContext->modeContext->recenterRot = glm::fquat();
     gAppContext->modeContext->recenterPos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1716,6 +1792,8 @@ bool svrInitializeQvrServiceOnly()
         return false;
     }
 
+    LOGE("BOM Start VRMODE BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+
     state = gAppContext->qvrService->GetVRMode();
     if (state != VRMODE_STARTED)
     {
@@ -1723,17 +1801,38 @@ bool svrInitializeQvrServiceOnly()
         return false;
     }
 
-    LOGI("QVRService: Service Initalized");
+    LOGI("QVRService: Service Initialized");
 #endif
-    
+
+    // Only now are we truly in VR mode
+    gAppContext->inVrMode = true;
+
     return true;
 }
 
 void svrReleaseQvrServiceOnly()
 {
+    // from svrEndVr
+    LOGI("svrEndVr");
+
+    if (gAppContext == NULL)
+    {
+        LOGE("Unable to end VR! Application context has been released!");
+        return;
+    }
+
+    if (!gAppContext->inVrMode)
+    {
+        LOGE("Already not in VR mode, exit");
+        return;
+    }
+
+    // No longer in VR mode
+    gAppContext->inVrMode = false;
+
 #ifdef USE_QVR_SERVICE
     LOGI("Disconnecting from QVR Service...");
-
+   
     QVRSERVICE_VRMODE_STATE state;
     int ret = gAppContext->qvrService->StopVRMode();
     if (ret < 0)
@@ -1748,11 +1847,25 @@ void svrReleaseQvrServiceOnly()
     }
 #endif // USE_QVR_SERVICE
 
-    //Delete the mode context
-    LOGI("Deleting mode context...");
-    delete gAppContext->modeContext;
-    gAppContext->modeContext = NULL;
+    LOGI("Resetting tracking pose...");
+    // We must save the mode since svrSetTackingMode() modifies it internally
+    // We need it when the app resumes from suspension
+    int currentTrackingMode = gAppContext->currentTrackingMode;
+    svrSetTrackingMode(kTrackingRotation);
+    gAppContext->currentTrackingMode = currentTrackingMode;
 
+    //Delete the mode context
+    //We can end up here with gAppContext->modeContext set to NULL
+    if (gAppContext->modeContext != NULL)
+    {
+        LOGI("Deleting mode context...");
+        delete gAppContext->modeContext;
+        gAppContext->modeContext = NULL;
+    }
+
+    LOGI("VR mode ended");
+
+    // from svrShutdown
     if (gAppContext != NULL)
     {
 #ifdef USE_QVR_SERVICE
