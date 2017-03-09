@@ -1263,7 +1263,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 					}
                     glDeleteSync(ReleaseFP.warpSync);
 
-                    LOGI("Release WarpSync %d , %s : %d" , ReleaseFP.warpSync , __FUNCTION__ , __LINE__);
+//                    LOGI("Release WarpSync %d , %s : %d" , ReleaseFP.warpSync , __FUNCTION__ , __LINE__);
 
                     ReleaseFP.warpSync = 0;
                 }

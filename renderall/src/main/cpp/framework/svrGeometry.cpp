@@ -65,7 +65,7 @@ void SvrGeometry::Initialize(SvrProgramAttribute* pAttribs, int nAttribs,
 
     mVertexCount = nVertices;
     mIndexCount = nIndices;
-    LOGE("SvrGeometry::%s, IbId:%d, VbId:%d, VaoId:%d", __FUNCTION__, mIbId, mVbId, mVaoId );
+//    LOGE("SvrGeometry::%s, IbId:%d, VbId:%d, VaoId:%d", __FUNCTION__, mIbId, mVbId, mVaoId );
 }
 
 void SvrGeometry::Destroy()
