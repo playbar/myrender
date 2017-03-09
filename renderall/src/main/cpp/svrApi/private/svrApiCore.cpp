@@ -1091,6 +1091,11 @@ void svrEndVr()
             {
                 glDeleteSync(fp.frameSync);
             }
+
+            if (fp.warpSync != 0)
+            {
+                glDeleteSync(fp.warpSync);
+            }
         }
 
         LOGI("Deleting mode context...");
@@ -1191,8 +1196,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     }
 	if (fp.warpSync != 0)
     {
-    	glDeleteSync(fp.warpSync);
-    	fp.warpSync = 0;
+    	LOGE("!!!! WarpSync not ZERO , %s : %d" ,__FUNCTION__ ,__LINE__);
 	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -1257,7 +1261,12 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 						usleep(500);
 						continue;
 					}
-				}
+                    glDeleteSync(ReleaseFP.warpSync);
+
+                    LOGI("Release WarpSync %d , %s : %d" , ReleaseFP.warpSync , __FUNCTION__ , __LINE__);
+
+                    ReleaseFP.warpSync = 0;
+                }
 			}
             // LOGV("Finished : %d [%llu]", gAppContext->modeContext->submitFrameCount, gAppContext->modeContext->vsyncCount);
             break;
