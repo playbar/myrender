@@ -72,7 +72,6 @@ void SvrGeometry::Destroy()
 {
     GL(glDeleteBuffers( 1, &mIbId ));
 	GL(glDeleteBuffers( 1, &mVbId ));
-    GL(glDeleteBuffers( 1, &mVaoId));
 }
 
 void SvrGeometry::Submit()

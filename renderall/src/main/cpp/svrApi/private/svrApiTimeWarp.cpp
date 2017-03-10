@@ -798,7 +798,7 @@ bool svrCreateWarpContext()
     LOGI("begin eglCreateContext:%d", __LINE__ );
     context = eglCreateContext(display, config, gAppContext->modeContext->eyeRenderContext, contextAttribs);
     getLastMsg();
-    LOGI("end eglCreateContext, L:%d, context:%0X", __LINE__, context );
+    LOGI("end eglCreateContext, L:%d, context:%0X", __LINE__, (unsigned int)context );
     if (context == EGL_NO_CONTEXT)
     {
         LOGE("svrCreateWarpContext: Failed to create EGL context");
@@ -908,7 +908,7 @@ void svrDestroyWarpContext()
     {
         eglDestroySurface(display, gAppContext->modeContext->warpRenderSurface);
         gAppContext->modeContext->warpRenderSurface = EGL_NO_SURFACE;
-        LOGI("begin eglDestroyContext:%d, context:%0X", __LINE__, gAppContext->modeContext->warpRenderContext );
+        LOGI("begin eglDestroyContext:%d, context:%0X", __LINE__, (unsigned int)gAppContext->modeContext->warpRenderContext );
         eglDestroyContext(display, gAppContext->modeContext->warpRenderContext);
         getLastMsg();
         LOGI("end eglDestroyContext L:%d", __LINE__);
@@ -1616,7 +1616,7 @@ glm::mat4 CalculateProjectionMatrix(float fovRad)
 bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 //-----------------------------------------------------------------------------
 {
-    LOGE("begin:%s", __FUNCTION__ );
+    LOGE("begin:%s, L:%d", __FUNCTION__, __LINE__ );
     if( gpWarpFrame == NULL )
         return false;
     float minPos[2] = { -1.0f, -1.0f };

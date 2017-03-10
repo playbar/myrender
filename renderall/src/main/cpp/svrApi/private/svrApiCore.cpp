@@ -1090,11 +1090,14 @@ void svrEndVr()
             if (fp.frameSync != 0)
             {
                 glDeleteSync(fp.frameSync);
+                fp.frameSync = 0;
             }
 
             if (fp.warpSync != 0)
             {
+//                LOGE("F:%s, L:%d, glDeleteSync-> warpSync:%d", __FUNCTION__, __LINE__, fp.warpSync);
                 glDeleteSync(fp.warpSync);
+                fp.warpSync = 0;
             }
         }
 
@@ -1196,7 +1199,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     }
 	if (fp.warpSync != 0)
     {
-    	LOGE("!!!! WarpSync not ZERO , %s : %d" ,__FUNCTION__ ,__LINE__);
+        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, fp.warpSync);
 	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -1261,10 +1264,8 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 						usleep(500);
 						continue;
 					}
+                    LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, ReleaseFP.warpSync);
                     glDeleteSync(ReleaseFP.warpSync);
-
-//                    LOGI("Release WarpSync %d , %s : %d" , ReleaseFP.warpSync , __FUNCTION__ , __LINE__);
-
                     ReleaseFP.warpSync = 0;
                 }
 			}
