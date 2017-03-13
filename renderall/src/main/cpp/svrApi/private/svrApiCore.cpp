@@ -1197,10 +1197,10 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     {
         glDeleteSync(fp.frameSync);
     }
-	if (fp.warpSync != 0)
-    {
-        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
-	}
+//	if (fp.warpSync != 0)
+//    {
+//        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
+//	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     /*
