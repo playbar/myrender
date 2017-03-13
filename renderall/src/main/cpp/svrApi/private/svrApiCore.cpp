@@ -1199,7 +1199,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     }
 	if (fp.warpSync != 0)
     {
-        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, fp.warpSync);
+        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
 	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -1246,6 +1246,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 			if (nextFrameCount > NUM_SWAP_FRAMES)
 			{// Check enable release a fream to modle
 				int iReleaseFrame = nextFrameCount - NUM_SWAP_FRAMES + 1;
+                int iNextReleaseFrame = iReleaseFrame;
 				svrFrameParamsInternal& ReleaseFP = gAppContext->modeContext->frameParams[iReleaseFrame % NUM_SWAP_FRAMES];
 				if(0 == ReleaseFP.warpSync)
 				{// this frame may never used.
@@ -1256,17 +1257,22 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 					gAppContext->modeContext->submitFrameCount,  
 					gAppContext->modeContext->warpFrameCount);*/
 					break;
-				}
-				else{
-					// LOGV("-- HX --Release.warpSync is not 0");
-					while(GL_TIMEOUT_EXPIRED == glClientWaitSync(ReleaseFP.warpSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0))
-					{
-						usleep(500);
-						continue;
-					}
-                    LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, ReleaseFP.warpSync);
-                    glDeleteSync(ReleaseFP.warpSync);
-                    ReleaseFP.warpSync = 0;
+				} else {
+                    ++iNextReleaseFrame;
+                    svrFrameParamsInternal &nextFP = gAppContext->modeContext->frameParams[iNextReleaseFrame % NUM_SWAP_FRAMES];
+                    ++iNextReleaseFrame;
+                    svrFrameParamsInternal &nnextFP = gAppContext->modeContext->frameParams[iNextReleaseFrame % NUM_SWAP_FRAMES];
+                    if( nextFP.warpSync != 0 || nnextFP.warpSync != 0 )
+                    {
+                        while (GL_TIMEOUT_EXPIRED == glClientWaitSync(ReleaseFP.warpSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0))
+                        {
+                            usleep(500);
+                            continue;
+                        }
+//                    LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, ReleaseFP.warpSync);
+                        glDeleteSync(ReleaseFP.warpSync);
+                        ReleaseFP.warpSync = 0;
+                    }
                 }
 			}
             // LOGV("Finished : %d [%llu]", gAppContext->modeContext->submitFrameCount, gAppContext->modeContext->vsyncCount);
