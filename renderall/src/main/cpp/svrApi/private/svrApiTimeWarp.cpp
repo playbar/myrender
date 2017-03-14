@@ -147,6 +147,7 @@ VAR(bool, gLogMeshCreation, false, kVariableNonpersistent);             //Enable
 // External value from config file in svrApiPredictiveSensor
 #ifdef USE_QVR_SERVICE
 extern int gSensorHomePosition;
+extern bool gLogSubmitFps;
 #else
 int gSensorHomePosition = 0;
 #endif
@@ -1616,7 +1617,7 @@ glm::mat4 CalculateProjectionMatrix(float fovRad)
 bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 //-----------------------------------------------------------------------------
 {
-    LOGE("begin:%s, L:%d", __FUNCTION__, __LINE__ );
+//    LOGI("begin:%s, L:%d", __FUNCTION__, __LINE__ );
     if( gpWarpFrame == NULL )
         return false;
     float minPos[2] = { -1.0f, -1.0f };
@@ -2600,6 +2601,7 @@ void L_SetShaderUniforms(ShaderParamStruct *pParams, unsigned int flags, unsigne
 void* WarpThreadMain(void* arg)
 //-----------------------------------------------------------------------------
 {
+
     unsigned int prevWarpFrameCount = 0;
 
     LOGI("WarpThreadMain Entered");
@@ -2681,6 +2683,25 @@ void* WarpThreadMain(void* arg)
     while (true)
     {
 //        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
+
+        if (gLogSubmitFps)
+        {
+            static unsigned int frameCounter = 0;
+            static unsigned int prevTimeMs = 0;
+
+            unsigned int currentTimeMs = GetTimeNano() * 1e-6;
+            frameCounter++;
+            if (currentTimeMs - prevTimeMs > 1000)
+            {
+                float elapsedSec = (float)(currentTimeMs - prevTimeMs) / 1000.0f;
+                float currentFPS = (float)frameCounter / elapsedSec;
+                LOGI("warp,FPS: %0.2f",  currentFPS);
+
+                frameCounter = 0;
+                prevTimeMs = currentTimeMs;
+            }
+        }
+
         PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
 		/*
 		// CLEAR COLOR
@@ -2735,7 +2756,7 @@ void* WarpThreadMain(void* arg)
         unsigned int curSubmitFrameCount = gAppContext->modeContext->submitFrameCount;
 
         //Get the frame parameters for the frame we will be warping
-        for (int i = 0; i < NUM_SWAP_FRAMES -1; i++)
+        for (int i = 0; i < NUM_SWAP_FRAMES; i++)
         {
             int checkFrameCount = curSubmitFrameCount - i;
 
@@ -2750,25 +2771,19 @@ void* WarpThreadMain(void* arg)
 
             if (pCheckFrame->minVSyncCount > warpVsyncCount)
             {
-            	LOGE("minVSyncCount : %d, warpVsyncCount : %d", pCheckFrame->minVSyncCount, warpVsyncCount);
+//            	LOGE("minVSyncCount : %d, warpVsyncCount : %d", pCheckFrame->minVSyncCount, warpVsyncCount);
                 continue;
             }
 
             //Check to see if the frame has already finished on the GPU
-            LOGE("F:%s, L:%d, glClientWaitSync->frameSync:%d", __FUNCTION__, __LINE__, (int)pCheckFrame->frameSync);
+//            LOGE("F:%s, L:%d, glClientWaitSync->frameSync:%d", __FUNCTION__, __LINE__, (int)pCheckFrame->frameSync);
             GLenum syncResult = glClientWaitSync(pCheckFrame->frameSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
             if (syncResult == GL_TIMEOUT_EXPIRED)
             {
                 //The current frame hasn't finished on the GPU so keep looking back for a frame that has
-                LOGE("GPU not finished with frame %d", checkFrameCount);
+//                LOGE("GPU not finished with frame %d", checkFrameCount);
                 continue;
             }
-//            glWaitSync(pCheckFrame->frameSync, 0, GL_TIMEOUT_IGNORED);
-//            while (GL_TIMEOUT_EXPIRED == glClientWaitSync(pCheckFrame->frameSync, GL_SYNC_FLUSH_COMMANDS_BIT, 500))
-//            {
-//                LOGE("GPU not finished with frame %d", checkFrameCount);
-//                continue;
-//            }
 
             gpWarpFrame = pCheckFrame;
             // madi: ChangeMojingWorld
@@ -2798,7 +2813,7 @@ void* WarpThreadMain(void* arg)
 
 		if (gpWarpFrame->warpSync != 0)
     	{
-            LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, gpWarpFrame->warpSync);
+//            LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, gpWarpFrame->warpSync);
     		glDeleteSync(gpWarpFrame->warpSync);
     		gpWarpFrame->warpSync = 0;
 		}
@@ -3781,7 +3796,7 @@ void* WarpThreadMain(void* arg)
         // if (gSingleBufferWindow)
         {
         	gpWarpFrame->warpSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-            LOGE("F:%s, L:%d, glFenceSync->warpSync:%d", __FUNCTION__, __LINE__, gpWarpFrame->warpSync);
+//            LOGE("F:%s, L:%d, glFenceSync->warpSync:%d", __FUNCTION__, __LINE__, gpWarpFrame->warpSync);
             glFlush();
             
         }
