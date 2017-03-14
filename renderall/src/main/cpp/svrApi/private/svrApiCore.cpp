@@ -1147,11 +1147,12 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 
         unsigned int currentTimeMs = GetTimeNano() * 1e-6;
         frameCounter++;
-        if (currentTimeMs - prevTimeMs > 1000)
+//        if (currentTimeMs - prevTimeMs > 1000)
+        if( frameCounter > 50)
         {
             float elapsedSec = (float)(currentTimeMs - prevTimeMs) / 1000.0f;
             float currentFPS = (float)frameCounter / elapsedSec;
-            LOGI("submit,FPS: %0.2f",  currentFPS);
+            LOGI("subm, FPS: %0.2f",  currentFPS);
 
             frameCounter = 0;
             prevTimeMs = currentTimeMs;

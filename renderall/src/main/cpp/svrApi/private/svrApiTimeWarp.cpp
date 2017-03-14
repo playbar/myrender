@@ -2691,11 +2691,12 @@ void* WarpThreadMain(void* arg)
 
             unsigned int currentTimeMs = GetTimeNano() * 1e-6;
             frameCounter++;
-            if (currentTimeMs - prevTimeMs > 1000)
+//            if (currentTimeMs - prevTimeMs > 1000)
+            if( frameCounter > 50 )
             {
                 float elapsedSec = (float)(currentTimeMs - prevTimeMs) / 1000.0f;
                 float currentFPS = (float)frameCounter / elapsedSec;
-                LOGI("warp,FPS: %0.2f",  currentFPS);
+                LOGI("warp, FPS: %0.2f",  currentFPS);
 
                 frameCounter = 0;
                 prevTimeMs = currentTimeMs;
@@ -2795,7 +2796,7 @@ void* WarpThreadMain(void* arg)
         }
 
 
-        LOGV("Warping %d [vc : %llu]", gAppContext->modeContext->warpFrameCount, gAppContext->modeContext->vsyncCount);
+//        LOGV("Warping %d [vc : %llu]", gAppContext->modeContext->warpFrameCount, gAppContext->modeContext->vsyncCount);
 
         //Signal the eye render thread that it can continue on
         if (!pthread_mutex_trylock(&gAppContext->modeContext->warpBufferConsumedMutex))
