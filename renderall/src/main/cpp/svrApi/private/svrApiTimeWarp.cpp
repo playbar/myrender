@@ -2735,7 +2735,7 @@ void* WarpThreadMain(void* arg)
         unsigned int curSubmitFrameCount = gAppContext->modeContext->submitFrameCount;
 
         //Get the frame parameters for the frame we will be warping
-        for (int i = 0; i < NUM_SWAP_FRAMES - 1; i++)
+        for (int i = 0; i < NUM_SWAP_FRAMES -1; i++)
         {
             int checkFrameCount = curSubmitFrameCount - i;
 
@@ -2750,18 +2750,25 @@ void* WarpThreadMain(void* arg)
 
             if (pCheckFrame->minVSyncCount > warpVsyncCount)
             {
-            	//LOGI("minVSyncCount : %d, warpVsyncCount : %d", pCheckFrame->minVSyncCount, warpVsyncCount);
+            	LOGE("minVSyncCount : %d, warpVsyncCount : %d", pCheckFrame->minVSyncCount, warpVsyncCount);
                 continue;
             }
 
             //Check to see if the frame has already finished on the GPU
+            LOGE("F:%s, L:%d, glClientWaitSync->frameSync:%d", __FUNCTION__, __LINE__, (int)pCheckFrame->frameSync);
             GLenum syncResult = glClientWaitSync(pCheckFrame->frameSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
             if (syncResult == GL_TIMEOUT_EXPIRED)
             {
                 //The current frame hasn't finished on the GPU so keep looking back for a frame that has
-                //LOGI("GPU not finished with frame %d", checkFrameCount);
+                LOGE("GPU not finished with frame %d", checkFrameCount);
                 continue;
             }
+//            glWaitSync(pCheckFrame->frameSync, 0, GL_TIMEOUT_IGNORED);
+//            while (GL_TIMEOUT_EXPIRED == glClientWaitSync(pCheckFrame->frameSync, GL_SYNC_FLUSH_COMMANDS_BIT, 500))
+//            {
+//                LOGE("GPU not finished with frame %d", checkFrameCount);
+//                continue;
+//            }
 
             gpWarpFrame = pCheckFrame;
             // madi: ChangeMojingWorld
@@ -2791,6 +2798,7 @@ void* WarpThreadMain(void* arg)
 
 		if (gpWarpFrame->warpSync != 0)
     	{
+            LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, gpWarpFrame->warpSync);
     		glDeleteSync(gpWarpFrame->warpSync);
     		gpWarpFrame->warpSync = 0;
 		}
@@ -3773,6 +3781,7 @@ void* WarpThreadMain(void* arg)
         // if (gSingleBufferWindow)
         {
         	gpWarpFrame->warpSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+            LOGE("F:%s, L:%d, glFenceSync->warpSync:%d", __FUNCTION__, __LINE__, gpWarpFrame->warpSync);
             glFlush();
             
         }

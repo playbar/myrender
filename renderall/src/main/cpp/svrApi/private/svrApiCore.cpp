@@ -1089,13 +1089,14 @@ void svrEndVr()
             svrFrameParamsInternal& fp = gAppContext->modeContext->frameParams[i];
             if (fp.frameSync != 0)
             {
+                LOGE("F:%s, L:%d, glDeleteSync->frameSync:%d", __FUNCTION__, __LINE__, fp.frameSync);
                 glDeleteSync(fp.frameSync);
                 fp.frameSync = 0;
             }
 
             if (fp.warpSync != 0)
             {
-//                LOGE("F:%s, L:%d, glDeleteSync-> warpSync:%d", __FUNCTION__, __LINE__, fp.warpSync);
+                LOGE("F:%s, L:%d, glDeleteSync-> warpSync:%d", __FUNCTION__, __LINE__, fp.warpSync);
                 glDeleteSync(fp.warpSync);
                 fp.warpSync = 0;
             }
@@ -1166,13 +1167,13 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     unsigned int lastFrameCount = gAppContext->modeContext->submitFrameCount;
 
     unsigned int nextFrameCount = gAppContext->modeContext->submitFrameCount + 1;
-/*
+
 	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 1]",
 		lastFrameCount,
 		nextFrameCount,
 		pFrameParams->eyeBufferArray[0]
 	);
-	*/
+
     svrFrameParamsInternal& fp = gAppContext->modeContext->frameParams[nextFrameCount % NUM_SWAP_FRAMES];
     fp.frameParams = *pFrameParams;
 
@@ -1195,14 +1196,17 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 
     if (fp.frameSync != 0)
     {
+        LOGE("F:%s, L:%d, glDeleteSync->frameSync:%d", __FUNCTION__, __LINE__, fp.frameSync);
         glDeleteSync(fp.frameSync);
+        fp.frameSync = 0;
     }
-//	if (fp.warpSync != 0)
-//    {
-//        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
-//	}
+	if (fp.warpSync != 0)
+    {
+        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
+	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    // LOGE("F:%s, L:%d, glFenceSync->frameSync:%d", __FUNCTION__, __LINE__, fp.frameSync);
     /*
 	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 2]",
 		lastFrameCount,
@@ -1212,13 +1216,13 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     PROFILE_ENTER(GROUP_WORLDRENDER, 0, "glFlush");
     glFlush();
     PROFILE_EXIT(GROUP_WORLDRENDER);
-	/*
+
 	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 3]",
 		lastFrameCount,
 		nextFrameCount,
 		pFrameParams->eyeBufferArray[0]
 	);
-   */
+
     gAppContext->modeContext->submitFrameCount = nextFrameCount;
     /*
     LOGV("Submitting Frame Count : %d warpFrameCount : %d [minV=%llu curV=%llu]", gAppContext->modeContext->submitFrameCount,  gAppContext->modeContext->warpFrameCount, fp.minVSyncCount, gAppContext->modeContext->vsyncCount);
@@ -1235,12 +1239,12 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
         if (gAppContext->modeContext->warpFrameCount >= lastFrameCount ) 
         {
             //Make sure we maintain the minSync interval
-            /*
+
             LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 END]",
 				lastFrameCount,
 				nextFrameCount,
 				pFrameParams->eyeBufferArray[0]
-				);*/
+				);
             gAppContext->modeContext->prevSubmitVsyncCount = glm::max(gAppContext->modeContext->vsyncCount, gAppContext->modeContext->prevSubmitVsyncCount + fp.frameParams.minVsyncs);
 
 			if (nextFrameCount > NUM_SWAP_FRAMES)
@@ -1248,28 +1252,53 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 				int iReleaseFrame = nextFrameCount - NUM_SWAP_FRAMES + 1;
                 int iNextReleaseFrame = iReleaseFrame;
 				svrFrameParamsInternal& ReleaseFP = gAppContext->modeContext->frameParams[iReleaseFrame % NUM_SWAP_FRAMES];
+                ++iNextReleaseFrame;
+                svrFrameParamsInternal &nextFP = gAppContext->modeContext->frameParams[iNextReleaseFrame % NUM_SWAP_FRAMES];
+                ++iNextReleaseFrame;
+                svrFrameParamsInternal &nnextFP = gAppContext->modeContext->frameParams[iNextReleaseFrame % NUM_SWAP_FRAMES];
 				if(0 == ReleaseFP.warpSync)
 				{// this frame may never used.
-					/*
+
 					LOGV("-- HX --Release.warpSync is 0, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
 					lastFrameCount,
 					nextFrameCount,
 					gAppContext->modeContext->submitFrameCount,  
-					gAppContext->modeContext->warpFrameCount);*/
+					gAppContext->modeContext->warpFrameCount);
+                    // LOGE("F:%s, L:%d, warpSync = 0", __FUNCTION__, __LINE__ );
+                    while( nextFP.warpSync ==0 && nnextFP.warpSync == 0 &&
+                           !gAppContext->modeContext->warpThreadExit)
+                    {
+                        LOGV("-- HX --Waite an other frame to warp or exit ... ");
+                        usleep(500);
+                        continue;
+                    }
 					break;
 				} else {
-                    ++iNextReleaseFrame;
-                    svrFrameParamsInternal &nextFP = gAppContext->modeContext->frameParams[iNextReleaseFrame % NUM_SWAP_FRAMES];
-                    ++iNextReleaseFrame;
-                    svrFrameParamsInternal &nnextFP = gAppContext->modeContext->frameParams[iNextReleaseFrame % NUM_SWAP_FRAMES];
-                    if( nextFP.warpSync != 0 || nnextFP.warpSync != 0 )
+                    LOGV("-- HX --Release.warpSync is %d, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
+                         ReleaseFP.warpSync,
+                         lastFrameCount,
+                         nextFrameCount,
+                         gAppContext->modeContext->submitFrameCount,
+                         gAppContext->modeContext->warpFrameCount);
+
+
+                    while( nextFP.warpSync ==0 && nnextFP.warpSync == 0 &&
+                            !gAppContext->modeContext->warpThreadExit)
                     {
-                        while (GL_TIMEOUT_EXPIRED == glClientWaitSync(ReleaseFP.warpSync, GL_SYNC_FLUSH_COMMANDS_BIT, 0))
-                        {
-                            usleep(500);
-                            continue;
-                        }
-//                    LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, ReleaseFP.warpSync);
+                        LOGV("-- HX --Waite an other frame to warp or exit ... ");
+                        usleep(500);
+                        continue;
+                    }
+                    while (GL_TIMEOUT_EXPIRED == glClientWaitSync(ReleaseFP.warpSync, GL_SYNC_FLUSH_COMMANDS_BIT, 500))
+                    {
+                        LOGE("F:%s, L:%d, glClientWaitSync->warpSync:%d", __FUNCTION__, __LINE__, ReleaseFP.warpSync);
+//                        usleep(500);
+                        continue;
+                    }
+
+//                    if( nextFP.warpSync != 0 || nnextFP.warpSync != 0 )
+                    {
+                        LOGE("F:%s, L:%d, glDeleteSync->warpSync:%d", __FUNCTION__, __LINE__, ReleaseFP.warpSync);
                         glDeleteSync(ReleaseFP.warpSync);
                         ReleaseFP.warpSync = 0;
                     }
@@ -1280,13 +1309,13 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
         }
         else
         {
-        	/*
+
         	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 ...]",
 				lastFrameCount,
 				nextFrameCount,
 				pFrameParams->eyeBufferArray[0]	
 				);
-				*/
+
         }
     }
  
