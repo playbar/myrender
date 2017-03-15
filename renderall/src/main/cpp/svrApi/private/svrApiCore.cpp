@@ -782,7 +782,7 @@ void svrSetGpuPerfLevel(svrPerfLevel level)
 void svrBeginVr(const svrBeginParams* pBeginParams)
 //-----------------------------------------------------------------------------
 {
-    LOGI("svrBeginVr");
+    LOGI("svrBeginVr entry");
 
 #if defined (USE_QVR_SERVICE)
     if(gAppContext->qvrService == NULL)
@@ -972,6 +972,8 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
 
     // Only now are we truly in VR mode
     gAppContext->inVrMode = true;
+    LOGI("svrBeginVr leave");
+
 }
 
 //-----------------------------------------------------------------------------

@@ -1,7 +1,5 @@
-//include ':apiTest'
 include ':app'
 include ':appall'
-//include ':render'
 include ':renderall'
-include  ':utest'
+//include  ':unitygvr'
 
