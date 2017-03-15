@@ -106,7 +106,7 @@ namespace Baofeng
 
 		MojingRenderBase::~MojingRenderBase()
 		{
-			MOJING_FUNC_TRACE(g_APIlogger);
+			//MOJING_FUNC_TRACE(g_APIlogger);
 			MOJING_TRACE(g_APIlogger, "Delete MojingRenderBase , RenderThreadID = " << GetRenderThreadID());
 			if (GetRenderThreadID() == gettid())
 			{

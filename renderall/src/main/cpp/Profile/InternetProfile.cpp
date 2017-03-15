@@ -302,7 +302,7 @@ namespace Baofeng
 
 								if (respcode == 200)
 								{// 成功发送了该报告
-									MOJING_TRACE(g_APIlogger, "Curl perform succeed.");
+									MOJING_TRACE(g_APIlogger, "Curl perform succeed. mode:" << GetFunction());
 								}
 								else
 								{

@@ -164,7 +164,9 @@ namespace Baofeng
 #else
    				strRet += "mjsdk.log.mojing.cn/logger.php";
 #endif
+#ifdef _DEBUG
 				MOJING_TRACE(g_APIlogger, "InfoReporter using web address." << (IO == Profile_LOAD ? "Load..." : "Post..."));
+#endif
 				return strRet;
 			}
 			else if (szClassName == "MojingMerchantVerify")

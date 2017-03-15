@@ -320,6 +320,7 @@ namespace Baofeng
 		}
 		void UnityPluginInterfaceBase::OnEvent_ChangeMojingWorld()
 		{
+			MOJING_FUNC_TRACE(g_APIlogger);
 			MojingSDK_ChangeMojingWorld(m_strGlassName.c_str());
 		}
 		void UnityPluginInterfaceBase::OnEvent_LeaveMojingWorld()

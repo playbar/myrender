@@ -247,6 +247,10 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 		"PID = " << Key.GetProductID() <<
 		"GID = " << Key.GetGlassID());
 	
+	Key.SetString("EGWUSS-HR86YL-QHC8C8-EB2YCH-AHDDXH-85A4Y5");
+	MOJING_TRACE(g_APIlogger, "EGWUSS-HR86YL-QHC8C8-EB2YCH-AHDDXH-85A4Y5 >>>>> MID = " << Key.GetManufacturerID() <<
+		"PID = " << Key.GetProductID() <<
+		"GID = " << Key.GetGlassID());
 	
 	Key.SetString("932NHM-CNSYA8-DGZ3XQ-XQEYQZ-8NHFDZ-HHDC4C");
 	MOJING_TRACE(g_APIlogger, "932NHM-CNSYA8-DGZ3XQ-XQEYQZ-8NHFDZ-HHDC4C >>>>> MID = " << Key.GetManufacturerID() <<
@@ -390,7 +394,7 @@ void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const cha
 
 bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 {
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (pStatus == NULL || !pStatus->IsMojingSDKEnbaled())
 	{
@@ -1248,9 +1252,9 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 		if (!bIsUnreal// UNREAL不需要 创建Render对象
 			&& !bIsUnityWithQ820)// 高通820的Unity模式不创建Render对象
 		{// Unreal 不用创建绘制对象
-			MOJING_TRACE(g_APIlogger ,"MojingRenderBase::CreateCurrentRender - 1");
+			//MOJING_TRACE(g_APIlogger ,"MojingRenderBase::CreateCurrentRender - 1");
 			MojingRenderBase::CreateCurrentRender(bEnableMultiThread, bEnableTimeWarp);
-			MOJING_TRACE(g_APIlogger, "MojingRenderBase::CreateCurrentRender - 2");
+			//MOJING_TRACE(g_APIlogger, "MojingRenderBase::CreateCurrentRender - 2");
 			bool bRet = MojingRenderBase::GetCurrentRender() != NULL;
 			MOJING_TRACE(g_APIlogger, "MojingRenderBase::CreateCurrentRender - 3 :: " << bRet);
 			return bRet;
@@ -1319,8 +1323,20 @@ int MojingSDK_GetDistortionMesh(const char * szGlassesName, int iScreenWidth, in
 extern unsigned char Baofeng::Mojing::g_EncKey[16];
 bool MojingSDK_ChangeMojingWorld(const char * szGlassesName)
 {
+	MOJING_FUNC_TRACE(g_APIlogger);
 	ENTER_MINIDUMP_FUNCTION;
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (szGlassesName == NULL)
+	{
+		MOJING_ERROR(g_APIlogger, "Glass Name Is Null!!!");
+		return false;
+	}
+	if (*szGlassesName == 0)
+	{
+		MOJING_ERROR(g_APIlogger, "Glass Name Is Empty!!!");
+		return false;
+	}
+	
 	MOJING_TRACE(g_APIlogger, "Set Glasses : \"" << szGlassesName << "\"");
 	if (!pStatus->IsMojingSDKEnbaled())
 	{
@@ -2543,7 +2559,7 @@ const char* MojingSDK_GetSDKVersion(void)
 const char* MojingSDK_GetGlasses(void)
 {
 	ENTER_MINIDUMP_FUNCTION;
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	mj_Initialize();
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (pStatus->IsMojingSDKEnbaled())

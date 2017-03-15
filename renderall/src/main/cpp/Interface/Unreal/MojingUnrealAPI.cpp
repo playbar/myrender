@@ -91,6 +91,7 @@ bool  Unreal_EnterMojingWorld(const char * szGlassesName)
 
 bool  Unreal_ChangeMojingWorld(const char * szGlassesName)
 {
+	MOJING_FUNC_TRACE(g_APIlogger);
 	return MojingSDK_ChangeMojingWorld(szGlassesName);
 }
 

@@ -540,6 +540,7 @@ JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_GetMojingWorldFOV(JNI
 JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSurfaceView_ChangeMojingWorld(JNIEnv *env, jclass, jstring GlassesName)
 {
 	// USING_MINIDUMP;
+	MOJING_FUNC_TRACE(g_APIlogger);
 	const char * szGlassesName = env->GetStringUTFChars(GlassesName, 0);
 	bool ret = MojingSDK_ChangeMojingWorld(szGlassesName);
 	env->ReleaseStringUTFChars(GlassesName, szGlassesName);
@@ -701,7 +702,7 @@ JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetManufacturerList(
 }
 JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetProductList(JNIEnv *jEnv, jclass, jstring strManufacturerKey, jstring strLanguageCodeByISO639)
 {
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	const char * szLanguageName = jEnv->GetStringUTFChars(strLanguageCodeByISO639, 0);
 	const char * szKey = jEnv->GetStringUTFChars(strManufacturerKey, 0);
 	String  strRet = MojingSDK_GetProductList(szKey, szLanguageName);

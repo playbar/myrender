@@ -184,7 +184,7 @@ namespace Baofeng
 			}
 			else
 			{
-				MOJING_TRACE(g_APIlogger, "OnEvent_Initialize  E");
+				MOJING_TRACE(g_APIlogger, "OnEvent_Initialize  F");
 				MOJING_TRACE(g_APIlogger, "JavaVm = " << gJavaVM << " , m_bInitialized = " << m_bInitialized);
 			}
 			return m_bInitialized;
@@ -376,7 +376,14 @@ namespace Baofeng
 				/*TODO：这里要向SVR提交Mesh表*/
 				if (!m_bSvrBegin)
 					m_bSvrBegin = OnEvent_BeginVR();
-				OnEvent_UpdateWarpmesh_Q820();
+				if (m_bSvrBegin)
+				{
+					OnEvent_UpdateWarpmesh_Q820();
+				}
+				else
+				{
+					MOJING_ERROR(g_APIlogger , "Call Svr Begin FAILD");
+				}
 			}
 			else
 			{
@@ -493,7 +500,6 @@ namespace Baofeng
 				L_CreateLayout(rcOverlay.x + rcOverlay.w / 2.0f, rcOverlay.y - rcOverlay.h / 2.0f, rcOverlay.w, rcOverlay.h, &params.overlayLayout[1]);
 #endif
 				params.overlayRect[1] = { rcOverlay.x, rcOverlay.y, rcOverlay.w, rcOverlay.h };
-
 #else
 
 #endif
