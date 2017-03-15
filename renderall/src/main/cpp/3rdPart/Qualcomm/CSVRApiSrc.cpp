@@ -1,5 +1,6 @@
 ﻿#include "CSVRApiSrc.h"
 #include <dlfcn.h>
+#include <Base/MojingLog.h>
 #include "../../Base/MojingTypes.h"
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
@@ -70,7 +71,10 @@ void CSVRApi::SetPerformanceLevels(svrPerfLevel cpuPerfLevel, svrPerfLevel gpuPe
 
 void CSVRApi::BeginVr(const svrBeginParams* pBeginParams)
 {
-	svrBeginVr(pBeginParams);
+	int ire = svrBeginVr(pBeginParams);
+	if( ire != 0 ){
+		LOGI("svrBeginVr return error, val:%d", ire);
+	}
 //	if (m_fpBeginVr)
 //		m_fpBeginVr(pBeginParams);
 }

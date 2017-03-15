@@ -248,7 +248,7 @@ extern "C" {
 
     //! \brief Enables VR services
     //! \param pBeginParams svrBeginParams structure
-    SVRP_EXPORT void svrBeginVr(const svrBeginParams* pBeginParams);
+    SVRP_EXPORT int svrBeginVr(const svrBeginParams* pBeginParams);
 
     //! \brief Disables VR services
     SVRP_EXPORT void svrEndVr();

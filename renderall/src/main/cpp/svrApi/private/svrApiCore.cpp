@@ -779,7 +779,7 @@ void svrSetGpuPerfLevel(svrPerfLevel level)
 }
 
 //-----------------------------------------------------------------------------
-void svrBeginVr(const svrBeginParams* pBeginParams)
+int svrBeginVr(const svrBeginParams* pBeginParams)
 //-----------------------------------------------------------------------------
 {
     LOGI("svrBeginVr entry");
@@ -788,7 +788,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     if(gAppContext->qvrService == NULL)
     {
         LOGE("svrBeginVr Failed: SnapdragonVR not initialized!");
-        return;
+        return 1;
     }
     //Ensure the VR Service is currently in the stopped state (e.g. another application isn't using it)
     LOGI("svrBeginVr  GetVRMode begin");
@@ -809,7 +809,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     if (serviceState != VRMODE_STOPPED)
     {
         LOGE("svrBeginVr, VR service is currently unavailable for this application.");
-        return;
+        return 2;
     }
 	LOGI("svrBeginVr -- Check VrMode Succeeded");
 #endif // defined (USE_QVR_SERVICE)
@@ -942,7 +942,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     if (ret < 0)
     {
         LOGE("svrBeginVr : QVRService error starting VR mode => %d", ret);
-        return;
+        return 3;
     }
 
     LOGE("BOM Start VRMODE BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
@@ -951,7 +951,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     if (state != VRMODE_STARTED)
     {
         LOGE("svrBeginVr : QVRService VR not started, current State = %d", (int)state);
-        return;
+        return 4;
     }
 
     LOGI("QVRService: Service Initialized");
@@ -973,6 +973,7 @@ void svrBeginVr(const svrBeginParams* pBeginParams)
     // Only now are we truly in VR mode
     gAppContext->inVrMode = true;
     LOGI("svrBeginVr leave");
+    return 0;
 
 }
 

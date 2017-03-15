@@ -8,6 +8,7 @@
 
 #include <android/native_window_jni.h>
 #include <android/log.h>
+#include <framework/svrUtil.h>
 
 #include "IUnityInterface.h"
 #include "IUnityGraphics.h"
@@ -232,7 +233,10 @@ void SvrBeginVrEvent()
 	params.mainThreadId = plugin.threadTid;
 	params.nativeWindow = nativeWindow;
 
-	svrBeginVr(&params);
+	int ire = svrBeginVr(&params);
+	if( ire != 0 ){
+		LOGI("svrBeginVr return error, val:%d", ire);
+	}
 	
 	ANativeWindow_release(nativeWindow);
 }

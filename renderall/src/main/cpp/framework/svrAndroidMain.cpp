@@ -549,7 +549,10 @@ void android_main(android_app *pAppState)
             beginParams.nativeWindow = appContext.nativeWindow;
             beginParams.mainThreadId = gettid();
 
-            svrBeginVr(&beginParams);
+            int ire = svrBeginVr(&beginParams);
+            if( ire != 0 ){
+                LOGI("svrBeginVr return error, val:%d", ire);
+            }
             gSvrInitialized = true;
         }
 
