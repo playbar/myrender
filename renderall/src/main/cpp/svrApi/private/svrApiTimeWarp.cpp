@@ -1617,7 +1617,7 @@ glm::mat4 CalculateProjectionMatrix(float fovRad)
 bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 //-----------------------------------------------------------------------------
 {
-//    LOGI("begin:%s, L:%d", __FUNCTION__, __LINE__ );
+    LOGI("Begin of InitializeAsyncWarpData" );
     if( gpWarpFrame == NULL )
         return false;
     float minPos[2] = { -1.0f, -1.0f };
@@ -2017,7 +2017,7 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
         LOGE("Failed to initialize blitShader_Image");
         return false;
     }
-    LOGE("end:%s", __FUNCTION__ );
+    LOGI("End of InitializeAsyncWarpData");
     return true;
 }
 
