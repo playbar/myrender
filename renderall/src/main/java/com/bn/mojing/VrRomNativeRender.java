@@ -16,7 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
 import com.baofeng.mojing.MojingSDK;
 import com.bn.mojing.MatrixState;
 import com.bn.mojing.SphereModel;
-import com.mojingsdk.demo.SDKControllerDemo.R;
+import com.mj.menu.R;
 
 import android.opengl.GLES20;
 import android.opengl.GLES30;

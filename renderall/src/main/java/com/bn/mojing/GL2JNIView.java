@@ -29,7 +29,7 @@ import com.baofeng.mojing.MojingSurfaceView;
 import com.bn.mojing.GL2JNIView;
 import com.bn.mojing.MatrixState;
 import com.bn.mojing.SphereModel;
-import com.mojingsdk.demo.SDKControllerDemo.R;
+import com.mj.menu.R;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
