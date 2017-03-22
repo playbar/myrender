@@ -1,8 +1,5 @@
 ﻿#include <math.h>
 #include "MojingPlatformBase.h"
-#ifdef MJ_OS_ANDROID
-#include "MojingPlatformAndroid.h"
-#endif
 
 #if defined(MJ_OS_MAC)
 #include <unistd.h>

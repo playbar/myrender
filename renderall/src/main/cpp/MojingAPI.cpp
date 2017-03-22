@@ -201,7 +201,9 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 		pManager->GetParameters()->GetGyroOffsetReportSet()->Load();
 
 		MOJING_TRACE(g_APIlogger, "Update config...");
-		GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->UpdateConfig();
+#ifdef REPORT_ABNORMAL_SENSOR
+		GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->UpdateConfig(); 
+#endif
 		MobileConfigUpdate::GetMobileConfigUpdate()->UpdateConfig();
 
 		MOJING_TRACE(g_APIlogger, "Set report param...");
@@ -1365,6 +1367,7 @@ bool MojingSDK_ChangeMojingWorld(const char * szGlassesName)
 			// 注意：这个GlassName是UUID格式
 			pStatus->SetGlassesName(szGlassesName);
 			GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetGlassesName(MojingProfileKey::GetGlassKeyIDString(szGlassesName));
+			GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetGlassesReportName(MojingProfileKey::GetGlassKeyIDString(szGlassesName));
 #ifdef	USING_MINIDUMP
 			g_MojingMinidump.SetGlassesName(MojingProfileKey::GetGlassKeyIDString(szGlassesName));
 			g_MojingMinidump.m_bInMojingWorld = true;

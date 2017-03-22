@@ -23,7 +23,7 @@ namespace Baofeng
 			joMsg->AddNumberItem("date", pReporter->GetCurrentRunTime());
 			joMsg->AddNumberItem("time", pReporter->GetCurrentActiveTime());
 			joMsg->AddNumberItem("exitdate", pReporter->GetCurrentExitTime());
-			const char* szGlasseeName = GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->GetGlassesName();
+			const char* szGlasseeName = GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->GetGlassesReportName();
 			if (strlen(szGlasseeName) == 0 || strcmp(szGlasseeName, "UNKNOWN") == 0)
 			{
 				joMsg->AddStringItem("myglasses", "noglass");
