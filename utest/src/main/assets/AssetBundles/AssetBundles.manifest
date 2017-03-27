@@ -1,0 +1,723 @@
+ManifestFileVersion: 0
+CRC: 3550865123
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: stage/stage001
+      Dependencies: {}
+    Info_1:
+      Name: stage/stage004
+      Dependencies: {}
+    Info_2:
+      Name: stage/stage003
+      Dependencies: {}
+    Info_3:
+      Name: stage/stage00
+      Dependencies: {}
+    Info_4:
+      Name: stage/stage002
+      Dependencies: {}
+    Info_5:
+      Name: spriteatlas/atlas/ui/common
+      Dependencies: {}
+    Info_6:
+      Name: spriteatlas/sprites/loading/homepage2
+      Dependencies: {}
+    Info_7:
+      Name: spriteatlas/atlas/icon/skill
+      Dependencies: {}
+    Info_8:
+      Name: spriteatlas/atlas/ui/number
+      Dependencies: {}
+    Info_9:
+      Name: spriteatlas/atlas/ui/mainui
+      Dependencies: {}
+    Info_10:
+      Name: spriteatlas/sprites/start/btn_login
+      Dependencies: {}
+    Info_11:
+      Name: spriteatlas/atlas/ui/button
+      Dependencies: {}
+    Info_12:
+      Name: spriteatlas/atlas/ui/resultui
+      Dependencies: {}
+    Info_13:
+      Name: spriteatlas/atlas/ui/shopui
+      Dependencies: {}
+    Info_14:
+      Name: spriteatlas/atlas/ui/pauseui
+      Dependencies: {}
+    Info_15:
+      Name: spriteatlas/atlas/ui/fightui
+      Dependencies: {}
+    Info_16:
+      Name: spriteatlas/sprites/start/logo
+      Dependencies: {}
+    Info_17:
+      Name: spriteatlas/atlas/ui/guide
+      Dependencies: {}
+    Info_18:
+      Name: spriteatlas/atlas/icon/image
+      Dependencies: {}
+    Info_19:
+      Name: spriteatlas/atlas/ui/object
+      Dependencies: {}
+    Info_20:
+      Name: spriteatlas/atlas/ui/loading
+      Dependencies: {}
+    Info_21:
+      Name: spriteatlas/sprites/start/logo2
+      Dependencies: {}
+    Info_22:
+      Name: spriteatlas/sprites/start/btn_login2
+      Dependencies: {}
+    Info_23:
+      Name: spriteatlas/sprites/loading/loading_001
+      Dependencies: {}
+    Info_24:
+      Name: spriteatlas/atlas/ui/talkui
+      Dependencies: {}
+    Info_25:
+      Name: spriteatlas/sprites/start/1
+      Dependencies: {}
+    Info_26:
+      Name: spriteatlas/sprites/loading/homepage
+      Dependencies: {}
+    Info_27:
+      Name: spriteatlas/atlas/icon/bodyimage
+      Dependencies: {}
+    Info_28:
+      Name: spriteatlas/sprites/start/logobg
+      Dependencies: {}
+    Info_29:
+      Name: spriteatlas/sprites/start/2
+      Dependencies: {}
+    Info_30:
+      Name: avatar/character/role_lina
+      Dependencies: {}
+    Info_31:
+      Name: effect/lina/fx_lina_skill1_dragon_slave
+      Dependencies: {}
+    Info_32:
+      Name: effect/boss/fx_boss_skill2_hit
+      Dependencies: {}
+    Info_33:
+      Name: effect/enchantress/fx_xiaolu_skill2_warmup
+      Dependencies: {}
+    Info_34:
+      Name: player/npc
+      Dependencies: {}
+    Info_35:
+      Name: effect/zeus/fx_zeus_attack_warmup
+      Dependencies: {}
+    Info_36:
+      Name: ui/common/uitip
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_37:
+      Name: effect/boss/fx_boss_skill1_warmup
+      Dependencies: {}
+    Info_38:
+      Name: ui/common/waiting
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_39:
+      Name: effect/enchantress/fx_xiaolu_attack_proj
+      Dependencies: {}
+    Info_40:
+      Name: ui/common/noticebroadcast
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_41:
+      Name: effect/enchantress/fx_xiaolu_attack_hit
+      Dependencies: {}
+    Info_42:
+      Name: effect/role_hero/fx_nanzhujue_skill1_warmup
+      Dependencies: {}
+    Info_43:
+      Name: effect/crystal maiden/fx_cm_skill1_aoe
+      Dependencies: {}
+    Info_44:
+      Name: effect/lina/fx_lina_skill3_proj
+      Dependencies: {}
+    Info_45:
+      Name: ui/mainui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/ui/mainui
+        Dependency_2: spriteatlas/atlas/icon/image
+    Info_46:
+      Name: effect/kulou/fx_kulou_skill1_warmup
+      Dependencies: {}
+    Info_47:
+      Name: effect/zhuhuang/fx_zhuhuang_attack_warmup (2)
+      Dependencies: {}
+    Info_48:
+      Name: effect/yangtouguai/fx_yangtouguai_skill2_warmup
+      Dependencies: {}
+    Info_49:
+      Name: avatar/monster/role_emo2
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_50:
+      Name: effect/enchantress/fx_xiaolu_skill3_proj
+      Dependencies: {}
+    Info_51:
+      Name: avatar/character/role_enchantress
+      Dependencies: {}
+    Info_52:
+      Name: ui/common/messagebox
+      Dependencies: {}
+    Info_53:
+      Name: ui/common/imagenumber
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/number
+    Info_54:
+      Name: effect/zeus/fx_zeus_skill1_arc_lightning_warmup
+      Dependencies: {}
+    Info_55:
+      Name: effect/drow ranger/fx_dr_skill2_warmup
+      Dependencies: {}
+    Info_56:
+      Name: avatar/monster/role_yangtouguai
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_57:
+      Name: avatar/monster/role_emo3
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_58:
+      Name: avatar/monster/role_kulou
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_59:
+      Name: effect/lina/fx_lina_attack_proj
+      Dependencies: {}
+    Info_60:
+      Name: avatar/character/role_archer
+      Dependencies: {}
+    Info_61:
+      Name: effect/fx_current
+      Dependencies: {}
+    Info_62:
+      Name: avatar/monster/role_yangtouguai2
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_63:
+      Name: ui/guide/guidestart
+      Dependencies: {}
+    Info_64:
+      Name: ui/common/gstatus
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_65:
+      Name: effect/drow ranger/fx_dr_attack_proj
+      Dependencies: {}
+    Info_66:
+      Name: effect/yangtouguai/fx_yangtouguai_attack_warmup
+      Dependencies: {}
+    Info_67:
+      Name: effect/boss/fx_boss_skill2_warmup
+      Dependencies: {}
+    Info_68:
+      Name: ui/battle/levelupui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/ui/mainui
+        Dependency_2: spriteatlas/atlas/ui/button
+        Dependency_3: spriteatlas/atlas/ui/resultui
+        Dependency_4: spriteatlas/atlas/icon/image
+    Info_69:
+      Name: effect/crystal maiden/fx_cm_attack_proj
+      Dependencies: {}
+    Info_70:
+      Name: avatar/monster/role_boss2
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_71:
+      Name: avatar/character/role_zhujue
+      Dependencies: {}
+    Info_72:
+      Name: avatar/monster/role_emo
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_73:
+      Name: player/bullet
+      Dependencies: {}
+    Info_74:
+      Name: avatar/monster/role_kulou3
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_75:
+      Name: ui/battle/battleresultui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/button
+        Dependency_1: spriteatlas/atlas/ui/resultui
+    Info_76:
+      Name: ui/battle/pauseui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/button
+        Dependency_1: spriteatlas/atlas/ui/pauseui
+    Info_77:
+      Name: effect/damage/damagepoint
+      Dependencies: {}
+    Info_78:
+      Name: effect/damage/recoverpoint
+      Dependencies: {}
+    Info_79:
+      Name: avatar/monster/role_boss
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_80:
+      Name: effect/kulou/fx_kulou_attack_hit
+      Dependencies: {}
+    Info_81:
+      Name: ui/startui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/loading
+        Dependency_1: spriteatlas/sprites/loading/homepage
+        Dependency_2: spriteatlas/sprites/start/logobg
+    Info_82:
+      Name: avatar/character/role_crystalmaiden
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_83:
+      Name: effect/zhuhuang/fx_zhuhuang_skill1_warmup
+      Dependencies: {}
+    Info_84:
+      Name: effect/yangtouguai/fx_yangtouguai_skill1_warmup
+      Dependencies: {}
+    Info_85:
+      Name: avatar/character/role_zeus
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_86:
+      Name: effect/boss/fx_boss_attack_hit
+      Dependencies: {}
+    Info_87:
+      Name: effect/others/fx_select_enemy
+      Dependencies: {}
+    Info_88:
+      Name: ui/guide/guidefailedhint
+      Dependencies: {}
+    Info_89:
+      Name: avatar/monster/role_zhuhuang3
+      Dependencies: {}
+    Info_90:
+      Name: effect/zeus/fx_zeus_skill3_aoe
+      Dependencies: {}
+    Info_91:
+      Name: effect/kulou/fx_kulou_attack_proj
+      Dependencies: {}
+    Info_92:
+      Name: ui/common/noticemessage
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_93:
+      Name: effect/drow ranger/fx_dr_skill1_proj
+      Dependencies: {}
+    Info_94:
+      Name: avatar/monster/role_boss3
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_95:
+      Name: effect/fx_monster_attack_hit
+      Dependencies: {}
+    Info_96:
+      Name: effect/zhuhuang/fx_zhuhuang_attack_warmup
+      Dependencies: {}
+    Info_97:
+      Name: ui/model/modelhpbar
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/object
+    Info_98:
+      Name: avatar/monster/monster_01
+      Dependencies: {}
+    Info_99:
+      Name: effect/others/fx_select_char
+      Dependencies: {}
+    Info_100:
+      Name: effect/kuilei/fx_kuilei_attack_hit
+      Dependencies: {}
+    Info_101:
+      Name: effect/drow ranger/fx_dr_skill2_proj
+      Dependencies: {}
+    Info_102:
+      Name: effect/emo/fx_emo_attack_hit
+      Dependencies: {}
+    Info_103:
+      Name: ui/common/scenetransition
+      Dependencies: {}
+    Info_104:
+      Name: avatar/monster/role_kuilei
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_105:
+      Name: effect/kuilei/fx_kulei_skill1_warmup
+      Dependencies: {}
+    Info_106:
+      Name: effect/damage/hit_none
+      Dependencies: {}
+    Info_107:
+      Name: ui/common/scenebackmasking
+      Dependencies: {}
+    Info_108:
+      Name: ui/battle/skillunlockui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/icon/skill
+        Dependency_1: spriteatlas/atlas/ui/button
+        Dependency_2: spriteatlas/atlas/ui/resultui
+        Dependency_3: spriteatlas/atlas/ui/fightui
+    Info_109:
+      Name: ui/subui/mapui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/ui/mainui
+        Dependency_2: spriteatlas/atlas/ui/button
+        Dependency_3: spriteatlas/atlas/icon/image
+        Dependency_4: spriteatlas/atlas/icon/map
+        Dependency_5: spriteatlas/atlas/ui/mapui
+    Info_110:
+      Name: effect/zeus/fx_zeus_skill1_warmup
+      Dependencies: {}
+    Info_111:
+      Name: ui/battle/pveui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/icon/skill
+        Dependency_1: spriteatlas/atlas/ui/button
+        Dependency_2: spriteatlas/atlas/ui/pauseui
+        Dependency_3: spriteatlas/atlas/ui/fightui
+        Dependency_4: spriteatlas/atlas/icon/image
+    Info_112:
+      Name: loadhelper
+      Dependencies: {}
+    Info_113:
+      Name: ui/common/tip
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_114:
+      Name: avatar/monster/roel_kuloumaoshou
+      Dependencies: {}
+    Info_115:
+      Name: stage/plane
+      Dependencies: {}
+    Info_116:
+      Name: avatar/monster/role_kuilei2
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_117:
+      Name: ui/subui/shopui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/icon/skill
+        Dependency_2: spriteatlas/atlas/ui/mainui
+        Dependency_3: spriteatlas/atlas/ui/button
+        Dependency_4: spriteatlas/atlas/ui/shopui
+    Info_118:
+      Name: ui/subui/settingui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/mainui
+        Dependency_1: spriteatlas/atlas/ui/button
+        Dependency_2: spriteatlas/atlas/ui/pauseui
+    Info_119:
+      Name: avatar/monster/role_zhuhuang
+      Dependencies: {}
+    Info_120:
+      Name: ui/common/talkui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/talkui
+        Dependency_1: spriteatlas/atlas/icon/bodyimage
+    Info_121:
+      Name: avatar/monster/role_yangtouguai3
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_122:
+      Name: ui/subui/heroui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/icon/skill
+        Dependency_2: spriteatlas/atlas/ui/mainui
+        Dependency_3: spriteatlas/atlas/ui/button
+    Info_123:
+      Name: effect/yangtouguai/fx_yangtouguai_skill2_aoe
+      Dependencies: {}
+    Info_124:
+      Name: ui/common/noticemessage2
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+    Info_125:
+      Name: ui/lobbyui
+      Dependencies: {}
+    Info_126:
+      Name: avatar/character/role_drowranger
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_127:
+      Name: effect/lina/fx_lina_skill2_warmup
+      Dependencies: {}
+    Info_128:
+      Name: avatar/monster/role_kuilei3
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_129:
+      Name: effect/kuilei/fx_kuilei_skill2_hit
+      Dependencies: {}
+    Info_130:
+      Name: effect/crystal maiden/fx_cm_skill3_aoe
+      Dependencies: {}
+    Info_131:
+      Name: ui/subui/mapinfoui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/ui/mainui
+        Dependency_2: spriteatlas/atlas/ui/button
+        Dependency_3: spriteatlas/atlas/icon/image
+    Info_132:
+      Name: effect/emo/fx_emo_attack_warmup
+      Dependencies: {}
+    Info_133:
+      Name: effect/enchantress/fx_xiaolu_skill2_hit
+      Dependencies: {}
+    Info_134:
+      Name: effect/zeus/fx_zeus_attack_proj
+      Dependencies: {}
+    Info_135:
+      Name: ui/loadingui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/loading
+        Dependency_1: spriteatlas/sprites/loading/loading_001
+    Info_136:
+      Name: player/character
+      Dependencies: {}
+    Info_137:
+      Name: avatar/monster/role_kulou2
+      Dependencies:
+        Dependency_0: avatar/monster/roel_kuloumaoshou
+    Info_138:
+      Name: effect/enchantress/fx_xiaolu_skill1_debuff_sleep
+      Dependencies: {}
+    Info_139:
+      Name: avatar/monster/role_zhuhuang2
+      Dependencies: {}
+    Info_140:
+      Name: ui/loginui
+      Dependencies:
+        Dependency_0: spriteatlas/sprites/start/btn_login
+        Dependency_1: spriteatlas/sprites/start/logo
+        Dependency_2: spriteatlas/sprites/start/logobg
+    Info_141:
+      Name: effect/fx_select
+      Dependencies: {}
+    Info_142:
+      Name: ui/guide/guide_click
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/guide
+    Info_143:
+      Name: effect/role_hero/fx_nanzhujue_attack_warmup
+      Dependencies: {}
+    Info_144:
+      Name: audio/voice/3002/voice2
+      Dependencies: {}
+    Info_145:
+      Name: audio/music/login
+      Dependencies: {}
+    Info_146:
+      Name: audio/music/main
+      Dependencies: {}
+    Info_147:
+      Name: audio/voice/3005/voice4
+      Dependencies: {}
+    Info_148:
+      Name: audio/voice/3004/voice4
+      Dependencies: {}
+    Info_149:
+      Name: audio/voice/3002/voice1
+      Dependencies: {}
+    Info_150:
+      Name: audio/voice/3001/voice2
+      Dependencies: {}
+    Info_151:
+      Name: audio/music/fight
+      Dependencies: {}
+    Info_152:
+      Name: audio/voice/3003/voice3
+      Dependencies: {}
+    Info_153:
+      Name: audio/voice/3005/voice3
+      Dependencies: {}
+    Info_154:
+      Name: audio/voice/3002/voice3
+      Dependencies: {}
+    Info_155:
+      Name: audio/voice/3006/voice1
+      Dependencies: {}
+    Info_156:
+      Name: audio/voice/3006/voice2
+      Dependencies: {}
+    Info_157:
+      Name: audio/voice/3003/voice2
+      Dependencies: {}
+    Info_158:
+      Name: audio/voice/3006/voice4
+      Dependencies: {}
+    Info_159:
+      Name: audio/voice/3005/voice1
+      Dependencies: {}
+    Info_160:
+      Name: audio/sound/1002
+      Dependencies: {}
+    Info_161:
+      Name: audio/voice/3002/voice4
+      Dependencies: {}
+    Info_162:
+      Name: audio/voice/3006/voice3
+      Dependencies: {}
+    Info_163:
+      Name: audio/voice/3004/voice2
+      Dependencies: {}
+    Info_164:
+      Name: audio/voice/3003/voice4
+      Dependencies: {}
+    Info_165:
+      Name: audio/voice/3001/voice3
+      Dependencies: {}
+    Info_166:
+      Name: audio/voice/3005/voice2
+      Dependencies: {}
+    Info_167:
+      Name: audio/voice/3001/voice4
+      Dependencies: {}
+    Info_168:
+      Name: audio/sound/1003
+      Dependencies: {}
+    Info_169:
+      Name: audio/voice/3003/voice1
+      Dependencies: {}
+    Info_170:
+      Name: audio/voice/3001/voice1
+      Dependencies: {}
+    Info_171:
+      Name: audio/sound/1001
+      Dependencies: {}
+    Info_172:
+      Name: audio/voice/3004/voice3
+      Dependencies: {}
+    Info_173:
+      Name: audio/voice/3004/voice1
+      Dependencies: {}
+    Info_174:
+      Name: effect/boss/fx_boss_skill1_hit
+      Dependencies: {}
+    Info_175:
+      Name: effect/buff/fx_buff_attackup
+      Dependencies: {}
+    Info_176:
+      Name: effect/buff/fx_buff_defenceup
+      Dependencies: {}
+    Info_177:
+      Name: effect/buff/fx_debuff_silent
+      Dependencies: {}
+    Info_178:
+      Name: effect/buff/fx_debuff_stun
+      Dependencies: {}
+    Info_179:
+      Name: effect/crystal maiden/fx_cm_attack_hit
+      Dependencies: {}
+    Info_180:
+      Name: effect/crystal maiden/fx_cm_skill2_hit
+      Dependencies: {}
+    Info_181:
+      Name: effect/drow ranger/fx_dr_attack_hit
+      Dependencies: {}
+    Info_182:
+      Name: effect/drow ranger/fx_dr_skill3_debuff
+      Dependencies: {}
+    Info_183:
+      Name: effect/lina/fx_lina_attack_hit
+      Dependencies: {}
+    Info_184:
+      Name: effect/lina/fx_lina_skill1_warmup
+      Dependencies: {}
+    Info_185:
+      Name: effect/lina/fx_lina_skill2_aoe
+      Dependencies: {}
+    Info_186:
+      Name: effect/lina/fx_lina_skill3_hit
+      Dependencies: {}
+    Info_187:
+      Name: effect/role_hero/fx_nanzhujue_attack_hit
+      Dependencies: {}
+    Info_188:
+      Name: effect/role_hero/fx_nanzhujue_skill2_buff
+      Dependencies: {}
+    Info_189:
+      Name: effect/role_hero/fx_nanzhujue_skill3_hit
+      Dependencies: {}
+    Info_190:
+      Name: effect/zeus/fx_zeus_attack_hit
+      Dependencies: {}
+    Info_191:
+      Name: effect/zeus/fx_zeus_skill2_hit
+      Dependencies: {}
+    Info_192:
+      Name: effect/zhuhuang/fx_zhuhuang_skill1_hit
+      Dependencies: {}
+    Info_193:
+      Name: ui/subui/herolistui
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/common
+        Dependency_1: spriteatlas/atlas/ui/mainui
+        Dependency_2: spriteatlas/atlas/ui/button
+        Dependency_3: spriteatlas/atlas/icon/image
+        Dependency_4: spriteatlas/atlas/icon/bodyimage
+        Dependency_5: spriteatlas/atlas/ui/herolistui
+    Info_194:
+      Name: ui/subui/mapui_3d
+      Dependencies:
+        Dependency_0: spriteatlas/atlas/ui/mainui
+        Dependency_1: spriteatlas/atlas/ui/button
+    Info_195:
+      Name: spriteatlas/atlas/icon/map
+      Dependencies: {}
+    Info_196:
+      Name: spriteatlas/atlas/icon/shop
+      Dependencies: {}
+    Info_197:
+      Name: spriteatlas/atlas/ui/herolistui
+      Dependencies: {}
+    Info_198:
+      Name: spriteatlas/atlas/ui/mapui
+      Dependencies: {}
+    Info_199:
+      Name: audio/music/camp_bg
+      Dependencies: {}
+    Info_200:
+      Name: audio/music/combat_result_01
+      Dependencies: {}
+    Info_201:
+      Name: audio/music/combat_result_02
+      Dependencies: {}
+    Info_202:
+      Name: audio/music/hero_lvup
+      Dependencies: {}
+    Info_203:
+      Name: audio/sound/btn_appear
+      Dependencies: {}
+    Info_204:
+      Name: audio/sound/get_glod
+      Dependencies: {}
+    Info_205:
+      Name: audio/sound/get_star
+      Dependencies: {}
+    Info_206:
+      Name: audio/sound/line_appear
+      Dependencies: {}
+    Info_207:
+      Name: audio/sound/new_record
+      Dependencies: {}
+    Info_208:
+      Name: audio/sound/stamp
+      Dependencies: {}
+    Info_209:
+      Name: audio/sound/wing_open
+      Dependencies: {}

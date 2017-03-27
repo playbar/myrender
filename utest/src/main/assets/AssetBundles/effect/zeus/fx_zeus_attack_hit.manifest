@@ -1,0 +1,28 @@
+ManifestFileVersion: 0
+CRC: 1713988175
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: a3198c5d93552fd399d0fdc4c640b8fe
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 72c672a573805b082a1a1eda500886ca
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Zeus/fx_zeus_attack_hit.prefab
+Dependencies: []

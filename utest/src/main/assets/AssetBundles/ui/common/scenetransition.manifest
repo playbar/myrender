@@ -1,0 +1,32 @@
+ManifestFileVersion: 0
+CRC: 1108419081
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 369627542e79e6950765e4f223edac97
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: ebd7819f3dbeddd7e90ce5be20233021
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: cd1c54b0c8846064690be4da79c3aa54, type: 3}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 65b76f5a80f1664418fbf8dc0025afb9, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/Common/SceneTransition.prefab
+Dependencies: []

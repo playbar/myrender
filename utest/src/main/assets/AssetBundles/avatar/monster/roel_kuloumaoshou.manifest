@@ -1,0 +1,36 @@
+ManifestFileVersion: 0
+CRC: 1138186684
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 8761f0f6140f1cc6f428a1d48baa1979
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9ea78c2634e8bf72e860fb6c8a9ca015
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 74
+  Script: {instanceID: 0}
+- Class: 111
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 77870126a088069478736613512750a1, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 137
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Avatar/Monster/roel_kuloumaoshou.prefab
+Dependencies: []

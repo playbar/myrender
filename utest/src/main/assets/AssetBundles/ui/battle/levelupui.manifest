@@ -1,0 +1,69 @@
+ManifestFileVersion: 0
+CRC: 1458015500
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: c6b502d9f8be8f095e8c5f547cc56d5b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: f9bd7c202850e40cefc77743adb2b8a9
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 61
+  Script: {instanceID: 0}
+- Class: 74
+  Script: {instanceID: 0}
+- Class: 91
+  Script: {instanceID: 0}
+- Class: 95
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: a198610178c6231478c8a32a7c4408b6, type: 3}
+- Class: 114
+  Script: {fileID: 1392445389, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: -405508275, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: -900027084, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 9e2747e3775af504da1a4d5a46c5a1ce, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: bf482d3510b35504eb8b55a5447365da, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 3d166255cacf07b4292b8402b3ddefc5, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: b2b73c27709f7b748af923d3b9ddc0b6, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+- Class: 225
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/Battle/LevelUpUI.prefab
+Dependencies:
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/common
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/mainui
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/button
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/resultui
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/icon/image

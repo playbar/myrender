@@ -1,0 +1,40 @@
+ManifestFileVersion: 0
+CRC: 3566327071
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 68e9d4bf43c8964add461e70c70e120e
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 02346ad9460e373bb21c7966d8b91fb5
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 65
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: b5e71c7b4bb2993478a0d957c8c5489c, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 119
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Player/Character.prefab
+Dependencies: []

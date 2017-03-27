@@ -1,0 +1,43 @@
+ManifestFileVersion: 0
+CRC: 2783087442
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 06aa3fe5232e9d7bfcfbe3ef916aac66
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5003.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/3004.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5011.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5006.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5001.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5013.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5005.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5002.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5014.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5025.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/3005.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5004.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5023.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5026.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5015.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/00102.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/3002.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5016.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5022.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5012.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/3003.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/3006.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/0011.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5024.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/5021.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/Icon/Image/10011.png
+Dependencies: []

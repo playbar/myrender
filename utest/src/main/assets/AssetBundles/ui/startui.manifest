@@ -1,0 +1,39 @@
+ManifestFileVersion: 0
+CRC: 4042506911
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 04f8db955490b6b509290107dac857d7
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: f1d097ecf00d4440096ebf1a2694f4a6
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 9e2747e3775af504da1a4d5a46c5a1ce, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: e3259a99631f0124ab0b777c13899d82, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 65b76f5a80f1664418fbf8dc0025afb9, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+- Class: 225
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/StartUI.prefab
+Dependencies:
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/loading
+- Assets/StreamingAssets/AssetBundles/spriteatlas/sprites/loading/homepage
+- Assets/StreamingAssets/AssetBundles/spriteatlas/sprites/start/logobg

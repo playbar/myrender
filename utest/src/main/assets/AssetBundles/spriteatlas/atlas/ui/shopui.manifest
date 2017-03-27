@@ -1,0 +1,33 @@
+ManifestFileVersion: 0
+CRC: 121870095
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: e82168b99c8dfba21336cb90f15f76fc
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/topbg.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/spr_arrow.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/top.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/role6.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/spr_shop_bg2.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/role2.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/role5.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/tabButton2.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/lab_buy.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/point.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/tabButton1.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/role4.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/role1.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/role3.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/spr_shop_bg1.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/ShopUI/item1.png
+Dependencies: []

@@ -1,0 +1,28 @@
+ManifestFileVersion: 0
+CRC: 710553476
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: ce615a869ee65cf466c578e38cecc8c6
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 72c672a573805b082a1a1eda500886ca
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Lina/fx_lina_skill2_aoe.prefab
+Dependencies: []

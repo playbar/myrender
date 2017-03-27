@@ -1,0 +1,43 @@
+ManifestFileVersion: 0
+CRC: 545588294
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 80ae35c65ca807e6d53311ab5317ef4b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 1c9c865a002ea97335e7502cc26bb71b
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: -900027084, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 7b1ae29263f070243931b981415316d6, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/Common/GStatus.prefab
+Dependencies:
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/common

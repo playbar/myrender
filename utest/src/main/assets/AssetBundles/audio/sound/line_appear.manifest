@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 3376655882
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 5054f69ef08c85bf12871099e1c6ea4b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c516f2a3b2b6b67ef759f6410a790acd
+HashAppended: 0
+ClassTypes:
+- Class: 83
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Audio/Sound/line_appear.mp3
+Dependencies: []

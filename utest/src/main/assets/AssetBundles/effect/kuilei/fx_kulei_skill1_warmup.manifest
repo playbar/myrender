@@ -1,0 +1,32 @@
+ManifestFileVersion: 0
+CRC: 2314218550
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: ee1528f82ff212098ad6be588747ed4b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 884ff0036f76760d7f34ef5a14efce0f
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 3711c1a05591c3442b8e240a3a424283, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Kuilei/fx_Kulei_skill1_warmup.prefab
+Dependencies: []

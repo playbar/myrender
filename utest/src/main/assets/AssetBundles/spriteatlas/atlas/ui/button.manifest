@@ -1,0 +1,28 @@
+ManifestFileVersion: 0
+CRC: 3034959780
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: e03f5458bb3ae561ca5de36896826b3b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/Btn_Blue01.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/Btn_Pause.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/ok.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/cancel.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/Btn_Yellow01.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/enter.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/button_close.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/Btn_back.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/quit.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/continue.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Button/button_bg_yellow.png
+Dependencies: []

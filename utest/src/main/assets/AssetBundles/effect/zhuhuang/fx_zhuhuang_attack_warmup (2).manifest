@@ -1,0 +1,34 @@
+ManifestFileVersion: 0
+CRC: 2511323176
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 62a17b2ca044183674e225302d16891b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: e148021f6c00dd0d22b017f36729fb2a
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 3711c1a05591c3442b8e240a3a424283, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Zhuhuang/fx_Zhuhuang_attack_warmup (2).prefab
+Dependencies: []

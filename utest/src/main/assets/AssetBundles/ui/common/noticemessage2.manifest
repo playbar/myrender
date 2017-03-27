@@ -1,0 +1,47 @@
+ManifestFileVersion: 0
+CRC: 3987502735
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 63701c72187dcf75fd964d8c6a24919a
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: fefb706d76efe566453955a27ef6f4f3
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 75e7459110b9666449485c40f25362a5, type: 3}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 56716444c2a9eac4b9af3f21a8fc4bf9, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 3d166255cacf07b4292b8402b3ddefc5, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+- Class: 225
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/Common/NoticeMessage2.prefab
+Dependencies:
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/common

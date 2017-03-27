@@ -1,0 +1,30 @@
+ManifestFileVersion: 0
+CRC: 1193666314
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 2bceb3d12fa2536474008d1f1601a0d5
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: cf0fa9b7e8aba4bf8cbd7fbec4d0f6a7
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Buff/fx_debuff_stun.prefab
+Dependencies: []

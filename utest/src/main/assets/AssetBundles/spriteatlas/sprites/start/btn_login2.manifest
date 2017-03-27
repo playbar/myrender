@@ -1,0 +1,18 @@
+ManifestFileVersion: 0
+CRC: 3746264398
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 085754a3b873a0b78712da0f579715fc
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Sprites/Start/Btn_Login2.png
+Dependencies: []

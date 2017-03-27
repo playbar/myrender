@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 855746842
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: d7471fe7dbb24374b40a59927c955382
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c516f2a3b2b6b67ef759f6410a790acd
+HashAppended: 0
+ClassTypes:
+- Class: 83
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Audio/Voice/3001/voice4.mp3
+Dependencies: []

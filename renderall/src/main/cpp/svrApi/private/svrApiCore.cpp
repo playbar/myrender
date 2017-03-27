@@ -404,8 +404,13 @@ void L_SetThreadPriority(const char *pName, int policy, int priority)
 bool svrInitialize(const svrInitParams* pInitParams)
 //-----------------------------------------------------------------------------
 {
-    LOGI("svrApi Version : %s", svrGetVersion());
-
+    LOGI("svrApi Version : %s,(svrInitialize begin)", svrGetVersion());
+    if( gAppContext != NULL ){
+#ifdef USE_QVR_SERVICE
+        delete gAppContext->qvrService;
+#endif // USE_QVR_SERVICE
+        delete gAppContext;
+    }
     gAppContext = new SvrAppContext();
 #ifdef USE_QVR_SERVICE
     gAppContext->qvrService = NULL;
@@ -1125,6 +1130,11 @@ void svrEndVr()
 void svrSubmitFrame(const svrFrameParams* pFrameParams)
 //-----------------------------------------------------------------------------
 {
+    if( gAppContext == NULL )
+    {
+        LOGE("svrSubmitFrame Failed: gAppContext is NULL");
+        return;
+    }
     if (gAppContext == NULL || gAppContext->inVrMode == false)
     {
         LOGE("svrSubmitFrame Failed: Called when not in VR mode!");

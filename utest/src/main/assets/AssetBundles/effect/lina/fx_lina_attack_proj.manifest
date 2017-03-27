@@ -1,0 +1,36 @@
+ManifestFileVersion: 0
+CRC: 57228052
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: a9e5aef2f5d3771647916db2c9cfe2a1
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 7014f8c635bb5b5e810768ad32272751
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 96
+  Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 3711c1a05591c3442b8e240a3a424283, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Lina/fx_lina_attack_proj.prefab
+Dependencies: []

@@ -1,0 +1,36 @@
+ManifestFileVersion: 0
+CRC: 1498781124
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 898c76a13a3ed1aab215d02af9816fc5
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: e9437c603cbf7537278b8da03fe99008
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 74
+  Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
+- Class: 111
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Effect/Crystal Maiden/fx_CM_skill2_hit.prefab
+Dependencies: []

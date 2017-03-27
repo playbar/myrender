@@ -1,0 +1,22 @@
+ManifestFileVersion: 0
+CRC: 1385736395
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 5ff2fb1c51148969903329f132610d96
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 93e2515a3f48d0ce074f13869b6bca8c
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: d17ce6f3dbda0e04581f8e65971b1c59, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/LoadHelper.prefab
+Dependencies: []

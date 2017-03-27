@@ -1,0 +1,18 @@
+ManifestFileVersion: 0
+CRC: 2151051349
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: aa8c1f5ba1e575f27a01a9ecc365c096
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Sprites/Loading/Homepage.jpg
+Dependencies: []

@@ -1,0 +1,44 @@
+ManifestFileVersion: 0
+CRC: 3261442833
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 68ca109762bc2c533c51604f2ea81cae
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: d503436cdca617bd46e5fea092a0cb50
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: -113659843, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 708705254, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 65b76f5a80f1664418fbf8dc0025afb9, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 03b7efce77e1d6d468903ca87c28d6f1, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 128
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/LoadingUI.prefab
+Dependencies:
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/loading
+- Assets/StreamingAssets/AssetBundles/spriteatlas/sprites/loading/loading_001

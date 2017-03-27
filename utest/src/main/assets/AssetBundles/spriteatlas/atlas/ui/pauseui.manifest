@@ -1,0 +1,24 @@
+ManifestFileVersion: 0
+CRC: 1682285708
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 4981eedea7ca2aeefff9b16ecf116e7e
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Frame04.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Txt_Return.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Frame02.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Frame01.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Frame03.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Txt_Continue.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/PauseUI/Txt_Pause.png
+Dependencies: []

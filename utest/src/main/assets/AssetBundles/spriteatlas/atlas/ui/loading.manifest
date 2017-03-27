@@ -1,0 +1,19 @@
+ManifestFileVersion: 0
+CRC: 3133226599
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: d18cea2104bcd5e97a708942a3869d17
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9dea23ffc7e96552740e12d1ee5309d8
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Loading/Bar_Loading.png
+- Assets/ResourceAssets/SpriteAtlas/Atlas/UI/Loading/UI_Loading.png
+Dependencies: []

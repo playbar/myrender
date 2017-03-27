@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 1098938379
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 27ca791bcbe290fabbd4f193c7f31f70
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c516f2a3b2b6b67ef759f6410a790acd
+HashAppended: 0
+ClassTypes:
+- Class: 83
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/Audio/Music/combat_result_01.mp3
+Dependencies: []

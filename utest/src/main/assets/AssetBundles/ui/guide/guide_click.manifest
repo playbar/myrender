@@ -1,0 +1,35 @@
+ManifestFileVersion: 0
+CRC: 1714397560
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: dd99c03863ed444c6360f86c49792f0e
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: d623b14f705deac20b9f36dc0d6e525b
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 61
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: -765806418, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 736f5433be44f0d40b5e9c2964ccfcb2, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 9e2747e3775af504da1a4d5a46c5a1ce, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 3d166255cacf07b4292b8402b3ddefc5, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 222
+  Script: {instanceID: 0}
+- Class: 224
+  Script: {instanceID: 0}
+Assets:
+- Assets/ResourceAssets/UI/Guide/Guide_Click.prefab
+Dependencies:
+- Assets/StreamingAssets/AssetBundles/spriteatlas/atlas/ui/guide
