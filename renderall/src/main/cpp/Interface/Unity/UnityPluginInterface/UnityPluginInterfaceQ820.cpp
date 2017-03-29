@@ -568,7 +568,7 @@ namespace Baofeng
 					char szLog[512];
 					sprintf(szLog, "Rotation = ( %1.4f , %1.4f , %1.4f , %1.4f) , EulerAngles = (%3.4f , %3.4f , %3.4f )", 
 						x,y,z,w,roll, pitch, yaw);
-//					MOJING_TRACE(g_APIlogger, szLog);
+					MOJING_TRACE(g_APIlogger, szLog);
 				}
 #endif
 

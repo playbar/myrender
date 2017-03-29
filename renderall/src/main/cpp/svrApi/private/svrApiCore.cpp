@@ -935,7 +935,7 @@ int svrBeginVr(const svrBeginParams* pBeginParams)
     pThreadJEnv->CallStaticVoidMethod(gAppContext->javaSvrApiClass, gAppContext->javaSvrApiStartVsyncMethodId, gAppContext->javaActivityObject);
 #endif
 
-    LOGE("BOM Set Line PTRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    LOGI("BOM Set Line PTRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
 #ifdef USE_QVR_SERVICE
     int ret;
@@ -950,7 +950,7 @@ int svrBeginVr(const svrBeginParams* pBeginParams)
         return 3;
     }
 
-    LOGE("BOM Start VRMODE BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+    LOGI("BOM Start VRMODE BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
 
     state = gAppContext->qvrService->GetVRMode();
     if (state != VRMODE_STARTED)
@@ -1130,6 +1130,7 @@ void svrEndVr()
 void svrSubmitFrame(const svrFrameParams* pFrameParams)
 //-----------------------------------------------------------------------------
 {
+//    LOGE("F:%s, tid=%d", __FUNCTION__, gettid() );
     if( gAppContext == NULL )
     {
         LOGE("svrSubmitFrame Failed: gAppContext is NULL");
@@ -1216,7 +1217,7 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     }
 	if (fp.warpSync != 0)
     {
-        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
+        LOGE("warpSync:%d,not zero(F:%s, L:%d)", (int)fp.warpSync,  __FUNCTION__, __LINE__);
 	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);

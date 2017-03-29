@@ -2684,6 +2684,7 @@ void* WarpThreadMain(void* arg)
     {
 //        LOGE("begin while, F:%s threadid=%d", __FUNCTION__, gettid());
 
+//        LOGE("F:%s, tid=%d", __FUNCTION__, gettid() );
         if (gLogSubmitFps)
         {
             static unsigned int frameCounter = 0;

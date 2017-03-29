@@ -712,6 +712,7 @@ extern "C"
 		//MOJING_TRACE(g_APIlogger , "Event ID = " << eventID);
 #endif
 
+//		LOGE("F:%s, eventID:%d", __FUNCTION__,  eventID);
 		UnityPluginInterfaceBase *pUnityPlugin =        UnityPluginInterfaceBase::GetUnityPluginEventObj();
 		if (pUnityPlugin == NULL)
 		{

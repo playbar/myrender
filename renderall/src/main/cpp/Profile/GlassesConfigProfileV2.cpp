@@ -4,6 +4,7 @@
 
 #include "../Base/Base32.h"
 #include "../Base/CRC.h"
+#include "../Base/MojingTimer.h"
 #include "../3rdPart/MD5/MD5.h"
 #include "../Platform/MojingPlatformBase.h"
 #include "../Distortion/MojingDistortion.h"
@@ -12,6 +13,7 @@
 #include "../Parameters/MojingParameters.h"
 #include "../Parameters/MojingDisplayParameters.h"
 #include "../Profile/ProfileThreadMGR.h"
+#include "../Reporter/ReporterTools.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -1026,6 +1028,13 @@ namespace Baofeng
 		// 检查网络升级信息
 		void GlassesConfigProfileV2::CheckUpdate()
 		{
+			double dLastCheckGlassConfigTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckGlassConfig();
+			//request once per day.
+			if (fabs(ReporterTools::GetCurrentTime() - dLastCheckGlassConfigTime) < 86400.0)
+			{
+				return;
+			}
+
 			char szTime[32];
 			char szReleaseDate[32];
 			String data;
@@ -1070,6 +1079,9 @@ namespace Baofeng
 				MOJING_TRACE(g_APIlogger, "Update FAILD! Code = " << RespCode);
 				return;
 			}
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->SetCheckGlassConfig(ReporterTools::GetCurrentTime());
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->Save();
+
 			// 这是没有加密的JSON反馈，如果成功的返回了URL那么下载
 			GlassesConfigProfileV2 * pThis = (GlassesConfigProfileV2 *)pCallBackParam;
 			char *pBuffer = new char[uiSize + 1];
@@ -1130,6 +1142,7 @@ namespace Baofeng
                 MOJING_TRACE(g_APIlogger, "GlassesConfigProfileV2 Update NULL");
                 return;
             }
+
 			// 程序执行到这里表示成功下载了加密的配置文件
 			unsigned char* pEncBuffer = (unsigned char*)lpszRespString;
 			JSON *pNewJson = JSON::ParseEnc(lpszRespString, uiSize, g_EncKey);
