@@ -38,7 +38,7 @@ int LoadImage2Texture(const char* filePath) {
         MyLOGI("TextureUtil : [1]");
         jstring _filePath = env->NewStringUTF(filePath);
         if( g_textureUtil == nullptr) {
-            g_textureUtil = env->FindClass("baofeng/mojing/model3d/TextureUtil");
+            g_textureUtil = env->FindClass("com/model3d/TextureUtil");
         }
         jmethodID mid = env->GetStaticMethodID( g_textureUtil,"CreateTextureFromPic", "(Ljava/lang/String;)I");
         textureId = env->CallStaticIntMethod( g_textureUtil, mid, _filePath);
@@ -56,7 +56,7 @@ void UnloadImage(int textureId) {
     JNIEnv *env = GetEnv();
     if(env != nullptr) {
         if( g_textureUtil == nullptr) {
-            g_textureUtil = env->FindClass("baofeng.mojing.model3d.TextureUtil");
+            g_textureUtil = env->FindClass("com.model3d.TextureUtil");
         }
         jmethodID mid = env->GetStaticMethodID( g_textureUtil,"DeleteTextureId", "(I)V");
         env->CallStaticVoidMethod(g_textureUtil, mid, textureId);

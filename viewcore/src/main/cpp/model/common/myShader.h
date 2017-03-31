@@ -20,7 +20,7 @@
 #include "myLogger.h"
 #include <string>
 
-GLuint LoadShaders(std::string vertexShaderCode, std::string fragmentShaderCode);
+GLuint LoadShaders();
 GLuint GetAttributeLocation(GLuint programID, std::string variableName);
 GLint GetUniformLocation(GLuint programID, std::string uniformName);
 

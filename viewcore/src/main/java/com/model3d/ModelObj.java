@@ -1,4 +1,4 @@
-package baofeng.mojing.model3d;
+package com.model3d;
 
 import android.content.res.AssetManager;
 

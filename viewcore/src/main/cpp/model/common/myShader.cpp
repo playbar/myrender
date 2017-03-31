@@ -183,9 +183,8 @@ bool LinkProgram(GLuint programID, GLuint vertexShaderID,
 /**
  * Read the vertex & fragment shaders, compile and link them, return the program ID
  */
-GLuint LoadShaders(std::string vertexShaderFilename,
-                   std::string fragmentShaderFilename) {
-
+GLuint LoadShaders()
+{
     GLuint vertexShaderID, fragmentShaderID, programID;
     programID = glCreateProgram();
 

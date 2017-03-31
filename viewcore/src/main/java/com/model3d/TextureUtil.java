@@ -1,4 +1,4 @@
-package baofeng.mojing.model3d;
+package com.model3d;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
