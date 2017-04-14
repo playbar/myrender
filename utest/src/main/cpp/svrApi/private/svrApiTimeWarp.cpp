@@ -2758,7 +2758,7 @@ void* WarpThreadMain(void* arg)
         unsigned int curSubmitFrameCount = gAppContext->modeContext->submitFrameCount;
 
         //Get the frame parameters for the frame we will be warping
-        for (int i = 0; i < NUM_SWAP_FRAMES; i++)
+        for (int i = 0; i < NUM_SWAP_FRAMES -1; i++)
         {
             int checkFrameCount = curSubmitFrameCount - i;
 
@@ -2819,12 +2819,12 @@ void* WarpThreadMain(void* arg)
     		glDeleteSync(gpWarpFrame->warpSync);
     		gpWarpFrame->warpSync = 0;
 		}
-		/*LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 1]" ,
+		LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 1]" ,
 			curSubmitFrameCount,
 			gAppContext->modeContext->submitFrameCount,
 			gAppContext->modeContext->warpFrameCount,
 			gpWarpFrame->frameParams.eyeBufferArray[0]
-		);*/
+		);
 		
         int frameDoubled = 0;
         if (gLogFrameDoubles && gpWarpFrame->frameParams.minVsyncs == 1 && gAppContext->modeContext->warpFrameCount == prevWarpFrameCount)
@@ -3812,15 +3812,14 @@ void* WarpThreadMain(void* arg)
 
         PROFILE_EXIT(GROUP_TIMEWARP); //PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
 
-        gpWarpFrame = NULL;
-
-       	/*
         LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 2]" ,
 			curSubmitFrameCount,
 			gAppContext->modeContext->submitFrameCount,
 			gAppContext->modeContext->warpFrameCount,
 			gpWarpFrame->frameParams.eyeBufferArray[0]
-		);*/
+		);
+        gpWarpFrame = NULL;
+
 //        LOGE("end while");
     }   // while(true)
 

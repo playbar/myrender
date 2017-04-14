@@ -1,6 +1,6 @@
-include ':app'
+//include ':app'
 //include ':appall'
-include ':renderall'
+//include ':renderall'
 include ':utest'
-include ':viewcore'
+//include ':viewcore'
 
