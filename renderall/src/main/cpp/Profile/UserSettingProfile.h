@@ -1,5 +1,10 @@
 ﻿#pragma once
 #include "../Parameters/MojingJsonElement.h"
+
+#define CHECK_MOBILECONFIG_INTERVEL  86400.0
+#define CHECK_GLASSCONFIG_INTERVEL  86400.0
+#define CHECK_JOYSTICKPROFILE_INTERVEL  86400.0
+
 namespace Baofeng
 {
 	namespace Mojing
@@ -18,6 +23,7 @@ namespace Baofeng
 			CLASS_MEMBER_J(bool, m_b, SensorDataFromJava);
 			CLASS_MEMBER_J(double, m_d, CheckMobileConfig);
 			CLASS_MEMBER_J(double, m_d, CheckGlassConfig);
+			CLASS_MEMBER_J(double, m_d, CheckJoystickProfile);	
 		};
 
 

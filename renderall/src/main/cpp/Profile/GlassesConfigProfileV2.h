@@ -67,10 +67,12 @@ namespace Baofeng
 			CLASS_INTERFACE_J(unsigned int ,m_ui , ReleaseDate);
 			CLASS_INTERFACE_J(unsigned int, m_ui, AppID);
 			CLASS_INTERFACE(MojingProfileKey , m_ , CurrentKey);
-			Mutex m_Lock;
+			// Mutex m_Lock;
 			map<unsigned int, ManufacturerInfo* > m_ManufacturerMap;
 			map<unsigned int, ProductInfo*> m_ProductMap;
 			map<unsigned int, GlassInfo*> m_GlassMap;
+
+			//void UpdateDURL();
 			
 		};
 

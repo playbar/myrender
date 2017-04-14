@@ -16,6 +16,7 @@ namespace Baofeng
 			m_bSensorDataFromJava = false;
 			m_dCheckGlassConfig = 0;
 			m_dCheckMobileConfig = 0;
+			m_dCheckJoystickProfile = 0;
 		}
 
 
@@ -31,6 +32,7 @@ namespace Baofeng
 			SensorDataFromJavaToJson(pRet);
 			CheckGlassConfigToJson(pRet);
 			CheckMobileConfigToJson(pRet);
+			CheckJoystickProfileToJson(pRet);
 			return pRet;
 		}
 
@@ -74,6 +76,9 @@ namespace Baofeng
 					JSON* pGlassCfgJson = pJson->GetItemByName("CheckGlassConfig");
 					if (pMobileCfgJson)
 						m_dCheckGlassConfig = pGlassCfgJson->GetDoubleValue();
+					JSON* pJoystickProfileJson = pJson->GetItemByName("CheckJoystickProfile");
+					if (pJoystickProfileJson)
+						m_dCheckJoystickProfile = pJoystickProfileJson->GetDoubleValue();
 				}
 			}
 

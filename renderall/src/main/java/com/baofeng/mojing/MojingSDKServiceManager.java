@@ -51,7 +51,7 @@ public class MojingSDKServiceManager {
 				jsonObj.put("PackageName", packageName);
 				jsonObj.put("EnableSensorFusion", true);
 				jsonObj.put("SensorFromJava", com.baofeng.mojing.MojingSDK.IsSensorFromJava());
-				jsonObj.put("UseSocket", true);
+				//jsonObj.put("UseSocket", true);
 				mService.clientResume(jsonObj.toString(), callback);
 	        } catch (RemoteException e) {
 	            e.printStackTrace();
@@ -257,7 +257,6 @@ public class MojingSDKServiceManager {
     }
     
 	public static void onResume(Activity activity) {
-		if(com.baofeng.mojing.MojingSDK.IsUseUnityForSVR()) return;
 		noTrackerMode = false;
 		bindService(activity);
 	}
@@ -280,7 +279,6 @@ public class MojingSDKServiceManager {
 	}
 	
 	public static void onPause(Activity activity) {
-		if(com.baofeng.mojing.MojingSDK.IsUseUnityForSVR()) return;
 		if (mService != null) {
 			try {
 				// stop socket heartbeat
@@ -293,7 +291,7 @@ public class MojingSDKServiceManager {
 				JSONObject jsonObj = new JSONObject();
 				jsonObj.put("PackageName", activity.getPackageName());
 				jsonObj.put("EnableSensorFusion", true);
-				jsonObj.put("UseSocket", true);
+				//jsonObj.put("UseSocket", true);
 				mService.clientPause(jsonObj.toString());
 	        } catch (RemoteException e) {
 	            e.printStackTrace();
@@ -301,8 +299,15 @@ public class MojingSDKServiceManager {
 	        	e.printStackTrace();
 	        }
 		}
-		activity.unbindService(connection);
-		
+
+		try {
+			activity.unbindService(connection);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+			
 		if (!noTrackerMode) com.baofeng.mojing.MojingSDK.StopTracker();
 	}
 	

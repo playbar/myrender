@@ -1030,7 +1030,7 @@ namespace Baofeng
 		{
 			double dLastCheckGlassConfigTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckGlassConfig();
 			//request once per day.
-			if (fabs(ReporterTools::GetCurrentTime() - dLastCheckGlassConfigTime) < 86400.0)
+			if (fabs(ReporterTools::GetCurrentTime() - dLastCheckGlassConfigTime) < CHECK_GLASSCONFIG_INTERVEL)
 			{
 				return;
 			}

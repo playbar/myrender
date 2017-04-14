@@ -7,8 +7,8 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 import com.bfmj.viewcore.entity.Model3dLib;
+import com.model3d.ModelObj;
 
-import baofeng.mojing.model3d.ModelObj;
 
 /**
  * Created by liujiankang on 2016/10/31.

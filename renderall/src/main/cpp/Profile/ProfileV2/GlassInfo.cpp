@@ -1,5 +1,8 @@
 ﻿#include "GlassInfo.h"
-
+#include "../../MojingManager.h"
+#include "../../Parameters/MojingParameters.h"
+#include "../../Parameters/MojingDisplayParameters.h"
+#include "DayDreamParameters.h"
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
 #else
@@ -71,6 +74,10 @@ namespace Baofeng
 			m_fFOV(0),
 			m_uiID(0),
 			m_iNoDispersion(0),
+			m_szDURL_Original(""),
+			m_szDURL(""),
+			m_szURL(""),
+			m_fDDScale(0),
 			m_bReCalculationKT(false)
 		{
 			SetClassName(__FUNCTION__);
@@ -78,6 +85,7 @@ namespace Baofeng
             {
 				m_fR[i] = m_fG[i] = m_fB[i] = m_fL[i] = m_fRT[i] = m_fGT[i] = m_fBT[i] = 1;
             }
+
 		}
 
 
@@ -87,13 +95,22 @@ namespace Baofeng
 		}
 		JSON* GlassInfo::ToJson()
 		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+#endif
 			JSON* pRet = JSON::CreateObject();
 			URLToJson(pRet);
 			IDToJson(pRet);
 			if ((Mojing::MojingSDKStatus::GetSDKStatus()->GetEngineStatus() & ENGINE_UNITY) == 0)
 			{// 注意：因为现在Unity还不支持这个节点，所以暂时不要给Unity返回
 				if (m_szDURL.GetLength())
-				{					
+				{	
+					UpdateDURL();
+
+					if (m_szDURL == m_szDURL_Original && (m_fDDScale <= 0.98f || m_fDDScale >= 1.02f))
+					{
+						DDScaleToJson(pRet);
+					}
 					DURLToJson(pRet);
 				}
 			}
@@ -101,6 +118,9 @@ namespace Baofeng
 		}
 		JSON* GlassInfo::ToJson(unsigned short wLanguageCode)
 		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+#endif
 			JSON* pRet = ToJson();
 			if (m_Display.find(wLanguageCode) != m_Display.end())
 			{
@@ -202,6 +222,77 @@ namespace Baofeng
 
 			}
 			return bRet;
+		}
+
+		void GlassInfo::UpdateDURL()
+		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+#endif
+			if (m_szDURL_Original.GetSize() == 0 || m_szDURL_Original.IsEmpty())
+				m_szDURL_Original = m_szDURL;
+		//	MojingDeviceParameters *pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
+			
+			MojingDisplayParameters *pDisplayParameters = Manager::GetMojingManager()->GetParameters()->GetDisplayParameters();
+			if (pDisplayParameters != NULL)
+			{
+#ifdef _DEBUG
+				MOJING_TRACE(g_APIlogger, "Check - 1");
+#endif
+				float fFixPPI = pDisplayParameters->GetUserPPI();
+				if (fFixPPI < 1)
+					fFixPPI = pDisplayParameters->GetPPI();
+#ifdef _DEBUG
+				MOJING_TRACE(g_APIlogger, "Check - 2 , fFixPPI = " << fFixPPI);
+#endif
+				if (fFixPPI > 1)
+				{
+					m_fDDScale = fFixPPI / pDisplayParameters->GetYdpi();
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "Check - 3 , fPPI_Scale = " << m_fDDScale);
+#endif
+					if (m_fDDScale > 1.02 || m_fDDScale < 0.98)
+					{
+#ifdef _DEBUG
+						MOJING_TRACE(g_APIlogger, "Replace DURL From: \"" << m_szDURL_Original.ToCStr() << "\"");
+#endif
+						int iBufferSize = CDayDreamParameters::UpdateDayDreamURL(m_szDURL_Original.ToCStr(), NULL, m_fDDScale);
+						char *pszBuffer = new char[iBufferSize * 2];
+						memset(pszBuffer, 0, iBufferSize * 2);
+						int iRet = CDayDreamParameters::UpdateDayDreamURL(m_szDURL_Original.ToCStr(), pszBuffer, m_fDDScale);
+						if (iRet > 1)
+						{
+#ifdef _DEBUG
+							MOJING_TRACE(g_APIlogger, "Replace DURL  To : \"" << pszBuffer << "\"");
+#endif
+							m_szDURL = pszBuffer;
+						}
+						else
+						{
+
+						}
+					}
+					else
+					{
+#ifdef _DEBUG
+						MOJING_TRACE(g_APIlogger, "Check - 4 , fPPI_Scale = " << m_fDDScale);
+#endif
+						m_fDDScale = 1.0f;
+					}
+				}
+				else
+				{
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "Check - 5  , fFixPPI = " << fFixPPI);
+#endif
+				}
+			}
+			else
+			{
+#ifdef _DEBUG
+				MOJING_TRACE(g_APIlogger, "Check - 6  , Can not get display parmeat");
+#endif
+			}
 		}
 	}
 }

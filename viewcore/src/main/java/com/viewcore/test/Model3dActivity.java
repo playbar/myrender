@@ -183,7 +183,7 @@ public class Model3dActivity extends BaseViewActivity {
 
 //            modelView.loadModel("/sdcard/model/amenemhat/amenemhat.obj");
 //                modelView.loadModel("/mnt/sdcard/space/space_screen03.FBX");
-                modelView.loadModel(fileName);
+//                modelView.loadModel(fileName);
 //                modelView.loadModel("/mnt/sdcard/space/space_screen03.FBX");
                 rootView.addView(modelView);
             }
@@ -264,12 +264,12 @@ public class Model3dActivity extends BaseViewActivity {
         GLPanoView.getSharedPanoView(this).setVisible(false);
     }
 
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        if (requestCode == REQ_CODE_PERMISSION_REQUEST
-//                && PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(Model3dActivity.this,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-//            modelView.loadModel("/mnt/sdcard/space/space_screen03.FBX");
-//        }
-//    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQ_CODE_PERMISSION_REQUEST
+                && PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(Model3dActivity.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+            modelView.loadModel("/mnt/sdcard/space/space_screen03.FBX");
+        }
+    }
 }

@@ -33,7 +33,7 @@ MyJNIHelper * gHelperObject=NULL;
  */
 
 JNIEXPORT void JNICALL
-Java_baofeng_mojing_model3d_ModelObj_CreateObjectNative(JNIEnv *env, jobject instance,
+Java_com_model3d_ModelObj_CreateObjectNative(JNIEnv *env, jobject instance,
                                                         jobject assetManager,
                                                         jstring pathToInternalDir) {
     // TODO
@@ -42,7 +42,7 @@ Java_baofeng_mojing_model3d_ModelObj_CreateObjectNative(JNIEnv *env, jobject ins
 }
 
 JNIEXPORT void JNICALL
-Java_baofeng_mojing_model3d_ModelObj_DeleteObjectNative(JNIEnv *env, jobject instance) {
+Java_com_model3d_ModelObj_DeleteObjectNative(JNIEnv *env, jobject instance) {
     // TODO
     if (gAssimpObject != NULL) {
         delete gAssimpObject;
@@ -56,7 +56,7 @@ Java_baofeng_mojing_model3d_ModelObj_DeleteObjectNative(JNIEnv *env, jobject ins
 }
 
 JNIEXPORT void JNICALL
-Java_baofeng_mojing_model3d_ModelObj_DrawFrameNative(JNIEnv *env, jobject instance,
+Java_com_model3d_ModelObj_DrawFrameNative(JNIEnv *env, jobject instance,
                                                      jfloatArray mvpMatrix_) {
     if(mvpMatrix_ == NULL){
         return ;
@@ -76,7 +76,7 @@ Java_baofeng_mojing_model3d_ModelObj_DrawFrameNative(JNIEnv *env, jobject instan
 }
 
 JNIEXPORT jboolean JNICALL
-Java_baofeng_mojing_model3d_ModelObj_LoadModel(JNIEnv *env, jobject instance, jstring modelName_) {
+Java_com_model3d_ModelObj_LoadModel(JNIEnv *env, jobject instance, jstring modelName_) {
     const char *modelName = env->GetStringUTFChars(modelName_, 0);
     // TODO
     if (gAssimpObject == NULL) {

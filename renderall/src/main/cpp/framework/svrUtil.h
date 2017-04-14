@@ -21,7 +21,7 @@
 #define LOGW(...) __android_log_print( ANDROID_LOG_WARN, "svr", __VA_ARGS__ )
 
 #if defined(NDEBUG) || !VERBOSE_LOGGING_ENABLED
-#define LOGV(...)
+#define LOGV(...) __android_log_print( ANDROID_LOG_VERBOSE, "svr", __VA_ARGS__ )
 #else
 #define LOGV(...) __android_log_print( ANDROID_LOG_VERBOSE, "svr", __VA_ARGS__ )
 #endif

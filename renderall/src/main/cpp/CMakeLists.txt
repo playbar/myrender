@@ -171,6 +171,10 @@ add_library(mojing SHARED
 		   Profile/ProfileV2/ProductInfo.cpp
 		   Profile/UserSettingProfile.cpp
 		   Profile/UnrealJoystickProfile.cpp
+		   Profile/ProfileV2/DayDreamParameters.cpp
+		   Profile/ProfileV2/GlassInfo.cpp
+		   Profile/ProfileV2/ManufacturerInfo.cpp
+		   Profile/ProfileV2/ProductInfo.cpp
 
            Render/RenderFrame.cpp
 		   Render/RenderFrameCirular.cpp

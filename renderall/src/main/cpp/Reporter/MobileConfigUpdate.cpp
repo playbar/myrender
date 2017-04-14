@@ -36,7 +36,7 @@ namespace Baofeng
 		{
 			double dLastCheckMobileConfigTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckMobileConfig();
 			//request once per day.
-			if (fabs(GetCurrentTime() - dLastCheckMobileConfigTime) < 86400.0)
+			if (fabs(GetCurrentTime() - dLastCheckMobileConfigTime) < CHECK_MOBILECONFIG_INTERVEL)
 			{
 				return;
 			}

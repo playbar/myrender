@@ -76,7 +76,7 @@ public class MojingSDK
 			android.util.DisplayMetrics dm = context.getResources().getDisplayMetrics();	
 			m_inited = true;
 			Init(merchantID, appID, appKey, appName, packageName, userID, channelID, dm.widthPixels,dm.heightPixels,  dm.xdpi , dm.ydpi, path);
-			GetJoystickFileName();
+			//GetJoystickFileName();  //Done in Parameters::Init()
 		}
 		return true;
 	}

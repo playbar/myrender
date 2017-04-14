@@ -156,6 +156,7 @@ bool AssimpLoader::LoadTexturesToGL(std::string modelFilename) {
         aiReturn isTexturePresent = scene->mMaterials[m]->GetTexture(aiTextureType_DIFFUSE,
                                                                      textureIndex,
                                                                      &textureFilename);
+        MyLOGE("texture name:%s", textureFilename.C_Str());
         while (isTexturePresent == AI_SUCCESS) {
             //fill map with textures, OpenGL image ids set to 0
             textureNameMap.insert(std::pair<std::string, GLuint>(textureFilename.data, 0));

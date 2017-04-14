@@ -20,16 +20,16 @@ namespace Baofeng
 {
 	namespace Mojing
 	{
-		void f()
-		{
-			float fFOV;
-			Vector4f gl_Position;// Position in near
-			float fr = 0.5 / sin(fFOV / 180 / 2 * PI);
-			float fT2 = fr * fr / (gl_Position.x * gl_Position.x + gl_Position.y * gl_Position.y + gl_Position.z * gl_Position.z);
-			float fT = sqrt(fT2);
-			gl_Position *= fT;
-			gl_Position.w = 1;
-		}
+// 		void f()
+// 		{
+// 			float fFOV;
+// 			Vector4f gl_Position;// Position in near
+// 			float fr = 0.5 / sin(fFOV / 180 / 2 * PI);
+// 			float fT2 = fr * fr / (gl_Position.x * gl_Position.x + gl_Position.y * gl_Position.y + gl_Position.z * gl_Position.z);
+// 			float fT = sqrt(fT2);
+// 			gl_Position *= fT;
+// 			gl_Position.w = 1;
+// 		}
 
 
 

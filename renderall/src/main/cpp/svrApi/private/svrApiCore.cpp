@@ -404,13 +404,8 @@ void L_SetThreadPriority(const char *pName, int policy, int priority)
 bool svrInitialize(const svrInitParams* pInitParams)
 //-----------------------------------------------------------------------------
 {
-    LOGI("svrApi Version : %s,(svrInitialize begin)", svrGetVersion());
-    if( gAppContext != NULL ){
-#ifdef USE_QVR_SERVICE
-        delete gAppContext->qvrService;
-#endif // USE_QVR_SERVICE
-        delete gAppContext;
-    }
+    LOGI("svrApi Version : %s", svrGetVersion());
+
     gAppContext = new SvrAppContext();
 #ifdef USE_QVR_SERVICE
     gAppContext->qvrService = NULL;
@@ -986,7 +981,7 @@ int svrBeginVr(const svrBeginParams* pBeginParams)
 void svrEndVr()
 //-----------------------------------------------------------------------------
 {
-    LOGI("svrEndVr");
+    LOGI("svrEndVr entry");
 
     if (gAppContext == NULL)
     {
@@ -1123,19 +1118,13 @@ void svrEndVr()
     PROFILE_SHUTDOWN();
 
     ReleaseVertexTable();
-    LOGI("VR mode ended");
+    LOGI("svrEndVr leave");
 }
 
 //-----------------------------------------------------------------------------
 void svrSubmitFrame(const svrFrameParams* pFrameParams)
 //-----------------------------------------------------------------------------
 {
-//    LOGE("F:%s, tid=%d", __FUNCTION__, gettid() );
-    if( gAppContext == NULL )
-    {
-        LOGE("svrSubmitFrame Failed: gAppContext is NULL");
-        return;
-    }
     if (gAppContext == NULL || gAppContext->inVrMode == false)
     {
         LOGE("svrSubmitFrame Failed: Called when not in VR mode!");
@@ -1183,11 +1172,11 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 
     unsigned int nextFrameCount = gAppContext->modeContext->submitFrameCount + 1;
 
-//	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 1]",
-//		lastFrameCount,
-//		nextFrameCount,
-//		pFrameParams->eyeBufferArray[0]
-//	);
+	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 1]",
+		lastFrameCount,
+		nextFrameCount,
+		pFrameParams->eyeBufferArray[0]
+	);
 
     svrFrameParamsInternal& fp = gAppContext->modeContext->frameParams[nextFrameCount % NUM_SWAP_FRAMES];
     fp.frameParams = *pFrameParams;
@@ -1217,26 +1206,26 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
     }
 	if (fp.warpSync != 0)
     {
-        LOGE("warpSync:%d,not zero(F:%s, L:%d)", (int)fp.warpSync,  __FUNCTION__, __LINE__);
+        LOGE("F:%s, L:%d,  warpSync:%d,not zero", __FUNCTION__, __LINE__, (int)fp.warpSync);
 	}
 	
     fp.frameSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     // LOGE("F:%s, L:%d, glFenceSync->frameSync:%d", __FUNCTION__, __LINE__, fp.frameSync);
-    /*
+    
 	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 2]",
 		lastFrameCount,
 		nextFrameCount,
 		pFrameParams->eyeBufferArray[0]
-	);*/
+	);
     PROFILE_ENTER(GROUP_WORLDRENDER, 0, "glFlush");
     glFlush();
     PROFILE_EXIT(GROUP_WORLDRENDER);
 
-//	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 3]",
-//		lastFrameCount,
-//		nextFrameCount,
-//		pFrameParams->eyeBufferArray[0]
-//	);
+	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 3]",
+		lastFrameCount,
+		nextFrameCount,
+		pFrameParams->eyeBufferArray[0]
+	);
 
     gAppContext->modeContext->submitFrameCount = nextFrameCount;
     /*
@@ -1255,11 +1244,11 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
         {
             //Make sure we maintain the minSync interval
 
-//            LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 END]",
-//				lastFrameCount,
-//				nextFrameCount,
-//				pFrameParams->eyeBufferArray[0]
-//				);
+           LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 END]",
+				lastFrameCount,
+				nextFrameCount,
+				pFrameParams->eyeBufferArray[0]
+				);
             gAppContext->modeContext->prevSubmitVsyncCount = glm::max(gAppContext->modeContext->vsyncCount, gAppContext->modeContext->prevSubmitVsyncCount + fp.frameParams.minVsyncs);
 
 			if (nextFrameCount > NUM_SWAP_FRAMES)
@@ -1274,33 +1263,33 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
 				if(0 == ReleaseFP.warpSync)
 				{// this frame may never used.
 
-//					LOGV("-- HX --Release.warpSync is 0, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
-//					lastFrameCount,
-//					nextFrameCount,
-//					gAppContext->modeContext->submitFrameCount,
-//					gAppContext->modeContext->warpFrameCount);
+					LOGV("-- HX --Release.warpSync is 0, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
+					lastFrameCount,
+					nextFrameCount,
+					gAppContext->modeContext->submitFrameCount,
+					gAppContext->modeContext->warpFrameCount);
                     // LOGE("F:%s, L:%d, warpSync = 0", __FUNCTION__, __LINE__ );
                     while( nextFP.warpSync ==0 && nnextFP.warpSync == 0 &&
                            !gAppContext->modeContext->warpThreadExit)
                     {
-//                        LOGV("-- HX --Waite an other frame to warp or exit ... ");
+                        LOGV("-- HX --Waite an other frame to warp or exit ... ");
                         usleep(500);
                         continue;
                     }
 					break;
 				} else {
-//                    LOGV("-- HX --Release.warpSync is %d, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
-//                         ReleaseFP.warpSync,
-//                         lastFrameCount,
-//                         nextFrameCount,
-//                         gAppContext->modeContext->submitFrameCount,
-//                         gAppContext->modeContext->warpFrameCount);
+                   LOGV("-- HX --Release.warpSync is %d, lastFrameCount = %d , nextFrameCount = %d , submitFrameCount = %d, warpFrameCount = %d",
+                        ReleaseFP.warpSync,
+                        lastFrameCount,
+                        nextFrameCount,
+                        gAppContext->modeContext->submitFrameCount,
+                        gAppContext->modeContext->warpFrameCount);
 
 
                     while( nextFP.warpSync ==0 && nnextFP.warpSync == 0 &&
                             !gAppContext->modeContext->warpThreadExit)
                     {
-//                        LOGV("-- HX --Waite an other frame to warp or exit ... ");
+                        LOGV("-- HX --Waite an other frame to warp or exit ... ");
                         usleep(500);
                         continue;
                     }
@@ -1325,11 +1314,11 @@ void svrSubmitFrame(const svrFrameParams* pFrameParams)
         else
         {
 
-//        	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 ...]",
-//				lastFrameCount,
-//				nextFrameCount,
-//				pFrameParams->eyeBufferArray[0]
-//				);
+       	LOGV("-- HX -- lastFrameCount = %d , nextFrameCount = %d , TID = %d    [SUBMIT - 4 ...]",
+				lastFrameCount,
+				nextFrameCount,
+				pFrameParams->eyeBufferArray[0]
+				);
 
         }
     }
