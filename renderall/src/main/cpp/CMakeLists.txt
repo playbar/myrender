@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
                     -fexceptions \
                     -DUSE_QVR_SERVICE \
                     -DNDEBUG \
+                    -D_DEBUG \
                     -DMJ_OS_ANDROID")
 
 MESSAGE(STATUS "Project: svrapi")

@@ -1545,9 +1545,33 @@ glm::mat4 CalculateWarpMatrix(glm::fquat& origPose, glm::fquat& latestPose)
 //-----------------------------------------------------------------------------
 {
     glm::fquat diff = origPose * glm::inverse(latestPose);
-    glm::fquat invDiff = glm::inverse(diff);
 
+    glm::fquat invDiff = glm::inverse(diff);
     invDiff.z *= -1.0f;
+    if(fabs(latestPose.x) < 0.0001 && fabs(latestPose.y) < 0.0001 && fabs(latestPose.z)<0.0001 && fabs(latestPose.w) > 0.9999){
+//        LOGI("latestPose is zero");
+        invDiff.x = 0;
+        invDiff.y = 0;
+        invDiff.z = 0;
+        invDiff.w = 1;
+    }
+
+//    if( fabs(origPose.x - latestPose.x) > 0.0001 ||
+//        fabs(origPose.y - latestPose.y) > 0.0001 ||
+//        fabs(origPose.z - latestPose.z) > 0.0001 ||
+//        fabs(origPose.w - latestPose.w) > 0.0001)
+//    {
+//        LOGI("mjsvr origPose:  [%0.6f, %0.6f, %0.6f, %0.6f]", origPose.x, origPose.y, origPose.z, origPose.w);
+//        LOGI("mjsvr latestPose:[%0.6f, %0.6f, %0.6f, %0.6f], invDiff:[%0.6f, %0.6f, %0.6f, %0.6f]\n",
+//             latestPose.x, latestPose.y, latestPose.z, latestPose.w,
+//             invDiff.x, invDiff.y, invDiff.z, invDiff.w);
+//    }
+//    if( invDiff.w < 0.99){
+//        LOGI("mjsvrE");
+//    }
+//    if( fabs(invDiff.x) < 0.0001 && fabs(invDiff.y) < 0.0001 && fabs(invDiff.z) < 0.0001 && fabs(invDiff.w) > 0.9999){
+//        LOGI("invDiff is zero");
+//    }
 
     return glm::mat4_cast(invDiff);
 }
