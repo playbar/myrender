@@ -11,6 +11,8 @@
 #include "Render/MojingRenderBase.h"
 #ifdef MJ_OS_IOS
 #include "Render/Metal/MojingRenderMetal.h"
+#include "Interface/ios/MojingIOSBase.h"
+#include "Tracker/MojingControllerSocket.h"
 #endif
 #include "Profile/GlassesConfigProfile.h"
 #include "Profile/MobileConfigProfile.h"
@@ -22,7 +24,7 @@
 #include "Reporter/MojingMerchantVerify.h"
 #include "Distortion/MojingDistortion.h"
 
-#ifndef MJ_OS_WIN32
+#ifdef MJ_OS_ANDROID
 #include "3rdPart/ktx/include/ktx.h"
 #endif
 
@@ -39,9 +41,8 @@
 
 #if defined(MJ_OS_WIN32)
 #include "3rdPart/Curl/include/windows/curl.h"
-#elif defined(MJ_OS_MAC)
+#elif defined(MJ_OS_IOS)
 //#include "3rdPart/Curl/include/ios/curl.h"
-#include "Interface/ios/MojingIOSBase.h"
 #else
 #include "3rdPart/Curl/include/android/curl.h"
 #endif
@@ -233,9 +234,6 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 	//CheckLibSqlite();
 #endif
 
-#ifdef MJ_OS_IOS
-	
-#endif
 #include <stdio.h>  
 
 
@@ -391,6 +389,21 @@ void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const cha
 #ifdef MJ_OS_MAC
 		MojingMerchantVerify::GetMojingMerchantVerify()->AppVerify(szMerchantID, szAppID, szAppKey, szChannelID);
 #endif
+	}
+}
+
+void MojingSDK_SetGlassesSerialNumber(const char* lpszSN)
+{
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (pStatus == NULL || !pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_SetGlassesSerialNumber before SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return;
+	}
+
+	if (lpszSN)
+	{
+		GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetMojingSN(lpszSN);
 	}
 }
 
@@ -796,7 +809,7 @@ void MojingSDK_SendControllerDataV2(float* pArray, double dTimestamp, bool bRece
 		return;
 	}
 	
-#ifdef MJ_OS_ANDROID
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 	Manager::GetMojingManager()->GetControlTracker()->SendControllerData(pArray, dTimestamp, bRecenter);
 #endif
 }
@@ -3106,7 +3119,7 @@ int MojingSDK_GetSocketPort()
 	}
 	return port;
 }
-
+#endif
 /*
 bool MojingSDK_Device_StartTracker(int iID)
 {
@@ -3128,9 +3141,17 @@ void MojingSDK_Device_StopTracker(int iID)
 }
 */
 
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 // 获取已经连接的设备上的按键列表的掩码，返回长度为32的int数组。分别表示按键状态码的第0位到第31位表示的键值。
 int MojingSDK_Device_GetKeymask(int iID, int *pKeyMask)
 {
+	mj_Initialize();
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_Device_GetKeymask before SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return 0;
+	}
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
@@ -3149,6 +3170,13 @@ float MojingSDK_Device_GetCurrentPoaseInfo(int iID/*设备ID*/,
 	unsigned int *pKeystatus/*设备上的按键状态，默认是0表示没有按键被按下*/)
 {
 	//MOJING_FUNC_TRACE(g_APIlogger);
+	mj_Initialize();
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_Device_GetCurrentPoaseInfo before SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return 0;
+	}
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
@@ -3174,10 +3202,20 @@ float MojingSDK_Device_GetFixPoaseInfo(int iID/*设备ID*/,
 	float *pPosition/*设备的空间位置，以米为单位，默认是0,0,0。*/)
 {
 	//MOJING_FUNC_TRACE(g_APIlogger);
+	mj_Initialize();
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_Device_GetFixPoaseInfo before SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return 0;
+	}
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
-		pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		if (pPosition)
+		{
+			pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		}
 		return pManager->GetControlTracker()->GetControlFixPose(iID, pQuart, pAngularAccel, pLinearAccel);
 	}
 
@@ -3193,10 +3231,24 @@ float MojingSDK_Device_GetControlFixCurrentInfo(int iID/*设备ID*/,
     unsigned int *pKeystatus/*设备上的按键状态，默认是0表示没有按键被按下*/)
 {
     //MOJING_FUNC_TRACE(g_APIlogger);
+	mj_Initialize();
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_Device_GetControlFixCurrentInfo before SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return 0;
+	}
     Manager* pManager = Manager::GetMojingManager();
     if (pManager)
     {
-        pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		if (pPosition)
+		{
+			pPosition[0] = pPosition[1] = pPosition[2] = 0;
+		}
+		if (pKeystatus)
+		{
+			*pKeystatus = 0;
+		}
         return pManager->GetControlTracker()->GetControlFixCurrentPose(iID, pQuart, pAngularAccel, pLinearAccel);
     }
 
@@ -3205,6 +3257,13 @@ float MojingSDK_Device_GetControlFixCurrentInfo(int iID/*设备ID*/,
 
 void MojingSDK_Device_GetFixScore(int* pStatus, int* pScore)
 {
+	mj_Initialize();
+	MojingSDKStatus *pSDKStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pSDKStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_Device_GetFixScore before SDK init! InitStatus = " << pSDKStatus->GetInitStatus());
+		return;
+	}
     Manager* pManager = Manager::GetMojingManager();
     if (pManager)
     {

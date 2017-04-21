@@ -26,6 +26,7 @@ namespace Baofeng
 			CLASS_MEMBER_STR(String, m_str, EGL);
 			CLASS_MEMBER_STR(String, m_str, GlassesName);
 			CLASS_MEMBER_STR(String, m_str, GlassesReportName);
+			CLASS_MEMBER_STR(String, m_str, MojingSN);
 			CLASS_MEMBER_STR(String, m_str, GyroOffsetReportSet);
 			CLASS_MEMBER(bool , m_b , EnablePostRepote);
 			void Post();

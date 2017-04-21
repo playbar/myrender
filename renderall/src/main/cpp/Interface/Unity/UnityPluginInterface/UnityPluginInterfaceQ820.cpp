@@ -1,6 +1,5 @@
 ﻿#include "UnityPluginInterfaceQ820.h"
 #include <android/native_window_jni.h>
-#include <Base/MojingLog.h>
 #include "../../../Base/GlUtils.h"
 #include "../../../Base/MojingTimer.h"
 #include "../../../MojingAPI.h"
@@ -547,7 +546,7 @@ namespace Baofeng
 					m_HeadPoseState.pose.rotation.z == 0 &&
 					m_HeadPoseState.pose.rotation.w == 0)
 				{
-					MOJING_ERROR(g_APIlogger, "mjsvrH Can not get HeadPose!");
+					MOJING_ERROR(g_APIlogger, "Can not get HeadPose!");
 					m_HeadPoseState.pose.rotation.w = 1;
 				}
 				else
@@ -557,7 +556,7 @@ namespace Baofeng
 						-m_HeadPoseState.pose.rotation.z,
 						m_HeadPoseState.pose.rotation.w);
 #ifdef _DEBUG
-				{
+				{	
 					float x = Pos.x;
 					float y = Pos.y;
 					float z = Pos.z;
@@ -566,11 +565,9 @@ namespace Baofeng
 					float roll = atan2(2 * (w * z + x * y), 1 - 2 * (z * z + x * x));
 					float pitch = asin(CLAMP(2 * (w * x - y * z), -1.0f, 1.0f));
 					float yaw = atan2(2 * (w * y + z * x), 1 - 2 * (x * x + y * y));
-					char szLog[512] = {0};
-					sprintf(szLog, "mjsvrH Rotation = ( %1.4f , %1.4f , %1.4f , %1.4f) , EulerAngles = (%3.4f , %3.4f , %3.4f )",
+					char szLog[512];
+					sprintf(szLog, "Rotation = ( %1.4f , %1.4f , %1.4f , %1.4f) , EulerAngles = (%3.4f , %3.4f , %3.4f )", 
 						x,y,z,w,roll, pitch, yaw);
-//                    LOGI("mjsvrH Rotation = ( %1.4f , %1.4f , %1.4f , %1.4f) , EulerAngles = (%3.4f , %3.4f , %3.4f )",
-//                         x,y,z,w,roll, pitch, yaw);
 					MOJING_TRACE(g_APIlogger, szLog);
 				}
 #endif
@@ -579,7 +576,7 @@ namespace Baofeng
 			}
 			else
 			{
-				MOJING_ERROR(g_APIlogger, "mjsvrH SVR not init (" << m_bInitialized << ") or not begin(" << m_bSvrBegin << ")");
+				MOJING_ERROR(g_APIlogger, "SVR not init (" << m_bInitialized << ") or not begin(" << m_bSvrBegin << ")");
 
 			}
 			return Pos;

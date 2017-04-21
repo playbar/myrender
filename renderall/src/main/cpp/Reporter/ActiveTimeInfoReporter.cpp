@@ -1,6 +1,10 @@
 ﻿#include "ActiveTimeInfoReporter.h"
 #include "GyroTempCalibrationReporter.h"
 
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
+
 namespace Baofeng
 {
 	namespace Mojing
@@ -32,8 +36,20 @@ namespace Baofeng
 			{
 				joMsg->AddStringItem("myglasses", szGlasseeName);
 			}
-
+			const char* szMojingSN = GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->GetMojingSN();
+			if (szMojingSN == NULL || strlen(szMojingSN) == 0)
+			{
+				//joMsg->AddStringItem("glassessn", "");
+			}
+			else
+			{
+				joMsg->AddStringItem("glassessn", szMojingSN);
+			}
+			
 			char *pJsonValue = joMsg->PrintValue(0, false);
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "ActiveTimeInfoReporter::SaveToDB json = " << pJsonValue);
+#endif
 			SetReportMsg(pJsonValue);
 			MJ_FREE(pJsonValue);
 

@@ -362,6 +362,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 - (void)processSensorData
 {
     [_sensorStick setTimestamp:_buffer->timestamp];
+    [_sensorStick setHomeKeyStatus:_buffer->timestamp keyStaus:(_buffer->home)==0?NO:YES];
     [_sensorStick setSensorData:_buffer->sensor_data];
 }
 
@@ -443,8 +444,8 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     }
     
     //Sensor
-    _buffer->sensor_data.fOrientationX = joystickData.fOrientationX;
-    _buffer->sensor_data.fOrientationY = joystickData.fOrientationY;
+    _buffer->sensor_data.fOrientationX = -joystickData.fOrientationX;
+    _buffer->sensor_data.fOrientationY = -joystickData.fOrientationY;
     _buffer->sensor_data.fOrientationZ = joystickData.fOrientationZ;
     _buffer->sensor_data.fOrientationW = joystickData.fOrientationW;
     _buffer->sensor_data.fAccelX = joystickData.fAccelX;

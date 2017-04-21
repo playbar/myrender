@@ -183,7 +183,7 @@ extern "C"
         return MojingSDK_IsTrackerCalibrated();
 	}
 
-#ifdef MJ_OS_ANDROID
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 	UNITY_EXPORT int Unity_Device_GetKeymask(int iID, int *pKeyMask)
 	{
 		return MojingSDK_Device_GetKeymask(iID, pKeyMask);

@@ -31,5 +31,6 @@ typedef void (^MJGamepadSensorValueChangedBlock)(MJGamepadSensor *sensor, NSMuta
 
 - (void)setSensorData:(mj_sensor)sensorData;
 - (void)setTimestamp:(NSTimeInterval)timestamp;
+- (void)setHomeKeyStatus:(NSTimeInterval)timestamp keyStaus:(bool)bPressed;
 
 @end
