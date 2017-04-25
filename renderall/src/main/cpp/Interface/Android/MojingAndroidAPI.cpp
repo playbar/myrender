@@ -379,7 +379,7 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv 
 	// Copy to jflotArray
 	jfloat* pMatrixArray = jEnv->GetFloatArrayElements(jViewMatrix, NULL);
 	jsize length = (jEnv)->GetArrayLength(jViewMatrix);
-	if (length < 3)
+	if (length < 16)
 	{
 		MOJING_ERROR(g_APIlogger, "The array for Euler Angle is too small. Need 16 while only %d" << length);
 		for (jsize i = 0; i < length; i++)
@@ -402,7 +402,7 @@ JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_getPredictionHeadView(J
 	// Copy to jflotArray
 	jfloat* pMatrixArray = jEnv->GetFloatArrayElements(jViewMatrix, NULL);
 	jsize length = (jEnv)->GetArrayLength(jViewMatrix);
-	if (length < 3)
+	if (length < 16)
 	{
 		MOJING_ERROR(g_APIlogger, "The array for Euler Angle is too small. Need 16 while only %d" << length);
 		for (jsize i = 0; i < length; i++)
@@ -998,6 +998,11 @@ JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSDK_NativektxLoadTextureN(J
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsLowPower(JNIEnv *, jclass)
 {
 	return MojingSDK_IsLowPower();
+}
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetHDMWorking(JNIEnv *, jclass, jboolean bHDMWorking)
+{
+	MojingSDK_SetHDMWorking(bHDMWorking);
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetGlassesSN(JNIEnv *env, jclass, jstring jstrGlassesSN)

@@ -38,7 +38,7 @@ int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szN
 		unsigned char * pDDParametersBuffer = new unsigned char[iBufferSize + 16];
 		memset(pDDParametersBuffer, 0, iBufferSize + 16);
 		int iLength = Base64ToBuffer(szDayDreamURL, pDDParametersBuffer);
-		// pDDParametersBuffer_New 鏄瓨鏀炬柊鐨勪簩杩涘埗鏍煎紡鍙傛暟鐨勭紦鍐插尯
+		// pDDParametersBuffer_New 是存放新的二进制格式参数的缓冲区
 		unsigned char * pDDParametersBuffer_New = new unsigned char[iBufferSize + 16];
 		memset(pDDParametersBuffer_New, 0, iBufferSize + 16);
 		*szNewDayDreamURL = 0;
@@ -67,7 +67,7 @@ int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szN
 				}
 			}
 		}
-
+		
 
 #else
 		/*

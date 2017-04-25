@@ -11,6 +11,7 @@ namespace Baofeng
 			m_pFactoryCalibrationParameters = NULL;
 			m_pGlassesConfigProfile = NULL;
 			m_pUserSettingProfile = NULL;
+			m_bHDMWorking = false;
 		}
 
 

@@ -140,6 +140,10 @@ add_library(mojing SHARED
 			Base/MojingUTF8Util.cpp
 			Base/MojingLoadSo.cpp
             Distortion/MojingDistortion.cpp
+            Hook/Global/detour.cpp
+            Hook/Global/instruction.cpp
+            Hook/Global/HookBase.cpp
+            Hook/HookGVR/HookGVRTools.cpp
             Interface/Android/MojingAndroidAPI.cpp
 			Interface/Android/MojingNativeInput.cpp
 			Interface/Unreal/MojingUnrealAPI.cpp

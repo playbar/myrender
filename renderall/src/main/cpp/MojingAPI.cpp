@@ -29,6 +29,7 @@
 #endif
 
 #ifdef MJ_OS_ANDROID
+#include "Hook/HookGVR/HookGVRTools.h"
 #include "Tracker/AndroidInternalSensorChecker.h"
 //#include "Tracker/MojingControlPose.h"
 #include "Tracker/MojingControllerSocket.h"
@@ -356,6 +357,10 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 	int iSelect7 = MojingSDK_Math_SelectRectByDirectional(m4_7, 10, fpTopLeft, fpBottomRight);
 	int iSelect8 = MojingSDK_Math_SelectRectByDirectional(m4_8, 10, fpTopLeft, fpBottomRight);
 #endif
+
+#ifdef MJ_OS_ANDROID
+	HookGVRTools::Init();
+#endif // MJ_OS_ANDROID
 
 	return bRet;
 }
@@ -1034,7 +1039,7 @@ double MojingSDK_getLastSensorState(float* fArray)
 
 uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 {
-	ENTER_MINIDUMP_FUNCTION;;
+	ENTER_MINIDUMP_FUNCTION;
 // #ifdef _DEBUG
 // 	MOJING_FUNC_TRACE(g_APIlogger);
 // #endif
@@ -1076,8 +1081,8 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 
 int MojingSDK_getPredictionHeadView(float* pfViewMatrix, double time)
 {
-	ENTER_MINIDUMP_FUNCTION;;
-	MOJING_FUNC_TRACE(g_APIlogger);
+	ENTER_MINIDUMP_FUNCTION;
+	//MOJING_FUNC_TRACE(g_APIlogger);
 
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled() || pStatus->GetTrackerStatus() != TRACKER_START)
@@ -3034,10 +3039,41 @@ bool MojingSDK_BackerTexture(int texID, int x, int y, int width, int height, int
 
 bool MojingSDK_IsLowPower()
 {
-	Manager* pManager = Manager::GetMojingManager();
-	if (pManager)
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (pStatus->IsMojingSDKEnbaled())
 	{
-		return pManager->GetParameters()->GetSensorParameters()->GetIsLowPower();
+		Manager* pManager = Manager::GetMojingManager();
+		if (pManager)
+		{
+			return pManager->GetParameters()->GetSensorParameters()->GetIsLowPower();
+		}
+	}
+	return false;
+}
+
+void MojingSDK_SetHDMWorking(bool bHDMWorking)
+{
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (pStatus->IsMojingSDKEnbaled())
+	{
+		Manager* pManager = Manager::GetMojingManager();
+		if (pManager)
+		{
+			pManager->GetParameters()->SetHDMWorking(bHDMWorking);
+		}
+	}
+}
+
+bool MojingSDK_IsHDMWorking()
+{
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (pStatus->IsMojingSDKEnbaled())
+	{
+		Manager* pManager = Manager::GetMojingManager();
+		if (pManager)
+		{
+			return pManager->GetParameters()->GetHDMWorking();
+		}
 	}
 	return false;
 }

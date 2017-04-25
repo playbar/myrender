@@ -63,7 +63,7 @@ namespace Baofeng
 		{
 			char Brand[PROP_VALUE_MAX], Model[PROP_VALUE_MAX], Serial[PROP_VALUE_MAX];
 			char szMerchantID[PROP_VALUE_MAX], szAppID[PROP_VALUE_MAX], szAppKey[PROP_VALUE_MAX];
-			char szChannelID[PROP_VALUE_MAX], szProfilePath[512];
+			char szChannelID[PROP_VALUE_MAX], szProfilePath[260];
             char szAppName[PROP_VALUE_MAX];
             char szPackageName[PROP_VALUE_MAX];
             char szUserID[PROP_VALUE_MAX];

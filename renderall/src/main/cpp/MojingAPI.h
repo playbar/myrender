@@ -238,6 +238,8 @@ Rectf MojingSDK_Math_OverlayPosition3D(unsigned int eyeTextureType, Rectf rcRect
  * @return Current light sensation value in [UNIT]
  */
 bool MojingSDK_IsLowPower();
+void MojingSDK_SetHDMWorking(bool bHDMWorking);
+bool MojingSDK_IsHDMWorking();
 
 #ifdef USING_MINIDUMP
 void MojingSDK_CheckCrashReport();
