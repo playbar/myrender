@@ -511,7 +511,11 @@ namespace Baofeng
 			void finishAllThreads()
 			{
 				// Only original root thread can call this.
+
+#ifndef MJ_OS_WIN32
+				// 注意：这个地方在Win32下会有奇怪的编译错误
 				MJ_ASSERT(pthread_self() == RootThreadId);
+#endif
 
 				Mutex::Locker lock(&ThreadMutex);
 				while (ThreadSet.GetSize() != 0)

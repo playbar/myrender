@@ -34,6 +34,11 @@ typedef NS_ENUM(uint32_t, MJGamepadButtonType)
     MJGamepadButtonLeftThumb     = 1 << 15,
     MJGamepadButtonRightThumb    = 1 << 16,
     MJGamepadButtonMenu          = 1 << 17,
+    MJGamepadButtonHome          = 1 << 18,
+    MJGamepadButtonClick         = 1 << 19,
+    MJGamepadButtonVolumeUp      = 1 << 20,
+    MJGamepadButtonVolumeDown    = 1 << 21,
+    MJGamepadButtonTouchPad      = 1 << 22,
 };
 
 typedef struct {
@@ -51,6 +56,19 @@ typedef struct {
     };
 } mj_direction;
 
+typedef struct {
+    float fOrientationX; // 归一化四元数(X, Y, Z, W)
+    float fOrientationY;
+    float fOrientationZ;
+    float fOrientationW;
+    float fAccelX;
+    float fAccelY;
+    float fAccelZ;
+    float fGyroX;
+    float fGyroY;
+    float fGyroZ;
+}mj_sensor;
+    
 typedef struct
 {
     uint8_t raw_char_size; //原始数据字节大小
@@ -78,7 +96,12 @@ typedef struct
             start:1, //开始
             left_thumb:1, //左摇杆(主摇杆)
             right_thumb:1, //右摇杆
-            menu:1; //菜单键
+            menu:1, //菜单键
+            home:1, //Home键
+            click:1, //Click
+            volume_up:1, //音量加
+            volume_down:1, //音量减
+            touchpad:1;    //TouchPad
         };
         uint32_t all_flags; //所有标志位
     };
@@ -86,6 +109,8 @@ typedef struct
     //模拟量
     CGPoint left_thumb_point; //左摇杆坐标
     CGPoint right_thumb_point; //右摇杆坐标
+    CGPoint touchpad_point; //TouchPad坐标
+    mj_sensor sensor_data;  //Sensor data
 } mj_buffer;
 
 typedef struct

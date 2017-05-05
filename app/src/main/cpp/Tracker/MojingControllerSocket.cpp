@@ -3,7 +3,9 @@
 #include <iomanip>
 #include <stdio.h>
 
+#ifdef MJ_OS_ANDROID
 #include <android/log.h>
+#endif
 #include "../Base/MojingMath.h"
 #include "../Base/MojingTimer.h"
 #include "../Base/MojingLog.h"
@@ -49,6 +51,7 @@ namespace Baofeng
         const double ANGULAR_ACCEL_SCALE = 0.153;
 		void ControllerInfo::ParseMMapData(MMapedControllerData* pMMapData)
 		{
+#ifdef MJ_OS_ANDROID
 #ifdef ENABLE_SENSOR_LOGGER
             //if (m_cid == 1)
             {
@@ -62,6 +65,7 @@ namespace Baofeng
                 __android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "%s\n", msg);
                 MOJING_TRACE(g_APIlogger, msg);
             }
+#endif
 #endif
 			if (g_pUpdateDataLocker == NULL)
 			{
@@ -135,6 +139,7 @@ namespace Baofeng
             m_FixDataInfo.m_AngularAccel.z = az;
 			g_pUpdateDataLocker->Unlock();
 
+#ifdef MJ_OS_ANDROID
 #ifdef ENABLE_SENSOR_LOGGER
 			//if (m_cid == 1)
 			{
@@ -149,6 +154,7 @@ namespace Baofeng
 				__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "%s\n", msg);
 				MOJING_TRACE(g_APIlogger, msg);
 			}																																
+#endif
 #endif
 		}
 		
@@ -167,6 +173,15 @@ namespace Baofeng
 				return;
 			}
 			g_pUpdateDataLocker->DoLock();
+
+			if ( (pControllerData[0] == 0) &&
+				(pControllerData[1] == 0) &&
+				(pControllerData[2] == 0) &&
+				(pControllerData[3] == 0))
+			{
+				MOJING_ERROR(g_APIlogger, "INVALID Orientation DATA！");
+				pControllerData[3] = 1.0f;
+			}
 			
 			m_CurrentDataInfo.m_Orientation = Quatf(pControllerData[0], pControllerData[1], pControllerData[2], pControllerData[3]);
 			m_CurrentDataInfo.m_Orientation.Normalized();
@@ -176,7 +191,9 @@ namespace Baofeng
 			
 			if (bRecenter)
 			{
+#ifdef MJ_OS_ANDROID
 				__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "Controller is recenter...\n");
+#endif
 				//m_FixDataInfo.m_Orientation = Quatf(pControllerData[0], pControllerData[1], pControllerData[2], pControllerData[3]);
 				//m_FixDataInfo.m_Orientation.Normalized();
 				//m_FixDataInfo.m_LinearAccel = Vector3f(pControllerData[4], pControllerData[5], pControllerData[6]);	
@@ -184,8 +201,20 @@ namespace Baofeng
 				m_FixDataInfo = m_CurrentDataInfo;
 				m_fFixSampleTime = dTimestamp;
 			}
+
+			if ( (pControllerData[10] == 0) &&
+				(pControllerData[11] == 0) &&
+				(pControllerData[12] == 0) &&
+				(pControllerData[13] == 0))
+			{
+				MOJING_ERROR(g_APIlogger, "INVALID Fix Orientation DATA！");
+				pControllerData[13] = 1.0f;
+			}
+			m_FixDataInfo.m_Orientation = Quatf(pControllerData[10], pControllerData[11], pControllerData[12], pControllerData[13]);
+			m_FixDataInfo.m_Orientation.Normalized();
 			
-			g_pUpdateDataLocker->Unlock();	
+			g_pUpdateDataLocker->Unlock();
+#ifdef MJ_OS_ANDROID
 #ifdef ENABLE_SENSOR_LOGGER
 			{
 				char msg[1024];
@@ -200,7 +229,7 @@ namespace Baofeng
 				//MOJING_TRACE(g_APIlogger, msg);
 			}
 #endif
-
+#endif
 		}
 
 		float ControllerInfo::GetControlCurrentPose(float *fOrientation, float *fAngularAccel, float *fLinearAccel)

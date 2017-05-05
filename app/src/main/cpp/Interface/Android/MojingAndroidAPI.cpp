@@ -379,7 +379,7 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv 
 	// Copy to jflotArray
 	jfloat* pMatrixArray = jEnv->GetFloatArrayElements(jViewMatrix, NULL);
 	jsize length = (jEnv)->GetArrayLength(jViewMatrix);
-	if (length < 3)
+	if (length < 16)
 	{
 		MOJING_ERROR(g_APIlogger, "The array for Euler Angle is too small. Need 16 while only %d" << length);
 		for (jsize i = 0; i < length; i++)
@@ -402,7 +402,7 @@ JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_getPredictionHeadView(J
 	// Copy to jflotArray
 	jfloat* pMatrixArray = jEnv->GetFloatArrayElements(jViewMatrix, NULL);
 	jsize length = (jEnv)->GetArrayLength(jViewMatrix);
-	if (length < 3)
+	if (length < 16)
 	{
 		MOJING_ERROR(g_APIlogger, "The array for Euler Angle is too small. Need 16 while only %d" << length);
 		for (jsize i = 0; i < length; i++)
@@ -540,6 +540,7 @@ JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_GetMojingWorldFOV(JNI
 JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSurfaceView_ChangeMojingWorld(JNIEnv *env, jclass, jstring GlassesName)
 {
 	// USING_MINIDUMP;
+	MOJING_FUNC_TRACE(g_APIlogger);
 	const char * szGlassesName = env->GetStringUTFChars(GlassesName, 0);
 	bool ret = MojingSDK_ChangeMojingWorld(szGlassesName);
 	env->ReleaseStringUTFChars(GlassesName, szGlassesName);
@@ -701,7 +702,7 @@ JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetManufacturerList(
 }
 JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetProductList(JNIEnv *jEnv, jclass, jstring strManufacturerKey, jstring strLanguageCodeByISO639)
 {
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	const char * szLanguageName = jEnv->GetStringUTFChars(strLanguageCodeByISO639, 0);
 	const char * szKey = jEnv->GetStringUTFChars(strManufacturerKey, 0);
 	String  strRet = MojingSDK_GetProductList(szKey, szLanguageName);
@@ -999,12 +1000,24 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsLowPower(JNIEnv *
 	return MojingSDK_IsLowPower();
 }
 
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetHDMWorking(JNIEnv *, jclass, jboolean bHDMWorking)
+{
+	MojingSDK_SetHDMWorking(bHDMWorking);
+}
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetGlassesSN(JNIEnv *env, jclass, jstring jstrGlassesSN)
+{
+	const char * szGlassesSN = env->GetStringUTFChars(jstrGlassesSN, 0);
+	MojingSDK_SetGlassesSerialNumber(szGlassesSN);
+	env->ReleaseStringUTFChars(jstrGlassesSN, szGlassesSN);
+}
+
 JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_GetSocketPort(JNIEnv *, jclass)
 {
 	return MojingSDK_GetSocketPort();
 }
 
-JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetKeymask(JNIEnv *env, jclass, jint iID, jintArray KeyMask)
+JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetKeymask(JNIEnv *env, jclass, jint iID, jintArray KeyMask)
 {
 	jint* pKeyMask = env->GetIntArrayElements(KeyMask, NULL);
 
@@ -1014,52 +1027,98 @@ JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetKeymask(JNIEn
 	return iRet;
 }
 
-JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
 	jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
 	jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
 	jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
 	jfloatArray PositionArray,/*设备的空间位置，以米为单位，默认是0,0,0。*/
 	jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/)
 {	
-	jfloat* pQuart = env->GetFloatArrayElements(QuartArray, NULL);
-	jfloat* pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
-	jfloat* pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
-	jfloat* pPosition = env->GetFloatArrayElements(PositionArray, NULL);
-	jint* pKeystatus = env->GetIntArrayElements(KeystatusArray, NULL);
+	jfloat* pQuart = NULL;
+	if (QuartArray != nullptr)
+	{
+		pQuart = env->GetFloatArrayElements(QuartArray, NULL);
+	};
+	jfloat* pAngularAccel = NULL;
+	if (AngularAccelArray != nullptr)
+	{
+		pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
+	};
+	jfloat* pLinearAccel = NULL;
+	if (LinearAccelArray != nullptr)
+	{
+		pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
+	};
+	jfloat* pPosition = NULL;
+	if (PositionArray != nullptr)
+	{
+		pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+	};
+	jint* pKeystatus = NULL;
+	if (KeystatusArray != nullptr)
+	{
+		pKeystatus = env->GetIntArrayElements(KeystatusArray, NULL);
+	};
 
 	jfloat fRet = MojingSDK_Device_GetCurrentPoaseInfo(iID, pQuart, pAngularAccel, pLinearAccel, pPosition, (unsigned int* )pKeystatus);
 
-	env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
-	env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
-	env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
-	env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
-	env->ReleaseIntArrayElements(KeystatusArray, pKeystatus, 0);
+	if (pQuart)
+		env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
+	if (pAngularAccel)
+		env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
+	if (pLinearAccel)
+		env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
+	if (pPosition)
+		env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
+	if (pKeystatus)
+		env->ReleaseIntArrayElements(KeystatusArray, pKeystatus, 0);
 
 	return fRet;
 }
 
-JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetFixInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetFixInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
 	jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
 	jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
 	jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
 	jfloatArray PositionArray/*设备的空间位置，以米为单位，默认是0,0,0。*/ )
 {
-	jfloat *pQuart = env->GetFloatArrayElements(QuartArray, NULL);
-	jfloat *pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
-	jfloat *pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
-	jfloat *pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+	jfloat* pQuart = NULL;
+	if (QuartArray != nullptr)
+	{
+		pQuart = env->GetFloatArrayElements(QuartArray, NULL);
+	};
+	jfloat* pAngularAccel = NULL;
+	if (AngularAccelArray != nullptr)
+	{
+		pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
+	};
+	jfloat* pLinearAccel = NULL;
+	if (LinearAccelArray != nullptr)
+	{
+		pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
+	};
+	jfloat* pPosition = NULL;
+	if (PositionArray != nullptr)
+	{
+		pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+	};
 
 	jfloat fRet = MojingSDK_Device_GetFixPoaseInfo(iID, pQuart, pAngularAccel, pLinearAccel, pPosition);
-	env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
-	env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
-	env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
-	env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
+
+	if (pQuart)
+		env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
+	if (pAngularAccel)
+		env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
+	if (pLinearAccel)
+		env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
+	if (pPosition)
+		env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
 
 	return fRet;
 }
 
 
-JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetControlFixCurrentInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetControlFixCurrentInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
     jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
     jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
     jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
@@ -1067,19 +1126,44 @@ JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetControlFixC
     jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/
     )
 {
-    jfloat* pQuart = env->GetFloatArrayElements(QuartArray, NULL);
-    jfloat* pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
-    jfloat* pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
-    jfloat* pPosition = env->GetFloatArrayElements(PositionArray, NULL);
-    jint* pKeystatus = env->GetIntArrayElements(KeystatusArray, NULL);
+	jfloat* pQuart = NULL;
+	if (QuartArray != nullptr)
+	{
+		pQuart = env->GetFloatArrayElements(QuartArray, NULL);
+	};
+	jfloat* pAngularAccel = NULL;
+	if (AngularAccelArray != nullptr)
+	{
+		pAngularAccel = env->GetFloatArrayElements(AngularAccelArray, NULL);
+	};
+	jfloat* pLinearAccel = NULL;
+	if (LinearAccelArray != nullptr)
+	{
+		pLinearAccel = env->GetFloatArrayElements(LinearAccelArray, NULL);
+	};
+	jfloat* pPosition = NULL;
+	if (PositionArray != nullptr)
+	{
+		pPosition = env->GetFloatArrayElements(PositionArray, NULL);
+	};
+	jint* pKeystatus = NULL;
+	if (KeystatusArray != nullptr)
+	{
+		pKeystatus = env->GetIntArrayElements(KeystatusArray, NULL);
+	};
 
     jfloat fRet = MojingSDK_Device_GetControlFixCurrentInfo(iID, pQuart, pAngularAccel, pLinearAccel, pPosition, (unsigned int*)pKeystatus);
 
-    env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
-    env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
-    env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
-    env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
-    env->ReleaseIntArrayElements(KeystatusArray, pKeystatus, 0);
+	if (pQuart)
+		env->ReleaseFloatArrayElements(QuartArray, pQuart, 0);
+	if (pAngularAccel)
+		env->ReleaseFloatArrayElements(AngularAccelArray, pAngularAccel, 0);
+	if (pLinearAccel)
+		env->ReleaseFloatArrayElements(LinearAccelArray, pLinearAccel, 0);
+	if (pPosition)
+		env->ReleaseFloatArrayElements(PositionArray, pPosition, 0);
+	if (pKeystatus)
+		env->ReleaseIntArrayElements(KeystatusArray, pKeystatus, 0);
 
     return fRet;
 }

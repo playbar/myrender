@@ -31,6 +31,7 @@ typedef void (^MJGamepadThumbStickValueChangedBlock)(MJGamepadThumbStick *stick,
 @property (nonatomic, copy) MJGamepadThumbStickValueChangedBlock valueChangedHandler;
 
 - (void)setPoint:(CGPoint)point;
+- (void)setTouchPoint:(CGPoint)point;
 - (void)setTimestamp:(NSTimeInterval)timestamp;
 
 @end

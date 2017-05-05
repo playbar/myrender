@@ -4,6 +4,7 @@
 
 #include "../Base/Base32.h"
 #include "../Base/CRC.h"
+#include "../Base/MojingTimer.h"
 #include "../3rdPart/MD5/MD5.h"
 #include "../Platform/MojingPlatformBase.h"
 #include "../Distortion/MojingDistortion.h"
@@ -12,6 +13,7 @@
 #include "../Parameters/MojingParameters.h"
 #include "../Parameters/MojingDisplayParameters.h"
 #include "../Profile/ProfileThreadMGR.h"
+#include "../Reporter/ReporterTools.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -151,6 +153,7 @@ namespace Baofeng
 				}
 				else
 				{
+					MOJING_TRACE(g_APIlogger , "Disable PID = " << pNewNode->GetID());
 					delete pNewNode;
 				}
 			}
@@ -253,6 +256,7 @@ namespace Baofeng
 		}
 		bool GlassesConfigProfileV2::UpdateFromProfile(const char * lpszProfilePath, JSON * pJsonFromUpdate)
 		{
+			MOJING_FUNC_TRACE(g_APIlogger);
 			/*来自安装包的节点*/
 			char filename[256];
 			char* szError = NULL;
@@ -837,6 +841,10 @@ namespace Baofeng
 		{
 			bool bRet = false;
 			MojingProfileKey UsingKey;
+
+// 			const char szKey_S1[] = "ST8MXV-2B9GHU-DQHHC8-WBEYEB-XGYNZT-FG2C2H";
+// 			lpszKey = szKey_S1;
+
 			if (UsingKey.SetString(lpszKey))
 			{
 				if (UsingKey.GetAppID() == 0)
@@ -865,6 +873,11 @@ namespace Baofeng
 #endif
 //				MOJING_TRACE(g_APIlogger, "APP_ID " << UsingKey.GetAppID() << ":" << GetAppID());
 				MOJING_TRACE(g_APIlogger, "CheckIDs " << bCheckManufacturerID << bProductID << bGlassID << bAppID << bPlatformID);
+				if (!bProductID)
+				{
+					MOJING_TRACE(g_APIlogger, "PID = " << UsingKey.GetProductID() << " , PMap.Count = " << m_ProductMap.size());
+				}
+
 				// 适配检查
 				if (bCheckManufacturerID && bProductID && bGlassID && bAppID && bPlatformID)
 				{// 所有ID都存在,且APP ID 和 PLATFORM ID匹配
@@ -960,7 +973,7 @@ namespace Baofeng
 						}
 						SetCurrentKey(UsingKey);
 						pDistortion->SetGlassKey(lpszKey);
-#if 1
+#if 0
 						float *pFVectex = NULL, * pFUV = NULL;
 						int *pIndex = NULL;
 						int iCount = pDistortion->UNITY_BuildDistortionMesh(40, 40, NULL, NULL, NULL);
@@ -1015,6 +1028,13 @@ namespace Baofeng
 		// 检查网络升级信息
 		void GlassesConfigProfileV2::CheckUpdate()
 		{
+			double dLastCheckGlassConfigTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckGlassConfig();
+			//request once per day.
+			if (fabs(ReporterTools::GetCurrentTime() - dLastCheckGlassConfigTime) < CHECK_GLASSCONFIG_INTERVEL)
+			{
+				return;
+			}
+
 			char szTime[32];
 			char szReleaseDate[32];
 			String data;
@@ -1059,6 +1079,9 @@ namespace Baofeng
 				MOJING_TRACE(g_APIlogger, "Update FAILD! Code = " << RespCode);
 				return;
 			}
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->SetCheckGlassConfig(ReporterTools::GetCurrentTime());
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->Save();
+
 			// 这是没有加密的JSON反馈，如果成功的返回了URL那么下载
 			GlassesConfigProfileV2 * pThis = (GlassesConfigProfileV2 *)pCallBackParam;
 			char *pBuffer = new char[uiSize + 1];
@@ -1119,6 +1142,7 @@ namespace Baofeng
                 MOJING_TRACE(g_APIlogger, "GlassesConfigProfileV2 Update NULL");
                 return;
             }
+
 			// 程序执行到这里表示成功下载了加密的配置文件
 			unsigned char* pEncBuffer = (unsigned char*)lpszRespString;
 			JSON *pNewJson = JSON::ParseEnc(lpszRespString, uiSize, g_EncKey);

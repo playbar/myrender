@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef MJ_OS_ANDROID
 #include "../3rdPart/ktx/include/ktx.h"
+#endif
 
 #include "FBO.h"
 

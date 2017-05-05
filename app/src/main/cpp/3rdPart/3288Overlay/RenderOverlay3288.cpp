@@ -1,5 +1,4 @@
-﻿#include <Base/MojingLog.h>
-#include "RenderOverlay3288.h"
+﻿#include "RenderOverlay3288.h"
 #include "../../Render/MojingRenderBase.h"
 namespace Baofeng
 {
@@ -142,7 +141,6 @@ namespace Baofeng
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glClearColor(0, 0, 0, 0);
-					LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 					glClear(GL_COLOR_BUFFER_BIT);
 					eglSwapBuffers(dpy, m_hOverlay->m_Surface);
 
@@ -172,7 +170,6 @@ namespace Baofeng
 							continue;// 不需要绘制 
 						}
 						glClearColor(0, 0, 0, 0);
-						LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 						glClear(GL_COLOR_BUFFER_BIT);
 						// for test
 // 						if (m_hOverlay->m_iWidth != 1920)

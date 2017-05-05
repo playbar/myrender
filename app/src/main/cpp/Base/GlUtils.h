@@ -164,8 +164,8 @@ namespace Baofeng
 // they will be assigned here as well.
 extern bool	IMG_multisampled_render_to_texture;
 #if !defined(__aarch64__)
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG glRenderbufferStorageMultisampleIMG_;
-extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG_;
+extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC glRenderbufferStorageMultisampleIMG_;
+extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC glFramebufferTexture2DMultisampleIMG_;
 #endif
 
 extern PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR_;
@@ -248,17 +248,17 @@ static const int EGL_GL_COLORSPACE_SRGB_KHR = 0x3089;
 static const int EGL_GL_COLORSPACE_LINEAR_KHR = 0x308A;
 
 // EXT_sRGB_write_control
-#if !defined(__aarch64__)
-static const int GL_FRAMEBUFFER_SRGB_EXT = 0x8DB9;
-#endif
+//#if !defined(__aarch64__)
+//static const int GL_FRAMEBUFFER_SRGB_EXT = 0x8DB9;
+//#endif
 
 // EXT_sRGB_decode
 extern bool HasEXT_sRGB_texture_decode;
-#if !defined(__aarch64__)
-static const int GL_TEXTURE_SRGB_DECODE_EXT = 0x8A48;
-static const int GL_DECODE_EXT = 0x8A49;
-static const int GL_SKIP_DECODE_EXT = 0x8A4A;
-#endif
+//#if !defined(__aarch64__)
+//static const int GL_TEXTURE_SRGB_DECODE_EXT = 0x8A48;
+//static const int GL_DECODE_EXT = 0x8A49;
+//static const int GL_SKIP_DECODE_EXT = 0x8A4A;
+//#endif
 
 // To link against the ES2 library for UE4, we need to make our own versions of these
 typedef void (GL_APIENTRYP PFNGLBLITFRAMEBUFFER_) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);

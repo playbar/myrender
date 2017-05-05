@@ -23,8 +23,8 @@ PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT_ = NULL;
 
 bool	IMG_multisampled_render_to_texture;
 #if !defined(__aarch64__)
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG glRenderbufferStorageMultisampleIMG_ = NULL;
-PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG_ = NULL;
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC glRenderbufferStorageMultisampleIMG_ = NULL;
+PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC glFramebufferTexture2DMultisampleIMG_ = NULL;
 #endif
 
 PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR_ = NULL;
@@ -164,8 +164,8 @@ namespace Baofeng
 			{
 				IMG_multisampled_render_to_texture = true;
 #if !defined(__aarch64__)
-				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleIMG");
-				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleIMG");
+				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC)GetExtensionProc("glRenderbufferStorageMultisampleIMG");
+				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC)GetExtensionProc("glFramebufferTexture2DMultisampleIMG");
 #endif
 			}
 			else if (ExtensionStringPresent("GL_EXT_multisampled_render_to_texture", extensions))
@@ -173,8 +173,8 @@ namespace Baofeng
 				// assign to the same function pointers as the IMG extension
 				IMG_multisampled_render_to_texture = true;
 #if !defined(__aarch64__)
-				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleEXT");
-				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleEXT");
+				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC)GetExtensionProc("glRenderbufferStorageMultisampleEXT");
+				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC)GetExtensionProc("glFramebufferTexture2DMultisampleEXT");
 #endif
 			}
 
@@ -526,7 +526,11 @@ namespace Baofeng
 					{
 						continue;
 					}
-
+#ifdef _DEBUG
+					char szLog[512];
+					sprintf(szLog, "SURFACE_TYPE : 0x%04X (Version = ES %d) , ", value, esVersion);
+					MOJING_TRACE(g_APIlogger, szLog);
+#endif
 					int	j = 0;
 					for (; configAttribs[j] != EGL_NONE; j += 2)
 					{
@@ -695,6 +699,8 @@ namespace Baofeng
 			// TODO: check for external HDMI displays
 			egl.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 			
+
+
 			if (EGL_NO_DISPLAY != egl.display)
 			{
 				// Initialize EGL
@@ -707,6 +713,9 @@ namespace Baofeng
 				// 				sprintf(outEGLInfo + strlen(outEGLInfo), "\"minorVersion\":%d,\n", minorVersion);
 				// 			}
 				//LOG("eglInitialize gives majorVersion %i, minorVersion %i", majorVersion, minorVersion);
+#ifdef _DEBUG
+				ChooseColorConfig(egl.display, redBits, greenBits, blueBits, depthBits, multisamples , false);
+#endif
 
 				const char * eglVendorString = eglQueryString(egl.display, EGL_VENDOR);
 				//LOG("EGL_VENDOR: %s", eglVendorString);

@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id: 992b271a9578034da2c23fb5640f626042fab138 $ */
+
 /**
  * @file
  * @~English
@@ -9,9 +11,6 @@
  *
  * @author Georg Kolling, Imagination Technology
  * @author Mark Callow, HI Corporation
- *
- * $Revision: 21679 $
- * $Date:: 2013-05-22 19:03:13 +0900 #$
  */
 
 /*
@@ -43,53 +42,29 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "KHR/khrplatform.h"
-#include "ktx.h"
+#include "../include/ktx.h"
 #include "ktxint.h"
+#include "ktxstream.h"
+#include "ktxfilestream.h"
+#include "ktxmemstream.h"
 
 #include KTX_GLFUNCPTRS
 
-/* @private is not preventing the typedefs, structs and defines from
- * appearing in the Doxygen output even though EXTRACT_PRIVATE is NO
- * in the config file. To prevent these items appearing I have changed
- * the special comments to ordinary comments, and have set
- * HIDE_UNDOC_MEMBERS = YES in the Doxygen config file.
- *
- * Items declared "static" are omitted, as expected, due to EXTRACT_STATIC
- * being NO, so there is no need to convert those to ordinary comments. 
- */
-/*
- * @private
- * @~English
- * @brief type for a pointer to a stream reading function
- */
-typedef int(*ktxStream_read)(void* dst, const GLsizei count, void* src);
-/*
- * @private
- * @~English
- * @brief type for a pointer to a stream skipping function
- */
-typedef int(*ktxStream_skip)(const GLsizei count, void* src);
+DECLARE_GL_FUNCPTRS
 
-/*
- * @private
+/**
+ * @internal
  * @~English
- * @brief KTX stream interface
- */
-struct ktxStream
-{
-	void* src;				/**< pointer to the stream source */
-	ktxStream_read read;	/**< pointer to function for reading bytes */
-	ktxStream_skip skip;	/**< pointer to function for skipping bytes */
-};
-
-/*
- * @private
- * @~English
- * @brief additional contextProfile bit indicating an OpenGL ES context.
+ * @brief Additional contextProfile bit indicating an OpenGL ES context.
  *
  * This is the same value NVIDIA returns when using an OpenGL ES profile
  * of their desktop drivers. However it is not specified in any official
@@ -98,8 +73,8 @@ struct ktxStream
  */
 #define _CONTEXT_ES_PROFILE_BIT 0x4
 
-/*
- * @private
+/**
+ * @internal
  * @~English
  * @name Supported Sized Format Macros
  *
@@ -107,50 +82,89 @@ struct ktxStream
  * variable.
  */
 /**@{*/
-#define _NON_LEGACY_FORMATS 0x1 /*< @private @internal non-legacy sized formats are supported. */
-#define _LEGACY_FORMATS 0x2  /*< @private @internal legacy sized formats are supported. */
-/*
- * @private
+#define _NON_LEGACY_FORMATS 0x1 /*< @internal Non-legacy sized formats are supported. */
+#define _LEGACY_FORMATS 0x2  /*< @internal Legacy sized formats are supported. */
+/**
+ * @internal
  * @~English
- * @brief all sized formats are supported
+ * @brief All sized formats are supported
  */
 #define _ALL_SIZED_FORMATS (_NON_LEGACY_FORMATS | _LEGACY_FORMATS)
-#define _NO_SIZED_FORMATS 0 /*< @private @internal no sized formats are supported. */
+#define _NO_SIZED_FORMATS 0 /*< @internal No sized formats are supported. */
 /**@}*/
 
 /**
- * @private
+ * @internal
  * @~English
  * @brief indicates the profile of the current context.
  */
 static GLint contextProfile = 0;
 /**
- * @private
+ * @internal
  * @~English
- * @brief indicates what sized texture formats are supported
+ * @brief Indicates what sized texture formats are supported
  *        by the current context.
  */
 static GLint sizedFormats = _ALL_SIZED_FORMATS;
 static GLboolean supportsSwizzle = GL_TRUE;
 /**
- * @private
+ * @internal
  * @~English
- * @brief indicates which R16 & RG16 formats are supported by the current context.
+ * @brief Indicates which R16 & RG16 formats are supported by the current context.
  */
 static GLint R16Formats = _KTX_ALL_R16_FORMATS;
 /**
- * @private
+ * @internal
  * @~English
- * @brief indicates if the current context supports sRGB textures.
+ * @brief Indicates if the current context supports sRGB textures.
  */
 static GLboolean supportsSRGB = GL_TRUE;
-
+/**
+ * @internal
+ * @~English
+ * @brief Indicates if the current context supports cube map arrays.
+ */
+static GLboolean supportsCubeMapArrays = GL_FALSE;
 
 /**
- * @private
+ * @internal
+ * @~English
+ * @brief Workaround mismatch of glGetString declaration and standard string
+ *        function parameters.
+ */
+#define glGetString(x) (const char*)glGetString(x)
+
+/**
+ * @internal
+ * @~English
+ * @brief Check for existence of OpenGL extension
+ */
+static GLboolean
+hasExtension(const char* extension)
+{
+	if (pfGlGetStringi == NULL) {
+		if (strstr(glGetString(GL_EXTENSIONS), extension) != NULL)
+			return GL_TRUE;
+		else
+			return GL_FALSE;
+	}
+	else {
+		int i, n;
+
+		glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+		for (i = 0; i < n; i++) {
+			if (strcmp(pfGlGetStringi(GL_EXTENSIONS, i), extension) == 0)
+				return GL_TRUE;
+		}
+		return GL_FALSE;
+	}
+}
+
+/**
+ * @internal
  * @~English
  * @brief Discover the capabilities of the current GL context.
- * 
+ *
  * Queries the context and sets several the following internal variables indicating
  * the capabilities of the context:
  *
@@ -159,11 +173,16 @@ static GLboolean supportsSRGB = GL_TRUE;
  * @li supportsSRGB
  * @li b16Formats
  *
- */           
+ */
 static void discoverContextCapabilities(void)
 {
 	GLint majorVersion = 1;
 	GLint minorVersion = 0;
+
+	// Done here so things will work when GLEW, or equivalent, is being used
+	// and GL function names are defined as pointers. Initialization at
+	// declaration would happen before these pointers have been initialized.
+	INITIALIZE_GL_FUNCPTRS
 
 	if (strstr(glGetString(GL_VERSION), "GL ES") != NULL)
 		contextProfile = _CONTEXT_ES_PROFILE_BIT;
@@ -173,9 +192,11 @@ static void discoverContextCapabilities(void)
 	if (glGetError() != GL_NO_ERROR) {
 		// < v3.0; resort to the old-fashioned way.
 		if (contextProfile & _CONTEXT_ES_PROFILE_BIT)
-			sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ", &majorVersion, &minorVersion);
+			sscanf(glGetString(GL_VERSION), "OpenGL ES %d.%d ",
+                   &majorVersion, &minorVersion);
 		else
-			sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ", &majorVersion, &minorVersion);
+			sscanf(glGetString(GL_VERSION), "OpenGL %d.%d ",
+                   &majorVersion, &minorVersion);
 	}
 	if (contextProfile & _CONTEXT_ES_PROFILE_BIT) {
 		if (majorVersion < 3) {
@@ -185,8 +206,11 @@ static void discoverContextCapabilities(void)
 			supportsSRGB = GL_FALSE;
 		} else {
 			sizedFormats = _NON_LEGACY_FORMATS;
+            if (hasExtension("GL_EXT_texture_cube_map_array")) {
+                supportsCubeMapArrays = GL_TRUE;
+            }
 		}
-		if (strstr(glGetString(GL_EXTENSIONS), "GL_OES_required_internalformat") != NULL) {
+		if (hasExtension("GL_OES_required_internalformat")) {
 			sizedFormats |= _ALL_SIZED_FORMATS;
 		}
 		// There are no OES extensions for sRGB textures or R16 formats.
@@ -200,12 +224,14 @@ static void discoverContextCapabilities(void)
 				supportsSwizzle = GL_FALSE;
 			if ((contextProfile & GL_CONTEXT_CORE_PROFILE_BIT))
 				sizedFormats &= ~_LEGACY_FORMATS;
-		} else {
+            if (majorVersion >= 4)
+                supportsCubeMapArrays = GL_TRUE;
+        } else {
 			// < 3.2
 			contextProfile = GL_CONTEXT_COMPATIBILITY_PROFILE_BIT;
 			supportsSwizzle = GL_FALSE;
 			// sRGB textures introduced in 2.0
-			if (majorVersion < 2 && strstr(glGetString(GL_EXTENSIONS), "GL_EXT_texture_sRGB") == NULL) {
+			if (majorVersion < 2 && hasExtension("GL_EXT_texture_sRGB")) {
 				supportsSRGB = GL_FALSE;
 			}
 			// R{,G]16 introduced in 3.0; R{,G}16_SNORM introduced in 3.1.
@@ -218,6 +244,11 @@ static void discoverContextCapabilities(void)
 				R16Formats = _KTX_NO_R16_FORMATS;
 			}
 		}
+        if (!supportsCubeMapArrays) {
+            if (hasExtension("GL_ARB_texture_cube_map_array")) {
+                supportsCubeMapArrays = GL_TRUE;
+            }
+        }
 	}
 }
 
@@ -226,7 +257,7 @@ static void discoverContextCapabilities(void)
  * @internal
  * @~English
  * @brief Convert deprecated legacy-format texture to modern format.
- * 
+ *
  * The function sets the GL_TEXTURE_SWIZZLEs necessary to get the same
  * behavior as the legacy format.
  *
@@ -239,12 +270,12 @@ static void discoverContextCapabilities(void)
  *                                   written here.
  * @return void unrecognized formats will be passed on to OpenGL. Any loading error
  *              that arises will be handled in the usual way.
- */           
-static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat) {
+ */
+static void convertFormat(GLenum target, GLenum* pFormat, GLenum* pInternalFormat) {
 	switch (*pFormat) {
 	  case GL_ALPHA:
 		{
-		  GLenum swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
+		  GLint swizzle[] = {GL_ZERO, GL_ZERO, GL_ZERO, GL_RED};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -261,7 +292,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 		}
 	  case GL_LUMINANCE:
 		{
-		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -275,7 +306,8 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 			  *pInternalFormat = GL_R16;
 			  break;
 #if 0
-		    // XXX Must avoid doing the swizzle in these cases
+		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
+            // XXX Must manually swizzle.
 			case GL_SLUMINANCE:
 			case GL_SLUMINANCE8:
 			  *pInternalFormat = GL_SRGB8;
@@ -286,7 +318,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 		}
 	  case GL_LUMINANCE_ALPHA:
 		{
-		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
+		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_GREEN};
 		  *pFormat = GL_RG;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -302,7 +334,8 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 			  *pInternalFormat = GL_RG16;
 			  break;
 #if 0
-		    // XXX Must avoid doing the swizzle in these cases
+		    // XXX Must avoid setting TEXTURE_SWIZZLE in these cases
+            // XXX Must manually swizzle.
 			case GL_SLUMINANCE_ALPHA:
 			case GL_SLUMINANCE8_ALPHA8:
 			  *pInternalFormat = GL_SRGB8_ALPHA8;
@@ -313,7 +346,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
 		}
 	  case GL_INTENSITY:
 		{
-		  GLenum swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
+		  GLint swizzle[] = {GL_RED, GL_RED, GL_RED, GL_RED};
 		  *pFormat = GL_RED;
 		  glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
 		  switch (*pInternalFormat) {
@@ -340,14 +373,19 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
  * @~English
  * @brief Load a GL texture object from a ktxStream.
  *
- * This function will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
+ * according to the number of levels in the ktxStream, provided the library
+ * has been compiled with a version of gl.h where GL_TEXTURE_MAX_LEVEL is
+ * defined.
+ *
+ * It will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
- * 
+ *
  * It will also convert textures with legacy formats to their modern equivalents
- * when the format is not supported by the GL context, provided that the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1. 
+ * when the format is not supported by the GL context, provided the library
+ * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param [in] stream		pointer to the ktxStream from which to load.
  * @param [in,out] pTexture	name of the GL texture to load. If NULL or if
@@ -372,7 +410,7 @@ static void convertFormat(GLenum target, GLint* pFormat, GLint* pInternalFormat)
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.
@@ -420,7 +458,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 	if (ppKvd) {
 		*ppKvd = NULL;
-    }
+	}
 
 	if (!stream || !stream->read || !stream->skip) {
 		return KTX_INVALID_VALUE;
@@ -430,14 +468,13 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		return KTX_INVALID_VALUE;
 	}
 
-	if (!stream->read(&header, KTX_HEADER_SIZE, stream->src)) {
-		return KTX_UNEXPECTED_END_OF_FILE;
-	}
+	errorCode = stream->read(&header, KTX_HEADER_SIZE, stream->src);
+	if (errorCode != KTX_SUCCESS)
+		return errorCode;
 
 	errorCode = _ktxCheckHeader(&header, &texinfo);
-	if (errorCode != KTX_SUCCESS) {
+	if (errorCode != KTX_SUCCESS)
 		return errorCode;
-	}
 
 	if (ppKvd) {
 		if (pKvdLen == NULL)
@@ -447,18 +484,20 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 			*ppKvd = (unsigned char*)malloc(*pKvdLen);
 			if (*ppKvd == NULL)
 				return KTX_OUT_OF_MEMORY;
-			if (!stream->read(*ppKvd, *pKvdLen, stream->src))
+			errorCode = stream->read(*ppKvd, *pKvdLen, stream->src);
+			if (errorCode != KTX_SUCCESS)
 			{
 				free(*ppKvd);
 				*ppKvd = NULL;
 
-				return KTX_UNEXPECTED_END_OF_FILE;
+				return errorCode;
 			}
 		}
 	} else {
 		/* skip key/value metadata */
-		if (!stream->skip((long)header.bytesOfKeyValueData, stream->src)) {
-			return KTX_UNEXPECTED_END_OF_FILE;
+		errorCode = stream->skip(header.bytesOfKeyValueData, stream->src);
+		if (errorCode != KTX_SUCCESS) {
+			return errorCode;
 		}
 	}
 
@@ -478,11 +517,61 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		glGenTextures(1, &texname);
 	}
 	glBindTexture(texinfo.glTarget, texname);
+    
+    /* load as 2D texture if 1D textures are not supported */
+    if (texinfo.textureDimensions == 1 &&
+        ((texinfo.compressed && (pfGlCompressedTexImage1D == NULL)) ||
+         (!texinfo.compressed && (pfGlTexImage1D == NULL))))
+    {
+        texinfo.textureDimensions = 2;
+        texinfo.glTarget = GL_TEXTURE_2D;
+        header.pixelHeight = 1;
+    }
+    
+    if (header.numberOfArrayElements > 0)
+    {
+        if (texinfo.glTarget == GL_TEXTURE_1D)
+        {
+            texinfo.glTarget = GL_TEXTURE_1D_ARRAY_EXT;
+        }
+        else if (texinfo.glTarget == GL_TEXTURE_2D)
+        {
+            texinfo.glTarget = GL_TEXTURE_2D_ARRAY_EXT;
+        }
+        else if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP)
+        {
+            texinfo.glTarget = GL_TEXTURE_CUBE_MAP_ARRAY;
+        }
+        else
+        {
+            /* No API for 3D arrays yet */
+            return KTX_UNSUPPORTED_TEXTURE_TYPE;
+        }
+        texinfo.textureDimensions++;
+    }
+    
+    /* Reject cube map arrays if unsupported. */
+    if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP_ARRAY && !supportsCubeMapArrays)
+    {
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;        
+    }
+    
+    /* Reject 3D texture if unsupported. */
+    if (texinfo.textureDimensions == 3 &&
+        ((texinfo.compressed && (pfGlCompressedTexImage3D == NULL)) ||
+         (!texinfo.compressed && (pfGlTexImage3D == NULL))))
+    {
+        return KTX_UNSUPPORTED_TEXTURE_TYPE;
+    }
 
 	// Prefer glGenerateMipmaps over GL_GENERATE_MIPMAP
-	if (texinfo.generateMipmaps && (glGenerateMipmap == NULL)) {
+	if (texinfo.generateMipmaps && (pfGlGenerateMipmap == NULL)) {
 		glTexParameteri(texinfo.glTarget, GL_GENERATE_MIPMAP, GL_TRUE);
 	}
+#ifdef GL_TEXTURE_MAX_LEVEL
+	if (!texinfo.generateMipmaps)
+		glTexParameteri(texinfo.glTarget, GL_TEXTURE_MAX_LEVEL, header.numberOfMipmapLevels - 1);
+#endif
 
 	if (texinfo.glTarget == GL_TEXTURE_CUBE_MAP) {
 		texinfo.glTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
@@ -501,10 +590,11 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		} else if (sizedFormats == _NO_SIZED_FORMATS)
 			glInternalFormat = header.glBaseInternalFormat;
 #else
-		// With only unsized formats must change internal format.
+		// When no sized formats are supported, or legacy sized formats are not
+		// supported, must change internal format.
 		if (sizedFormats == _NO_SIZED_FORMATS
 			|| (!(sizedFormats & _LEGACY_FORMATS) &&
-				(header.glBaseInternalFormat == GL_ALPHA	
+				(header.glBaseInternalFormat == GL_ALPHA
 				|| header.glBaseInternalFormat == GL_LUMINANCE
 				|| header.glBaseInternalFormat == GL_LUMINANCE_ALPHA
 				|| header.glBaseInternalFormat == GL_INTENSITY))) {
@@ -519,8 +609,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 		GLsizei pixelHeight = MAX(1, header.pixelHeight >> level);
 		GLsizei pixelDepth  = MAX(1, header.pixelDepth  >> level);
 
-		if (!stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src)) {
-			errorCode = KTX_UNEXPECTED_END_OF_FILE;
+		errorCode = stream->read(&faceLodSize, sizeof(khronos_uint32_t), stream->src);
+		if (errorCode != KTX_SUCCESS) {
 			goto cleanup;
 		}
 		if (header.endianness == KTX_ENDIAN_REF_REV) {
@@ -544,8 +634,8 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 
 		for (face = 0; face < header.numberOfFaces; ++face)
 		{
-			if (!stream->read(data, faceLodSizeRounded, stream->src)) {
-				errorCode = KTX_UNEXPECTED_END_OF_FILE;
+			errorCode = stream->read(data, faceLodSizeRounded, stream->src);
+			if (errorCode != KTX_SUCCESS) {
 				goto cleanup;
 			}
 
@@ -558,13 +648,14 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 			}
 
 			if (texinfo.textureDimensions == 1) {
+                assert(pfGlCompressedTexImage1D != NULL && pfGlTexImage1D != NULL);
 				if (texinfo.compressed) {
-					glCompressedTexImage1D(texinfo.glTarget + face, level, 
+					pfGlCompressedTexImage1D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage1D(texinfo.glTarget + face, level, 
-						glInternalFormat, pixelWidth, 0, 
+					pfGlTexImage1D(texinfo.glTarget + face, level,
+						glInternalFormat, pixelWidth, 0,
 						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 2) {
@@ -575,25 +666,27 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				    // It is simpler to just attempt to load the format, rather than divine which
 					// formats are supported by the implementation. In the event of an error,
 					// software unpacking can be attempted.
-					glCompressedTexImage2D(texinfo.glTarget + face, level, 
+					glCompressedTexImage2D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage2D(texinfo.glTarget + face, level, 
-						glInternalFormat, pixelWidth, pixelHeight, 0, 
+					errorTmp = glGetError();
+					glTexImage2D(texinfo.glTarget + face, level,
+						glInternalFormat, pixelWidth, pixelHeight, 0,
 						glFormat, header.glType, data);
 				}
 			} else if (texinfo.textureDimensions == 3) {
+                assert(pfGlCompressedTexImage3D != NULL && pfGlTexImage3D != NULL);
 				if (header.numberOfArrayElements) {
 					pixelDepth = header.numberOfArrayElements;
 				}
 				if (texinfo.compressed) {
-					glCompressedTexImage3D(texinfo.glTarget + face, level, 
+					pfGlCompressedTexImage3D(texinfo.glTarget + face, level,
 						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
 						faceLodSize, data);
 				} else {
-					glTexImage3D(texinfo.glTarget + face, level, 
-						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0, 
+					pfGlTexImage3D(texinfo.glTarget + face, level,
+						glInternalFormat, pixelWidth, pixelHeight, pixelDepth, 0,
 						glFormat, header.glType, data);
 				}
 			}
@@ -605,7 +698,7 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 				&& texinfo.compressed
 				&& texinfo.textureDimensions == 2
 				&& (glInternalFormat == GL_ETC1_RGB8_OES || (glInternalFormat >= GL_COMPRESSED_R11_EAC && glInternalFormat <= GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)))
-			    {
+			{
 				GLubyte* unpacked;
 				GLenum format, internalFormat, type;
 
@@ -621,15 +714,15 @@ ktxLoadTextureS(struct ktxStream* stream, GLuint* pTexture, GLenum* pTarget,
 					else if (internalFormat == GL_RGBA8)
 						internalFormat = GL_RGBA;
 				}
-				glTexImage2D(texinfo.glTarget + face, level, 
-							 internalFormat, pixelWidth, pixelHeight, 0, 
+				glTexImage2D(texinfo.glTarget + face, level,
+							 internalFormat, pixelWidth, pixelHeight, 0,
 							 format, type, unpacked);
 
 				free(unpacked);
 				errorTmp = glGetError();
 			}
 #endif
-			if (errorTmp != GL_NO_ERROR) {
+            if (errorTmp != GL_NO_ERROR) {
 				if (pGlerror)
 					*pGlerror = errorTmp;
 				errorCode = KTX_GL_ERROR;
@@ -648,8 +741,8 @@ cleanup:
 
 	if (errorCode == KTX_SUCCESS)
 	{
-		if (texinfo.generateMipmaps && glGenerateMipmap) {
-			glGenerateMipmap(texinfo.glTarget);
+		if (texinfo.generateMipmaps && pfGlGenerateMipmap) {
+			pfGlGenerateMipmap(texinfo.glTarget);
 		}
 		*pTarget = texinfo.glTarget;
 		if (pTexture) {
@@ -680,57 +773,23 @@ cleanup:
 	return errorCode;
 }
 
-/* Implementation of ktxStream for FILE */
-
-static
-int ktxFileStream_read(void* dst, const GLsizei count, void* src)
-{
-	if (!dst || !src || (fread(dst, count, 1, (FILE*)src) != 1))
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-static
-int ktxFileStream_skip(const GLsizei count, void* src)
-{
-	if (!src || (count < 0) || (fseek((FILE*)src, count, SEEK_CUR) != 0))
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-static
-int ktxFileInit(struct ktxStream* stream, FILE* file)
-{
-	if (!stream || !file)
-	{
-		return 0;
-	}
-
-	stream->src = (void*)file;
-	stream->read = ktxFileStream_read;
-	stream->skip = ktxFileStream_skip;
-
-	return 1;
-}
-
 /**
  * @~English
  * @brief Load a GL texture object from a stdio FILE stream.
  *
- * This function will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
+ * The function sets the texture object's GL_TEXTURE_MAX_LEVEL parameter
+ * according to the number of levels in the ktxStream, provided the library
+ * has been compiled with a version of gl.h where GL_TEXTURE_MAX_LEVEL is
+ * defined.
+ *
+ * It will unpack compressed GL_ETC1_RGB8_OES and GL_ETC2_* format
  * textures in software when the format is not supported by the GL context,
  * provided the library has been compiled with SUPPORT_SOFTWARE_ETC_UNPACK
  * defined as 1.
- * 
+ *
  * It will also convert texture with legacy formats to their modern equivalents
- * when the format is not supported by the GL context, provided that the library
- * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1. 
+ * when the format is not supported by the GL context, provided the library
+ * has been compiled with SUPPORT_LEGACY_FORMAT_CONVERSION defined as 1.
  *
  * @param [in] file			pointer to the stdio FILE stream from which to
  * 							load.
@@ -756,7 +815,7 @@ int ktxFileInit(struct ktxStream* stream, FILE* file)
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.
@@ -784,11 +843,11 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
 				unsigned int* pKvdLen, unsigned char** ppKvd)
 {
 	struct ktxStream stream;
+	KTX_error_code errorCode = KTX_SUCCESS;
 
-	if (!ktxFileInit(&stream, file))
-	{
-		return KTX_FILE_OPEN_FAILED;
-	}
+	errorCode = ktxFileInit(&stream, file);
+	if (errorCode != KTX_SUCCESS)
+		return errorCode;
 
 	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 }
@@ -814,7 +873,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.*
@@ -824,7 +883,7 @@ ktxLoadTextureF(FILE* file, GLuint* pTexture, GLenum* pTarget,
  * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
  * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- * 								
+ *
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
  */
 KTX_error_code
@@ -841,68 +900,9 @@ ktxLoadTextureN(const char* const filename, GLuint* pTexture, GLenum* pTarget,
 								    pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 		fclose(file);
 	} else
-	    errorCode = KTX_FILE_OPEN_FAILED;
+		errorCode = KTX_FILE_OPEN_FAILED;
 
 	return errorCode;
-}
-
-/* Implementation of ktxStream for memory */
-
-struct ktxMem
-{
-	const unsigned char* bytes;
-	GLsizei size;
-	GLsizei pos;
-};
-
-static
-int ktxMemStream_read(void* dst, const GLsizei count, void* src)
-{
-	struct ktxMem* mem = (struct ktxMem*)src;
-	
-	if(!dst || !mem || (mem->pos + count > mem->size) || (mem->pos + count < mem->pos))
-	{
-		return 0;
-	}
-
-	memcpy(dst, mem->bytes + mem->pos, count);
-	mem->pos += count;
-
-	return 1;
-}
-
-static
-int ktxMemStream_skip(const GLsizei count, void* src)
-{
-	struct ktxMem* mem = (struct ktxMem*)src;
-
-	if(!mem || (mem->pos + count > mem->size) || (mem->pos + count < mem->pos))
-	{
-		return 0;
-	}
-
-	mem->pos += count;
-
-	return 1;
-}
-
-static
-int ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, GLsizei size)
-{
-	if (!stream || !mem || !bytes || (size <= 0))
-	{
-		return 0;
-	}
-	
-	mem->bytes = (const unsigned char*)bytes;
-	mem->size = size;
-	mem->pos = 0;
-
-	stream->src = mem;
-	stream->read = ktxMemStream_read;
-	stream->skip = ktxMemStream_skip;
-
-	return 1;
 }
 
 /**
@@ -928,7 +928,7 @@ int ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, 
  *                          KTX_GL_ERROR. glerror can be NULL.
  * @param [in,out] pKvdLen	If not NULL, @p *pKvdLen is set to the number of bytes
  *                          of key-value data pointed at by @p *ppKvd. Must not be
- *                          NULL, if @p ppKvd is not NULL.                     
+ *                          NULL, if @p ppKvd is not NULL.
  * @param [in,out] ppKvd	If not NULL, @p *ppKvd is set to the point to a block of
  *                          memory containing key-value data read from the file.
  *                          The application is responsible for freeing the memory.*
@@ -939,7 +939,7 @@ int ktxMemInit(struct ktxStream* stream, struct ktxMem* mem, const void* bytes, 
  * @exception KTX_INVALID_VALUE		See ktxLoadTextureF() for causes.
  * @exception KTX_INVALID_OPERATION	See ktxLoadTextureF() for causes.
  * @exception KTX_UNEXPECTED_END_OF_FILE See ktxLoadTextureF() for causes.
- * 								
+ *
  * @exception KTX_GL_ERROR			See ktxLoadTextureF() for causes.
  */
 KTX_error_code
@@ -950,11 +950,11 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarg
 {
 	struct ktxMem mem;
 	struct ktxStream stream;
+	KTX_error_code errorCode = KTX_SUCCESS;
 
-	if (!ktxMemInit(&stream, &mem, bytes, size))
-	{
-		return KTX_FILE_OPEN_FAILED;
-	}
+	errorCode = ktxMemInit(&stream, &mem, bytes, size);
+	if (errorCode != KTX_SUCCESS)
+		return errorCode;
 
 	return ktxLoadTextureS(&stream, pTexture, pTarget, pDimensions, pIsMipmapped, pGlerror, pKvdLen, ppKvd);
 }

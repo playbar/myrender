@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id: c4b6d4c928f6a816d5bf1d8005ea2e95f663b9c0 $ */
+
 /**
  * @file hashtable.c
  * @~English
@@ -9,9 +11,6 @@
  *        pairs.
  *
  * @author Mark Callow, HI Corporation
- *
- * $Revision: 11914 $
- * $Date:: 2010-07-12 17:46:23 +0900 #$
  */
 
 /*
@@ -45,7 +44,16 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
+
+// This is to avoid compile warnings. strlen is defined as returning
+// size_t and is used by the uthash macros. This avoids having to
+// make changes to uthash and a bunch of casts in this file. The
+// casts would be required because the key and value lengths in KTX
+// are specified as 4 byte quantities so we can't change _keyAndValue
+// below to use size_t.
+#define strlen(x) ((unsigned int)strlen(x))
 
 #include "uthash.h"
 
@@ -83,7 +91,7 @@ typedef struct _keyAndValue {
 KTX_hash_table
 ktxHashTable_Create()
 {
-    key_and_value_t** kvt = (key_and_value_t**)malloc(sizeof (key_and_value_t**));
+	key_and_value_t** kvt = (key_and_value_t**)malloc(sizeof (key_and_value_t**));
 	*kvt = NULL;
 	return (KTX_hash_table)kvt;
 }
@@ -106,11 +114,12 @@ ktxHashTable_Destroy(KTX_hash_table This)
 {
 	key_and_value_t* kv;
 
-    for(kv = *(key_and_value_t**)This; kv != NULL;) {
+	for(kv = *(key_and_value_t**)This; kv != NULL;) {
 		key_and_value_t* tmp = (key_and_value_t*)kv->hh.next;
+		HASH_DELETE(hh, /*head*/*(key_and_value_t**)This, kv);
 		free(kv);
 		kv = tmp;
-    }
+	}
 	free(This);
 }
 
@@ -136,13 +145,13 @@ KTX_error_code
 ktxHashTable_AddKVPair(KTX_hash_table This, const char* key, unsigned int valueLen, const void* value)
 {
 	if (This && key && value && valueLen != 0) {
-		int keyLen = strlen(key) + 1;
+		unsigned int keyLen = (unsigned int)strlen(key) + 1;
 		/* key_and_value_t* head = *(key_and_value_t**)This; */
 		key_and_value_t* kv;
 
 		if (keyLen == 1)
 			return KTX_INVALID_VALUE;	/* Empty string */
-	
+
 		/* Allocate all the memory as a block */
 		kv = (key_and_value_t*)malloc(sizeof(key_and_value_t) + keyLen + valueLen);
 		/* Put key first */
@@ -302,13 +311,13 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* pKvd, KTX_hash_table* pHt)
 
 	while (src < (char *)pKvd + kvdLen) {
 		char* key;
-		int keyLen;
+		unsigned int keyLen;
 		void* value;
 		khronos_uint32_t keyAndValueByteSize = *((khronos_uint32_t*)src);
 
 		src += sizeof(keyAndValueByteSize);
 		key = src;
-		keyLen = strlen(key) + 1;
+		keyLen = (unsigned int)strlen(key) + 1;
 		value = key + keyLen;
 
 		ktxHashTable_AddKVPair(kvt, key, keyAndValueByteSize - keyLen, value);

@@ -29,9 +29,9 @@ bool MojingSDK_Init(int nWidth,
 	int nHeight,
 	float xdpi,
 	float ydpi,
-	char* Brand,
-	char* Model,
-	char* Serial,
+	const char* Brand,
+	const char* Model,
+	const char* Serial,
 	const char* szMerchantID,
 	const char* szAppID,
 	const char* szAppKey,
@@ -41,6 +41,7 @@ bool MojingSDK_Init(int nWidth,
 	const char* szChannelID,
 	const char* ProfilePath);
 
+void MojingSDK_SetGlassesSerialNumber(const char* lpszSN);
 bool MojingSDK_SetEngineVersion(const char* lpszEngine);
 void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const char* szAppKey, const char* szChannelID);
 
@@ -106,15 +107,18 @@ int MojingSDK_CheckSensors();
 int MojingSDK_GetMaxSensorsSampleRate(); // 返回最大的采样率或者-1表示出错
 #ifdef MJ_OS_ANDROID
 bool MojingSDK_IsUseUnityForSVR();
-int MojingSDK_GetSocketPort();
+int MojingSDK_GetSocketPort();// Socket向服务报告端口的
+int MojingSDK_StartTrackerChecker(int nSampleFrequence);
+int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
+#endif
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 int MojingSDK_Device_GetKeymask(int iID, int *pKeyMask);
 float MojingSDK_Device_GetCurrentPoaseInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition, unsigned int *pKeystatus);
 float MojingSDK_Device_GetFixPoaseInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition);
 float MojingSDK_Device_GetControlFixCurrentInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition, unsigned int *pKeystatus);
 void MojingSDK_Device_GetFixScore(int* pStatus, int* pScore);
-int MojingSDK_StartTrackerChecker(int nSampleFrequence);
-int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
 #endif
+
 void MojingSDK_ResetSensorOrientation(void);
 void MojingSDK_ResetSensorOrientation2(void);
 void MojingSDK_ResetTracker(void);
@@ -234,6 +238,8 @@ Rectf MojingSDK_Math_OverlayPosition3D(unsigned int eyeTextureType, Rectf rcRect
  * @return Current light sensation value in [UNIT]
  */
 bool MojingSDK_IsLowPower();
+void MojingSDK_SetHDMWorking(bool bHDMWorking);
+bool MojingSDK_IsHDMWorking();
 
 #ifdef USING_MINIDUMP
 void MojingSDK_CheckCrashReport();

@@ -26,7 +26,7 @@ namespace Baofeng
 		{
 		public:
 			SensorCalibration(Sensor* pSensor, const char *lpszModel = NULL);
-
+			virtual ~SensorCalibration(){};
 			// Load data from the HW and perform the necessary preprocessing
 			void Initialize(Parameters* pParameters);
 			// Apply the calibration

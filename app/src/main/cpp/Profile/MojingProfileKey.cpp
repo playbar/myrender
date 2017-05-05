@@ -142,9 +142,9 @@ namespace Baofeng
 			memcpy(Buffer + 16, &CRC, 2);
 			if (0 == GetCrc16(0, Buffer, 18))
 			{
-				int iBufferSizeOfBase32 = Buffer2Base32(Buffer, 18 , NULL);
+				int iBufferSizeOfBase32 = BufferToBase32(Buffer, 18 , NULL);
 				char *Base32 = new char[iBufferSizeOfBase32 + 1];
-				Buffer2Base32(Buffer, 18, Base32);
+				BufferToBase32(Buffer, 18, Base32);
 				Ret = Base32;
 				Ret = Ret.Insert("-", 30);
 				Ret = Ret.Insert("-", 24);
@@ -174,11 +174,11 @@ namespace Baofeng
 			}
 
 			// 2 反Base32
-			int iBufferSize = Base322Buffer(pKeyBuffer, NULL);
+			int iBufferSize = Base32ToBuffer(pKeyBuffer, NULL);
 			if (iBufferSize == 18)// 解码后应该是18字节
 			{
 				unsigned char *pBuffer = new unsigned char[iBufferSize];
-				Base322Buffer(pKeyBuffer, pBuffer);
+				Base32ToBuffer(pKeyBuffer, pBuffer);
 				// CRC 检查
 				if (0 == GetCrc16(0, pBuffer, iBufferSize))
 				{

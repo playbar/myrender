@@ -258,7 +258,7 @@ namespace Baofeng
 			{
 				char * sOLD = pOLD->PrintValue(0, false);
 				char * sNEW = pNEW->PrintValue(0, false);
-				bool bSame = strcmp(sOLD, sNEW);
+				bool bSame = (strcmp(sOLD, sNEW) == 0);
 				MJ_FREE(sOLD);
 				MJ_FREE(sNEW);
 				if (bSame)
@@ -268,7 +268,7 @@ namespace Baofeng
 			if (pOLD)
 			{
 				pOLD->RemoveNode();
-				delete pOLD;
+				pOLD->Release();
 				MOJING_TRACE(g_APIlogger, "Remove node :" << szNodeName);
 			}
 

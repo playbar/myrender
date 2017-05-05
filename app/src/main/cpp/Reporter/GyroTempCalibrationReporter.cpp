@@ -40,8 +40,10 @@ namespace Baofeng
 			SetGLES("UNKNOWN");
 			SetEGL("UNKNOWN");
 			SetGlassesName("UNKNOWN");
+			SetGlassesReportName("UNKNOWN");
+			SetMojingSN("");
 			SetGyroOffsetReportSet("UNKNOWN");
-			SetEnablePostRepote(true);
+			SetEnablePostRepote(false);
 		}
 
 

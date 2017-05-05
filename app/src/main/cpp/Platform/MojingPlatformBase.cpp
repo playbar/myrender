@@ -1,8 +1,5 @@
 ﻿#include <math.h>
 #include "MojingPlatformBase.h"
-#ifdef MJ_OS_ANDROID
-#include "MojingPlatformAndroid.h"
-#endif
 
 #if defined(MJ_OS_MAC)
 #include <unistd.h>
@@ -108,7 +105,7 @@ namespace Baofeng
 #endif
 		}
 
-		void MojingPlatformBase::InitPlatform(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand, char* Model, char* Serial, const char* szMerchantID, const char* szAppID,
+		void MojingPlatformBase::InitPlatform(int nWidth, int nHeight, float xdpi, float ydpi, const char* Brand, const char* Model, const char* Serial, const char* szMerchantID, const char* szAppID,
 			const char* szAppKey, const char* szAppName, const char* szPackageName, const char* szUserID, const char* szChannelID, const char* PacketProfilePath)
 		{
 			if (g_pPlatform == NULL)

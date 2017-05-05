@@ -1,6 +1,8 @@
 /* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
+/* $Id: 66fc783ff8cf9a7836f10cccf03607bad0860246 $ */
+
 /**
  * @file errstr.c
  * @~English
@@ -8,9 +10,6 @@
  * @brief Function to return a string corresponding to a KTX error code.
  *
  * @author Mark Callow, HI Corporation
- *
- * $Revision: 21679 $
- * $Date:: 2013-05-22 19:03:13 +0900 #$
  */
 
 /*
@@ -57,7 +56,7 @@ static const char* const errorStrings[] = {
 	"Not a KTX file",								  /* KTX_UNKNOWN_FILE_FORMAT */
 	"Texture type not supported by GL context"		  /* KTX_UNSUPPORTED_TEXTURE_TYPE */
 };
-static const int lastErrorCode = (sizeof(errorStrings) / sizeof(wchar_t*)) - 1;
+static const int lastErrorCode = (sizeof(errorStrings) / sizeof(char*)) - 1;
 
 
 /**
@@ -72,9 +71,9 @@ static const int lastErrorCode = (sizeof(errorStrings) / sizeof(wchar_t*)) - 1;
  * 
  * @author Mark Callow, HI Corporation
  */
-const char* ktxErrorString(KTX_error_code error)
+const char* const ktxErrorString(KTX_error_code error)
 {
-	if ((int)error > lastErrorCode)
+	if (error > lastErrorCode)
 		return "Unrecognized error code";
 	return errorStrings[error];
 }

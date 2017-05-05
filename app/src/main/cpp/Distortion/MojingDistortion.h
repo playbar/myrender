@@ -186,7 +186,7 @@ namespace Baofeng
 			Vector3f DistortionFnScaleRadiusSquared_Unreal(float rsq)const;
 
 			float EvalCatmullRomSpline(float const *K, float scaledVal, int NumSegments)const;
-
+			
 			void * BuildDistortionBuffer(const hmdInfoInternal_t &HMDI, int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/);
 			void * BuildDistortionBuffer_V2(const hmdInfoInternal_t &HMDI, int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/);
 			DistortionVertexBuffer* BuildDistortionVertexBuffer(int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/);
@@ -212,6 +212,7 @@ namespace Baofeng
 			void SetDistortionParamet(int iSegment, bool bNoDispersion , float* fKR, float * fKG, float * fKB, float *fKL = NULL, float * fKRT = NULL, float * fKGT = NULL, float * fKBT = NULL);
 			int GetDistortionParamet(float* fKR, float * fKG, float * fKB);
 			bool IsDistortionNeeded(void) { return m_iSegment != 0; };
+			
 		};
 	}//namespace Mojing
 }//namespace Baofeng

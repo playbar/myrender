@@ -24,7 +24,6 @@
 #include <map>
 #include <string>
 #include <ctime>
-#include <Base/MojingLog.h>
 
 #ifdef MJ_OS_ANDROID
 #include "MojingRenderMultithread.h"
@@ -107,7 +106,7 @@ namespace Baofeng
 
 		MojingRenderBase::~MojingRenderBase()
 		{
-			MOJING_FUNC_TRACE(g_APIlogger);
+			//MOJING_FUNC_TRACE(g_APIlogger);
 			MOJING_TRACE(g_APIlogger, "Delete MojingRenderBase , RenderThreadID = " << GetRenderThreadID());
 			if (GetRenderThreadID() == gettid())
 			{
@@ -453,7 +452,7 @@ namespace Baofeng
 			{
 				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			}
-			LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
+
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -479,13 +478,36 @@ namespace Baofeng
 			注意：	以下M44矩阵将在Shader中与表示[-1,1]区间的色散畸变颜色分量系数V4(x,y,-1,1)相乘
 			即M44 * V4 ，得到原始图的颜色采样坐标
 			*/
-			const Matrix4f SingleEye(
-				0.5, 0.0, 0.0, 0,				// 这是第一列
+			
+			float fFOV = MojingSDK_GetFOV();
+			float fT = 1 / tanf(fFOV / 2 / 180 * PI);
+			Matrix4f SingleEye(
+				0.5 , 0.0, 0.0, 0,				// 这是第一列
 				0.0, 0.5, 0.0, 0,
 				-0.5, -0.5, -1.0, 1,
 				0.0, 0.0, 0.0, 0					// 这是第四列
 				);
 
+			const Matrix4f TimeWarpProjection(
+				0.25, 0, 0, 0,
+				0, 0.5, 0, 0,
+				-0.25, -0.5, -1, -1,
+				0, 0, 0, 0
+				);
+// 			/*glm::mat4 CalculateProjectionMatrix(float fovRad)
+// 				//-----------------------------------------------------------------------------
+// 			{
+// 				//Project the UVs in NDC onto the far plane and convert from NDC to viewport space
+// 				glm::mat4 retMtx;
+// 				float tanHalfFov = tanf(0.5* fovRad);
+// 
+// 				retMtx[0] = glm::vec4(1.0f / tanHalfFov, 0.0f, 0.0f, 0.0f);
+// 				retMtx[1] = glm::vec4(0.0f, 1.0f / tanHalfFov, 0.0f, 0.0f);
+// 				retMtx[2] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+// 				retMtx[3] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+// 
+// 				return glm::transpose(retMtx);
+// 			}*/
 			const Matrix4f LeftEye(
 				0.25, 0, 0, 0,
 				0, 0.5, 0, 0,
@@ -586,7 +608,7 @@ namespace Baofeng
 			SetWarpState(TRUE);
 			// SetWarpState(FALSE);
 #endif // !MJ_OS_WIN32			
-			
+			glViewport(0, 0, m_iScreenWidth, m_iScreenHeight);
 			// Warp each eye to the display surface
 			if (DrawEyes & TEXTURE_LEFT_EYE)
 			{
@@ -595,7 +617,6 @@ namespace Baofeng
 				else
 					glScissor(0, m_iScreenHeight_Half, m_iScreenWidth, m_iScreenHeight_Half);// 设置只有下半屏会被绘制
 
-				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_COLOR_BUFFER_BIT);
 				int eye = 0;
 				
@@ -616,7 +637,6 @@ namespace Baofeng
 				else
 					glScissor(0, 0, m_iScreenWidth, m_iScreenHeight_Half);
 
-				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_COLOR_BUFFER_BIT);
 				int eye = 1;
 				
@@ -950,7 +970,6 @@ namespace Baofeng
 				// floor(x)返回的是小于或等于x的最大整数。
 				glScissor(iLeft, 0, fCenterLineWidth, m_iScreenHeight);
 				glClearColor(m_CenterLineParam.m_fColR, m_CenterLineParam.m_fColG, m_CenterLineParam.m_fColB, 1.0);
-				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_COLOR_BUFFER_BIT);
 				glDisable(GL_SCISSOR_TEST);
 			}
@@ -1007,7 +1026,6 @@ namespace Baofeng
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glClearColor(0, 0, 0, 1);
-				LOGE(" Fun:%s threadid=%d", __FUNCTION__, gettid());
 				glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 #else
 				DrawDistortionRange();

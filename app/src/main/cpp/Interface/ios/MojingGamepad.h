@@ -17,11 +17,13 @@
 
 typedef void(^GamepadButtonValueChangedHandler)(NSString* peripheralName, AXIS_GAMEPAD axisID, KEY_GAMEPAD keyID, BOOL bPressed);
 typedef void(^GamepadAxisValueChangedHandler)(NSString* peripheralName, AXIS_GAMEPAD axisID, float xValue, float yValue);
+typedef void(^GamepadSensorDataChangedHandler)(NSString* peripheralName, AXIS_GAMEPAD axisID, NSDictionary *dicOrientation, NSDictionary *dicAccel, NSDictionary *dicGyro, double timestamp);
 
 @interface MojingGamepad : NSObject
 
 @property (copy) GamepadButtonValueChangedHandler buttonValueChangedHandler;
 @property (copy) GamepadAxisValueChangedHandler axisValueChangedHandler;
+@property (copy) GamepadSensorDataChangedHandler sensorDataChangedHandler;
 
 - (void)registerGamepad:(UIViewController* )viewCon;
 

@@ -332,17 +332,17 @@ using namespace std;
 #define MJ_ALLOC_ALIGNED(s,a)  Baofeng::Mojing::Allocator::GetInstance()->AllocAligned((s),(a))
 #define MJ_FREE_ALIGNED(p)     Baofeng::Mojing::Allocator::GetInstance()->FreeAligned((p))
 
-#if defined( MJ_BUILD_DEBUG) || defined(_DEBUG) 
-#define MJ_ALLOC(s)            Baofeng::Mojing::Allocator::GetInstance()->AllocDebug((s), __FILE__, __LINE__)
-#define MJ_ALLOC_DEBUG(s,f,l)  Baofeng::Mojing::Allocator::GetInstance()->AllocDebug((s), f, l)
-#define MJ_FREE(p)             Baofeng::Mojing::Allocator::GetInstance()->FreeDebug((p))
-#define MJ_REALLOC(p,s)        Baofeng::Mojing::Allocator::GetInstance()->ReallocDebug((p),(s))
-#else
+//#if defined( MJ_BUILD_DEBUG) || defined(_DEBUG)
+//#define MJ_ALLOC(s)            Baofeng::Mojing::Allocator::GetInstance()->AllocDebug((s), __FILE__, __LINE__)
+//#define MJ_ALLOC_DEBUG(s,f,l)  Baofeng::Mojing::Allocator::GetInstance()->AllocDebug((s), f, l)
+//#define MJ_FREE(p)             Baofeng::Mojing::Allocator::GetInstance()->FreeDebug((p))
+//#define MJ_REALLOC(p,s)        Baofeng::Mojing::Allocator::GetInstance()->ReallocDebug((p),(s))
+//#else
 #define MJ_ALLOC(s)            Baofeng::Mojing::Allocator::GetInstance()->Alloc((s))
 #define MJ_ALLOC_DEBUG(s,f,l)  Baofeng::Mojing::Allocator::GetInstance()->Alloc((s))
 #define MJ_FREE(p)             Baofeng::Mojing::Allocator::GetInstance()->Free((p))
 #define MJ_REALLOC(p,s)        Baofeng::Mojing::Allocator::GetInstance()->Realloc((p),(s))
-#endif
+//#endif
 
 			//------------------------------------------------------------------------
 

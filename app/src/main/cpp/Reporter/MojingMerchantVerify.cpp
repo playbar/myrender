@@ -17,7 +17,9 @@ extern MojingLogger g_APIlogger;
 #endif
 
 //to be modify...
-//#define  SHOW_INVALID_INFO
+#ifndef _DEBUG
+#define  SHOW_INVALID_INFO
+#endif
 
 #define  API_CHAR "0p9o8i7u"
 

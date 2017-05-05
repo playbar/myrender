@@ -2,6 +2,7 @@
 #include "../Base/MojingString.h"
 #include "../Base/MojingJSON.h"
 #include "../Base/MojingFile.h"
+#include "../Base/MojingTimer.h"
 #include "../3rdPart/MD5/MD5.h"
 #include "../Platform/MojingPlatformBase.h"
 #include "../Profile/MobileConfigProfile.h"
@@ -9,6 +10,7 @@
 #include "../MojingManager.h"
 #include "../Parameters/MojingParameters.h"
 #include "../Parameters/MojingDeviceParameters.h"
+
 
 namespace Baofeng
 {
@@ -29,8 +31,15 @@ namespace Baofeng
 		{
 			return new MobileConfigUpdate;
 		}
+
 		void MobileConfigUpdate::UpdateConfig()
 		{
+			double dLastCheckMobileConfigTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckMobileConfig();
+			//request once per day.
+			if (fabs(GetCurrentTime() - dLastCheckMobileConfigTime) < CHECK_MOBILECONFIG_INTERVEL)
+			{
+				return;
+			}
 			String data = "";
 			MD5 md5;
 			char szTime[256];
@@ -72,6 +81,8 @@ namespace Baofeng
 			memcpy(pBuffer, lpszRespString, uiSize);
 			pBuffer[uiSize] = 0;
 
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->SetCheckMobileConfig(GetCurrentTime());
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->Save();
 
 			MobileConfigUpdate *pUpdateObj = (MobileConfigUpdate *)pCallBackParam;
 			JSON *pJson = JSON::Parse(pBuffer);

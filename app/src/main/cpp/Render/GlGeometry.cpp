@@ -1,5 +1,4 @@
 ﻿
-#include <Base/MojingLog.h>
 #include "GlGeometry.h"
 #include "MojingRenderBase.h"
 #include "../MojingSDKStatus.h"
@@ -119,6 +118,7 @@ namespace Baofeng
 			const int indexCount = m_IndexCount / 2;
 			const int indexOffset = eye * indexCount;
 			glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (void*)(indexOffset * 2));
+			// glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_SHORT, (void*)(indexOffset * 2));
 		}
 		void GlGeometryTriangles::DrawElementsRange(int eye)
 		{
@@ -154,9 +154,6 @@ namespace Baofeng
 			const int tesselationsX = ((int *)pBuffer)[1];
 			const int tesselationsY = ((int *)pBuffer)[2];
 
-			float fKG[40];
-			int iSegment = Manager::GetMojingManager()->GetDistortion()->GetDistortionParamet(NULL, fKG , NULL);
-			float fKG_Max = fKG[iSegment - 1];
 			//const int vertexBytes = 12 + 2 * (tesselationsX + 1) * (tesselationsY + 1) * 6 * sizeof(float);
 			const float * bufferVerts = &((float *)pBuffer)[3];
 
@@ -168,10 +165,7 @@ namespace Baofeng
 			float* pTessVertices = new float[floatCount];
 			//  0   1   2   3   4   5   6   7   8   9   
 			// [X   Y   Rx  Ry  Gx  Gy  Bx  By  A   0]
-			FILE *pFile = fopen("/data/data/com.bn.mojing/mesh.dat", "wb+");
 			int	verts = 0;
-            int len = 2 * 33 * 33 * 6;
-            float *pfFileBuffer = new float[len];
 			for (int eye = 0; eye < 2; eye++)
 			{
 				//for (int slice = 0; slice < NUM_SLICES_PER_EYE; slice++)
@@ -191,18 +185,14 @@ namespace Baofeng
 							v[0] = vSrc[7];
 							v[1] = vSrc[8];
 
-							v[2] = vSrc[0] * fKG_Max * vSrc[7];
-							v[3] = vSrc[1] * fKG_Max * vSrc[8];
+							v[2] = vSrc[0];
+							v[3] = vSrc[1];
 
-							v[4] = vSrc[2] * fKG_Max * vSrc[7];
-							v[5] = vSrc[3] * fKG_Max * vSrc[8];
+							v[4] = vSrc[2];
+							v[5] = vSrc[3];
 
-							v[6] = vSrc[4] * fKG_Max * vSrc[7];
-							v[7] = vSrc[5] * fKG_Max * vSrc[8];
-                            LOGE("eye:%d, y:%d, x:%d, (g1:%.6f, g2:%.6f)",
-                                eye, y, x, v[4], v[5]);
-                            int iFileIndex = (y * 33 * 2 + eye * 33 + x) * 6;
-                            memcpy(pfFileBuffer + iFileIndex , v+ 2 , sizeof(float) * 6);
+							v[6] = vSrc[4];
+							v[7] = vSrc[5];
 
 							v[8] = (float)x / tesselationsX;
 							v[9] = 1;
@@ -243,31 +233,31 @@ namespace Baofeng
 #else
 							v[0] = -1.0 + eye + xf;	// 目标双眼[-1,+1]区间的X坐标,左眼固定于[-1 ， 0]，右眼固定于[0 ， 1]
 							v[1] = yf*2.0f - 1.0f;	// 目标双眼[-1,+1]区间的Y坐标
-
+							
 							// Copy the offsets from the file
 							// 下标2到7依次为Rx,Ry,Gx,Gy,Bx,By
 							for (int i = 0; i < 6; i++)
 							{
 								v[2 + i] = fovScale * bufferVerts
-									[(y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
+									[(y*(tesselationsX + 1) * 2 + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
 							}
 
 							// 下标8是X坐标在条带内的位置比值，越靠近条带右边界数值越大，越靠近条带左边界数值越小
-							v[8] = (float)x / sliceTess;
+							v[8] = (float)x / tesselationsX;
 							// Enable this to allow fading at the edges.
 							// Samsung recommends not doing this, because it could cause
 							// visible differences in pixel wear on the screen over long
 							// periods of time.
 
 							// 下标9恒定为1
-							if (0 && (y == 0 || y == tesselationsY || sx == 0 || sx == tesselationsX))
+							if (0 && (y == 0 || y == tesselationsY   ))
 							{
 								v[9] = 0.0f;	// fade to black at edge
 							}
 							else
 							{
 								//v[9] = 1.0f;
-								v[9] = bufferVerts[(y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + 6];
+								v[9] = bufferVerts[(y*(tesselationsX + 1) * 2 + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + 6];
 							}
 #endif
 						}
@@ -275,25 +265,6 @@ namespace Baofeng
 					verts += (tesselationsY + 1)*(tesselationsX + 1);
 				//}
 			}
-
-
-            for (int iIndex = 0 ; iIndex < len ; iIndex++ )
-            {
-                pfFileBuffer[iIndex] *= fKG_Max;
-            }
-//            unsigned char * p=(unsigned char *)&pfFileBuffer[0];
-//            for(int i=sizeof(float)-1;i>=0;i--)
-//            {
-//                LOGE("pfFileBuffer[0]:%02x", p[0]);
-////                printf("%02X",p[i]);
-//            }
-
-//            LOGE("pfFileBuffer[0]:%08x", *pfFileBuffer);
-
-            fwrite(pfFileBuffer, sizeof(float) * len, 1, pFile);
-            fflush(pFile);
-			fclose(pFile);
-            delete []pfFileBuffer;
 			if (bNeedFreeBuffer)
 				free(pBuffer);
 

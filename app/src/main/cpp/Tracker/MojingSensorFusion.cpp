@@ -213,6 +213,7 @@ namespace Baofeng
 			{
 				return;
 			}
+			// IN-out
 			m_pSensorCalibration->Apply(msg);
 
 			if (msg.Acceleration == Vector3f::ZERO)
@@ -272,7 +273,7 @@ namespace Baofeng
 				State.LinearVelocity.x = State.LinearVelocity.y = State.LinearVelocity.z = 0.0f;
 				State.Transform.Position.x = State.Transform.Position.y = State.Transform.Position.z = 0.0f;
 			}
-
+			
 			// Compute the angular acceleration
 			State.AngularAcceleration = (FAngV.GetSize() >= 12 && DeltaT > 0) ?
 				(FAngV.SavitzkyGolayDerivative12() / DeltaT) : Vector3f();
