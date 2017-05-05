@@ -30,7 +30,8 @@ namespace Baofeng
 		{
 			ENGINE_NONE = 0,
 			ENGINE_UNITY, 
-			ENGINE_UNREAL
+			ENGINE_UNREAL,
+			ENGINE_GEAR
 		};
 
 		enum DRAW_STATUS
@@ -60,6 +61,7 @@ namespace Baofeng
 			CLASS_MEMBER(SDK_VERIFY, m_, VerfiyStatus);
 
 			CLASS_MEMBER(bool , m_b , ShowTimeWarpRange);
+
 		};
 
 

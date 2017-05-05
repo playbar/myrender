@@ -146,7 +146,7 @@ static void CheckLibSqlite()
 eglSetup_t egl;
 #endif
 
-bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand, char* Model, char* Serial, const char* szMerchantID, const char* szAppID,
+bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char* Brand, const char* Model, const char* Serial, const char* szMerchantID, const char* szAppID,
 	const char* szAppKey, const char* szAppName, const char* szPackageName, const char* szUserID, const char* szChannelID, const char* ProfilePath)
 {
 	ENTER_MINIDUMP_FUNCTION;
@@ -214,7 +214,10 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 		GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetMobile(pManager->GetParameters()->GetDeviceParameters()->GetModel());
 		GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetSerial(pManager->GetParameters()->GetDeviceParameters()->GetSerial());
 	}
-
+	else
+	{
+		MOJING_ERROR(g_APIlogger , "Can not get manager object!");
+	}
 	switch (pStatus->GetInitStatus())
 	{
 	case INIT_DONE:
@@ -222,7 +225,7 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand
 		bRet = true;
 		break;
 	default:
-		MOJING_TRACE(g_APIlogger, "Start SDK FAILD!");
+		MOJING_ERROR(g_APIlogger, "Start SDK FAILD! Code = " << pStatus->GetInitStatus());
 		bRet = false;
 		break;
 	}
@@ -442,6 +445,10 @@ bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 		else if (strstr(szTempEngine, "unity"))
 		{
 			pStatus->SetEngineStatus(ENGINE_UNITY);
+		}
+		else if (strstr(szTempEngine, "gear"))
+		{
+			pStatus->SetEngineStatus(ENGINE_GEAR);
 		}
 		else
 		{
@@ -1223,11 +1230,12 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 	MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
 	MachineListNode CurrentMachineType = pDeviceParameters->GetCurrentMachine();
 	bool bIsUnreal = (pStatus->GetEngineStatus() == ENGINE_UNREAL);
+	bool bIsGear = (pStatus->GetEngineStatus() == ENGINE_GEAR);
 	bool bIsUnityWithQ820 = ((pStatus->GetEngineStatus() == ENGINE_UNITY) &&
 		// pDeviceParameters->GetCurrentMachine().m_iID == 2
 		(pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR) != 0);
 
-	if (!bIsUnreal && !bIsUnityWithQ820)
+	if (!bIsUnreal && !bIsUnityWithQ820 && !bIsGear)
 	{
 		if (NULL != MojingRenderBase::GetCurrentRender())
 		{
@@ -1270,7 +1278,8 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 	{
 
 		if (!bIsUnreal// UNREAL不需要 创建Render对象
-			&& !bIsUnityWithQ820)// 高通820的Unity模式不创建Render对象
+			&& !bIsUnityWithQ820
+			&& !bIsGear)// 高通820的Unity模式不创建Render对象
 		{// Unreal 不用创建绘制对象
 			//MOJING_TRACE(g_APIlogger ,"MojingRenderBase::CreateCurrentRender - 1");
 			MojingRenderBase::CreateCurrentRender(bEnableMultiThread, bEnableTimeWarp);

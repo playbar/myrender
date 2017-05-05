@@ -29,9 +29,9 @@ bool MojingSDK_Init(int nWidth,
 	int nHeight,
 	float xdpi,
 	float ydpi,
-	char* Brand,
-	char* Model,
-	char* Serial,
+	const char* Brand,
+	const char* Model,
+	const char* Serial,
 	const char* szMerchantID,
 	const char* szAppID,
 	const char* szAppKey,
@@ -107,7 +107,7 @@ int MojingSDK_CheckSensors();
 int MojingSDK_GetMaxSensorsSampleRate(); // 返回最大的采样率或者-1表示出错
 #ifdef MJ_OS_ANDROID
 bool MojingSDK_IsUseUnityForSVR();
-int MojingSDK_GetSocketPort();
+int MojingSDK_GetSocketPort();// Socket向服务报告端口的
 int MojingSDK_StartTrackerChecker(int nSampleFrequence);
 int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
 #endif

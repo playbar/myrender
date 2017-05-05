@@ -1,5 +1,14 @@
 ﻿#include "MojingParameters.h"
 #include "../Platform/MojingPlatformBase.h"
+#ifdef LOG4CPLUS_IMPORT
+#include "../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../LogTraker/LogInterface.h"
+#endif
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
+
 namespace Baofeng
 {
 	namespace Mojing
@@ -42,9 +51,6 @@ namespace Baofeng
 			m_pDebugSettingsProfile = new DebugSettingsProfile;
 			m_pDebugSettingsProfile->Load();
 			MojingPlatformBase *pPlatform = MojingPlatformBase::GetPlatform();
-
-			
-
 			if (pPlatform)
 			{
 				/************************************************************************/
@@ -75,6 +81,7 @@ namespace Baofeng
 			}
 			else
 			{
+				MOJING_ERROR(g_APIlogger , "Can not get Platform object");
 				bRet = false;
 			}
 			return bRet;

@@ -9,7 +9,7 @@
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include "../../Base/MojingTypes.h"
 #include "instruction.h"
 #include "detour.h"
 
@@ -24,6 +24,17 @@
 
 #define ACTION_ENABLE 0
 #define ACTION_DISABLE 1
+
+
+#ifdef LOG4CPLUS_IMPORT
+#include "../../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../../LogTraker/LogInterface.h"
+#endif
+
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
 
 enum hook_status
 {
@@ -273,6 +284,7 @@ static void deleteInlineHookItem( int pos )
 
 enum detour_status registerInlineHook( uint32_t target_addr, uint32_t new_addr, uint32_t **proto_addr )
 {
+	MOJING_FUNC_TRACE(g_APIlogger);
     struct inlineHookItem *item;
 
     if ( !isExecutableAddr( target_addr ) || !isExecutableAddr( new_addr ) )
@@ -296,8 +308,9 @@ enum detour_status registerInlineHook( uint32_t target_addr, uint32_t new_addr, 
             return DETOUR_ERROR_UNKNOWN;
         }
     }
-
+	MOJING_TRACE(g_APIlogger , "addInlineHookItem....");
     item = addInlineHookItem();
+	MOJING_TRACE(g_APIlogger, "addInlineHookItem done , totle = " << info.size);
 
     item->target_addr = target_addr;
     item->new_addr = new_addr;
@@ -410,12 +423,14 @@ static void doInlineHook( struct inlineHookItem *item )
 
 enum detour_status inlineHook( uint32_t target_addr )
 {
+	MOJING_FUNC_TRACE(g_APIlogger);
     int i;
     struct inlineHookItem *item;
 
     item = NULL;
     for ( i = 0; i < info.size; ++i )
     {
+		MOJING_TRACE(g_APIlogger , "Find in function " << i << " / " << info.size);
         if ( info.item[i].target_addr == target_addr )
         {
             item = &info.item[i];
@@ -427,12 +442,17 @@ enum detour_status inlineHook( uint32_t target_addr )
     {
         return DETOUR_ERROR_NOT_REGISTERED;
     }
-
+	
+	MOJING_TRACE(g_APIlogger, "status = " << item->status);
     if ( item->status == REGISTERED )
     {
-        pid_t pid;
-        pid = freeze( item, ACTION_ENABLE );
+		pid_t pid;
+		MOJING_TRACE(g_APIlogger, "freeze ..."); 
+		pid = freeze(item, ACTION_ENABLE);
+
+		MOJING_TRACE(g_APIlogger, "doInlineHook ...");
         doInlineHook( item );
+		MOJING_TRACE(g_APIlogger, "unFreeze ...");
         unFreeze( pid );
 
         return DETOUR_OK;

@@ -105,7 +105,7 @@ namespace Baofeng
 #endif
 		}
 
-		void MojingPlatformBase::InitPlatform(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand, char* Model, char* Serial, const char* szMerchantID, const char* szAppID,
+		void MojingPlatformBase::InitPlatform(int nWidth, int nHeight, float xdpi, float ydpi, const char* Brand, const char* Model, const char* Serial, const char* szMerchantID, const char* szAppID,
 			const char* szAppKey, const char* szAppName, const char* szPackageName, const char* szUserID, const char* szChannelID, const char* PacketProfilePath)
 		{
 			if (g_pPlatform == NULL)

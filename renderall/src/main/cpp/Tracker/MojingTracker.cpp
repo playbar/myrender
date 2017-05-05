@@ -189,7 +189,7 @@ namespace Baofeng
 				{
 					if (szGlassName)
 					{
-						MOJING_TRACE(g_Sensorlogger, "Use sensor data from Service.");
+						MOJING_TRACE(g_Sensorlogger, "Use sensor data from Service. Name: " << szGlassName );
 					}
 					else
 					{

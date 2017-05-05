@@ -147,6 +147,7 @@ add_library(mojing SHARED
             Interface/Android/MojingAndroidAPI.cpp
 			Interface/Android/MojingNativeInput.cpp
 			Interface/Unreal/MojingUnrealAPI.cpp
+			Interface/Gear/MojingGearAPI.cpp
 			Interface/Unity/GlStateSave.cpp
 			Interface/Unity/UnityPlugin.cpp
 			Interface/Unity/UnityPluginInterface/UnityPluginStatus.cpp
