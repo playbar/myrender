@@ -32,7 +32,7 @@ bool HookBase::HookToFunctions(void * hDLL, HookParamet * pHookParamet, int iFun
 		{
 			HookParamet * pHookItem = pHookParamet + i;
 			void *pFunc = dlsym(hDLL, pHookItem->szFunctionName);
-			if (pHookItem->fpRealFunction != NULL)
+			if (pFunc != NULL)
 			{
 				sprintf(szLog, "0x%08X(hDll) : %s ,  0x%08X(Real) --> 0x%08X(Hook)", (uint32_t)hDLL, pHookItem->szFunctionName, (uint32_t)pFunc, (uint32_t)pHookItem->fpHookToFunction);
 #ifdef _DEBUG				

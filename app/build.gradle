@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId = 'com.bn.mojing'
-        minSdkVersion 19
+        minSdkVersion 23
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -43,4 +43,6 @@ dependencies {
 //    compile project(':render')
     //compile project(':nativeactivity')
     //compile files('libs/svrApi.jar')
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 }
