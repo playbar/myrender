@@ -159,8 +159,11 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, j
 					jstring userID, jstring channelID, jint nWidth, jint nHeight, jfloat xdpi, jfloat ydpi, jstring ProfilePath)
 {
 	// USING_MINIDUMP;
+	
 #ifdef _DEBUG
 	sleep(2);
+#else
+	// usleep(500 * 1000);// 注意：这个地方如果不加sleep 500ms的话，在S7 edge上会卡死,或者五代无效
 #endif
 
 	MOJING_FUNC_TRACE(g_APIlogger);
@@ -279,12 +282,23 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportLog(JNIEnv *en
 {
 	const char * szTypeName = env->GetStringUTFChars(typeName, 0);
 	const char * szLogContent = env->GetStringUTFChars(logContent, 0);
-	MOJING_TRACE(g_APIlogger, "TypeName: " << szTypeName << ", LogType: " << iLogType << ", LogContent: " << szLogContent);
+	//MOJING_TRACE(g_APIlogger, "TypeName: " << szTypeName << ", LogType: " << iLogType << ", LogContent: " << szLogContent);
 
 	MojingSDK_ReportLog(iLogType, szTypeName, szLogContent, false);
 
 	env->ReleaseStringUTFChars(typeName, szTypeName);
 	env->ReleaseStringUTFChars(logContent, szLogContent);
+}
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID)
+{
+	const char * szActionType = env->GetStringUTFChars(strActionType, 0);
+	const char * szItemID = env->GetStringUTFChars(strItemID, 0);
+
+	MojingSDK_ReportUserAction(szActionType, szItemID);
+
+	env->ReleaseStringUTFChars(strActionType, szActionType);
+	env->ReleaseStringUTFChars(strItemID, szItemID);
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetContinueInterval(JNIEnv *env, jclass, jint interval)
@@ -663,12 +677,15 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetOverlayPosition3DV2(
 {
 	MojingSDK_SetOverlayPosition3D_V2(eyeTextureType, fLeft, fTop, fWidth, fHeight, fDistanceInMetre);
 }
+
+
 // 获取当前用户设置
 JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetUserSettings(JNIEnv *jEnv, jclass)
 {
 	jstring jsRet = jEnv->NewStringUTF(MojingSDK_GetUserSettings().ToCStr());
 	return jsRet;
 }
+
 // 修改当前用户设置
 JNIEXPORT bool JNICALL  Java_com_baofeng_mojing_MojingSDK_SetUserSettings(JNIEnv *jEnv, jclass, jstring strUserSettings)
 {
@@ -676,6 +693,18 @@ JNIEXPORT bool JNICALL  Java_com_baofeng_mojing_MojingSDK_SetUserSettings(JNIEnv
 	bool bRet = MojingSDK_SetUserSettings(szUserSettings);
 	jEnv->ReleaseStringUTFChars(strUserSettings, szUserSettings);
 	return bRet;
+}
+
+// 获取当前陀螺仪数据来源
+JNIEXPORT int JNICALL Java_com_baofeng_mojing_MojingSDK_GetSensorOriginStatus(JNIEnv *jEnv, jclass)
+{
+	return MojingSDK_GetSensorOrigin();
+}
+
+//当前陀螺仪数据来源
+JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSDK_SetSensorOriginStatus(JNIEnv *jEnv, jclass, jint jSensorOrigin)
+{
+	return MojingSDK_SetSensorOrigin(jSensorOrigin);
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetImageYOffset(JNIEnv *jEnv, jclass, jfloat fYOffset)

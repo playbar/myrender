@@ -425,23 +425,35 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     BOOL touchPadChanged = joystickData.bTouched;//(joystickData.fTouchpadX != _buffer->touchpad_point.x || joystickData.fTouchpadY != _buffer->touchpad_point.y);
     if (touchPadChanged)
     {
+        //暂未发送touch状态
         currentKeyStatus |= MJGamepadButtonTouchPad;
     }
     
     _buffer->timestamp = joystickData.dTimestamp;
-    //按键或Touch
-    if (currentKeyStatus != _buffer->all_flags || touchPadChanged)
+    //按键
+    if ( currentKeyStatus != _buffer->all_flags )
     {
         _buffer->all_flags = currentKeyStatus;
         [self processKeyStatus];
-        
-        if (touchPadChanged)
-        {
-            _buffer->touchpad_point.x = joystickData.fTouchpadX;
-            _buffer->touchpad_point.y = joystickData.fTouchpadY;
-            [self processTouchPadPos];
-        }
     }
+    
+    //Touch
+    static bool bLastSendTouchPoint = false;
+    if (touchPadChanged)
+    {
+        _buffer->touchpad_point.x = joystickData.fTouchpadX;
+        _buffer->touchpad_point.y = joystickData.fTouchpadY;
+        [self processTouchPadPos];
+        bLastSendTouchPoint = true;
+    }
+    else if(bLastSendTouchPoint)
+    {
+        _buffer->touchpad_point.x = 0;
+        _buffer->touchpad_point.y = 0;
+        [self processTouchPadPos];
+        bLastSendTouchPoint = false;
+    }
+
     
     //Sensor
     _buffer->sensor_data.fOrientationX = -joystickData.fOrientationX;
@@ -1041,7 +1053,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 
     if(self.peripheralState != CBPeripheralStateDisconnected)
     {
-        NSLog(@"--->updateStatus: %ld", (long)self.peripheralState);
+        //NSLog(@"--->updateStatus: %ld", (long)self.peripheralState);
     }
     
     self.centralManagerState = (CBCentralManagerState)_centralManager.state;

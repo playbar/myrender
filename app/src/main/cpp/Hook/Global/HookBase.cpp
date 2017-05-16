@@ -57,9 +57,16 @@ bool HookBase::HookToFunctions(void * hDLL, HookParamet * pHookParamet, int iFun
 		}
 		if (bRet)
 		{
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "Call inlineHookAll ... = " << szLog);
+#endif
 			inlineHookAll();
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "Call inlineHookAll ... Done = " << szLog);
+#endif
 		}
 	}
+
 	return bRet;
 }
 bool HookBase::HookToFunction(void * hDLL, const char * szFunctionName, void * fpReplactToFunction, void ** fpOutRealFunction)

@@ -69,7 +69,7 @@
 
 - (void)setTouchPoint:(CGPoint)point
 {
-    if (point.x != _buffer->x || point.y != _buffer->y)
+    //if (point.x != _buffer->x || point.y != _buffer->y)
     {
         _buffer->x = point.x;
         _buffer->y = point.y;

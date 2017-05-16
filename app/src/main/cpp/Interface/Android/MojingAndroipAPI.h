@@ -51,6 +51,8 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportLog(JNIEnv *env, jclass, jint iLogType, jstring typeName, jstring logContent);
 
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID);
+
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetContinueInterval(JNIEnv *env, jclass, jint interval);
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetReportInterval(JNIEnv *env, jclass, jint interval);
@@ -147,6 +149,12 @@ extern "C" {
 	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetUserSettings(JNIEnv *jEnv, jclass);
 	// 修改当前用户设置
 	JNIEXPORT bool JNICALL  Java_com_baofeng_mojing_MojingSDK_SetUserSettings(JNIEnv *jEnv, jclass, jstring strUserSettings);
+
+	// 获取当前陀螺仪数据来源
+	JNIEXPORT int JNICALL Java_com_baofeng_mojing_MojingSDK_GetSensorOriginStatus(JNIEnv *jEnv, jclass);
+	//当前陀螺仪数据来源
+	JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSDK_SetSensorOriginStatus(JNIEnv *jEnv, jclass, jint jSensorOrigin);
+
 	/************************************************************************/
 	/* 厂商-产品-镜片-APP管理                                               */
 	/************************************************************************/

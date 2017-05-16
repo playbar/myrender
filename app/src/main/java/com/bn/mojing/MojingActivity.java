@@ -9,7 +9,6 @@ import com.baofeng.mojing.MojingSDKServiceManager.HMDTrackerListener;
 import com.baofeng.mojing.MojingSDKServiceManager.HMDUpgradeResultListener;
 import com.baofeng.mojing.MojingSurfaceView;
 import com.baofeng.mojing.MojingVrActivity;
-import com.squareup.leakcanary.RefWatcher;
 
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -219,8 +218,7 @@ public class MojingActivity extends MojingVrActivity{
 		
 		super.onDestroy();
 		com.baofeng.mojing.MojingSDKPrivate.DistortionSaveParamet();
-		com.baofeng.mojing.MojingSDK.LogTrace("MojingActivity onDestroy");
-		MJApplication.getRefWatcher(this).watch(this);
+		com.baofeng.mojing.MojingSDK.LogTrace("MojingActivity onDestroy");	
 	}
 
     @Override protected void onPause() {

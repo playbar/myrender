@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../Base/MojingTypes.h"
 #include "../Base/MojingString.h"
+
 namespace Baofeng
 {
 	namespace Mojing

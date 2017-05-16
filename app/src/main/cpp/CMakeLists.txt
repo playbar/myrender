@@ -139,6 +139,7 @@ add_library(mojing SHARED
     		Reporter/PageInfoReporter.cpp
     		Reporter/ReporterTools.cpp
     		Reporter/RunInfoReporter.cpp
+    		Reporter/UserActionReporter.cpp
             Tracker/AndroidInternalSensorChecker.cpp
 			Tracker/MojingAndroidSensor.cpp
 			Tracker/MojingGyroTempCalibration.cpp

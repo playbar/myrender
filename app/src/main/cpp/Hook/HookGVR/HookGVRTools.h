@@ -27,7 +27,8 @@ typedef const char *(*FP_gvr_get_viewer_model)(const gvr_context *gvr);
 #define FN_gvr_get_viewer_vendor "gvr_get_viewer_model"
 typedef const char *(*FP_gvr_get_viewer_vendor)(const gvr_context *gvr);
 
-
+#define FN_gvr_get_version_string "gvr_get_version_string"
+typedef const char * (*FP_gvr_get_version_string)();
 class HookGVRTools
 {
 public:
@@ -44,6 +45,7 @@ private:
 
 	static FP_gvr_get_viewer_model m_fp_gvr_get_viewer_model;
 	static FP_gvr_get_viewer_vendor m_fp_gvr_get_viewer_vendor;
+	static FP_gvr_get_version_string m_fp_gvr_get_version_string;
 };
 
 #endif

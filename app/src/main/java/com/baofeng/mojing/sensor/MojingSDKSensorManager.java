@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.lang.reflect.Method;
 
 /**
  * 传感器监听
@@ -48,7 +49,12 @@ public class MojingSDKSensorManager {
 	//private boolean bUseJavaSensor = false;
 	//测试用
     private StringBuilder stringBuilder = new StringBuilder();
+	
+	// 子线程操作的互斥保护对象
+	private final Object ThreadMutex = new Object();
 
+	private Method method = null;
+	private Object objVrService = null;
     private MojingSDKSensorManager() {
 		initHandler();
     }
@@ -98,6 +104,7 @@ public class MojingSDKSensorManager {
     /**
      * 初始化子线程
      */
+	/*
     private void initHandler() {
         handlerThread = new HandlerThread("jerome");
         handlerThread.start();
@@ -115,6 +122,60 @@ public class MojingSDKSensorManager {
             }
         };
     }
+	*/   
+	private void initHandler() {
+        handlerThread = new HandlerThread("jerome");
+        handlerThread.start();
+		try
+		{
+			Class c = Class.forName("com.baofeng.mojing.service.MojingSDKService");         
+			method = c.getMethod("SendSensorData", new Class<?>[]{});
+			objVrService = c.newInstance();
+			Log.i(TAG, "MojingSDKSensorManager initHandler get Class and Method succeed");
+			//method.invoke(test, null);
+		}// end try
+   		catch(Exception e)
+   		{
+			Log.w(TAG, "MojingSDKSensorManager initHandler get Class or Method failed");
+   			e.printStackTrace();
+   		}   
+        threadHandler = new Handler(handlerThread.getLooper()) {
+
+			@Override
+			public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+				//if(m_context != null && MojingSDKServiceManager.isServiceTracker())
+				if( m_context != null && 
+				( MojingSDKServiceManager.isHMDWorking() || MojingSDKServiceManager.isServiceTracker() && (method == null) ) )
+				{
+				    Log.i(TAG, "unRegister SDK SensorManager");
+					unRegister(m_context);
+					m_context = null;
+				}
+				else
+				{
+					if(MojingSDKServiceManager.isServiceTracker() && (method != null))
+					{
+						try
+						{
+							Log.i(TAG, "Send sensor data to VrService");
+							method.invoke(objVrService, (float[]) msg.obj, System.nanoTime() / 1000000000D);
+						}// end try
+   						catch(Exception e)
+   						{
+							Log.w(TAG, "MojingSDKSensorManager method.invoke exception");
+   							e.printStackTrace();
+   						}  
+					}	
+					else
+					{
+						Log.i(TAG, "Send sensor data to MojingSDK");
+						MojingSDK.SendSensorData((float[]) msg.obj, System.nanoTime() / 1000000000D);
+					}
+				}
+            }
+        };
+    }
 
     private void register(Context context) {
         if (!useJavaSensor()) {
@@ -123,7 +184,9 @@ public class MojingSDKSensorManager {
         }
         Log.i(TAG, "useJavaSensor=true");
         hasMagneticField = false;
-        sensorArr = new float[12];
+         if (sensorArr == null) {
+         	sensorArr = new float[12];
+        }
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         //list(sensorManager);
 //        unRegister(context);
@@ -149,7 +212,7 @@ public class MojingSDKSensorManager {
                 sensorArr[2] = data[2];
                 break;
             case Sensor.TYPE_GYROSCOPE:
-                stringBuilder = new StringBuilder();
+                // stringBuilder = new StringBuilder();
                 sensorArr[3] = data[0];
                 sensorArr[4] = data[1];
                 sensorArr[5] = data[2];
@@ -161,9 +224,11 @@ public class MojingSDKSensorManager {
                 Log.i(TAG, stringBuilder.toString());
                 Log.i(TAG, "second d=" + System.nanoTime() / 1000000000D);*/
 //                MojingSDK.SendSensorData(sensorArr, System.nanoTime() / 1000000000D);
-                if (threadHandler != null && handlerThread.isAlive()) {
-                    threadHandler.obtainMessage(what++, sensorArr).sendToTarget();
-                }
+                synchronized (ThreadMutex) {
+                	if (threadHandler != null && handlerThread.isAlive()) {
+                    	threadHandler.obtainMessage(what++, sensorArr).sendToTarget();
+                	}
+                }// end of synchronized
                 break;
             case Sensor.TYPE_MAGNETIC_FIELD:
                 hasMagneticField = true;
@@ -210,11 +275,7 @@ public class MojingSDKSensorManager {
      * @param context
      */
     private void unRegister(Context context) {
-        if (handlerThread != null) {
-            handlerThread.quit();
-            handlerThread = null;
-            threadHandler = null;
-        }
+
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 
         if (accelerometerListrner != null) {
@@ -236,7 +297,14 @@ public class MojingSDKSensorManager {
             sensorManager.unregisterListener(magneticFieldUncalibratedListrner);
             magneticFieldUncalibratedListrner = null;
         }
-        instance = null;
+        synchronized (ThreadMutex) {
+	         if (handlerThread != null) {
+	            handlerThread.quit();
+	            handlerThread = null;
+	            threadHandler = null;
+	        }
+        }// end of synchronized
+        // instance = null;
     }
 
     /**

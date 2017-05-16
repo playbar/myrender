@@ -13,6 +13,7 @@ namespace Baofeng
 			SetClassName(__FUNCTION__);
 			m_bEnableScreenSize = false;
 			m_fScreenSize = 0;
+			m_bSensorDataFromMJSDK = false;
 			m_bSensorDataFromJava = false;
 			m_dCheckGlassConfig = 0;
 			m_dCheckMobileConfig = 0;
@@ -29,6 +30,7 @@ namespace Baofeng
 			ClassNameToJson(pRet);
 			EnableScreenSizeToJson(pRet);
 			ScreenSizeToJson(pRet);
+			SensorDataFromMJSDKToJson(pRet);
 			SensorDataFromJavaToJson(pRet);
 			CheckGlassConfigToJson(pRet);
 			CheckMobileConfigToJson(pRet);
@@ -70,6 +72,13 @@ namespace Baofeng
 						bRet = SensorDataFromJavaFromJson(pJson) | bRet;
 					}
 
+					SensorDataFromMJSDKFromJson(pJson);
+
+					CheckMobileConfigFromJson(pJson);
+					CheckGlassConfigFromJson(pJson);
+					CheckJoystickProfileFromJson(pJson);
+
+					/*
 					JSON* pMobileCfgJson = pJson->GetItemByName("CheckMobileConfig");
 					if (pMobileCfgJson)
 						m_dCheckMobileConfig = pMobileCfgJson->GetDoubleValue();
@@ -79,6 +88,7 @@ namespace Baofeng
 					JSON* pJoystickProfileJson = pJson->GetItemByName("CheckJoystickProfile");
 					if (pJoystickProfileJson)
 						m_dCheckJoystickProfile = pJoystickProfileJson->GetDoubleValue();
+					*/
 				}
 			}
 

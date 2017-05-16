@@ -54,6 +54,9 @@ void MojingSDK_AppPageStart(const char* szPageName);
 void MojingSDK_AppPageEnd(const char* szPageName);
 void MojingSDK_AppSetEvent(const char* szEventName, const char* szEventChannelID, const char* szEventInName, float eInData, const char* szEventOutName, float eOutData);
 void MojingSDK_ReportLog(int iLogType, const char* szTypeName, const char* szLogContent, bool pd);
+#ifdef MJ_OS_ANDROID
+void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID);
+#endif
 void MojingSDK_AppSetContinueInterval(int interval);
 void MojingSDK_AppSetReportInterval(int interval);
 void MojingSDK_AppSetReportImmediate(bool bReportImmediate);
@@ -81,6 +84,14 @@ void MojingSDK_SetOverlayPosition3D(unsigned int eyeTextureType, /*float fLeft, 
 void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType, float fLeft, float fTop, float fWidth, float fHeight, float fDistanceInMetre);
 bool MojingSDK_ChangeMojingWorld(const char * szGlassesName);
 bool MojingSDK_LeaveMojingWorld();
+
+#define MOJING_WORLDKEY_DEFAULT "DefaultMojingWorld" 
+#define MOJING_WORLDKEY_LAST "LastMojingWorld" 
+// MojingSDK_GetMojingWorldKey函数仅供内部使用，不得公开！
+String MojingSDK_GetMojingWorldKey(const char* szKeyType);
+// MojingSDK_SetMojingWorldKey函数仅供内部使用，不得公开！
+bool MojingSDK_SetMojingWorldKey(const char* szKeyType, const char* szGlassesName);
+
 bool MojingSDK_SetDefaultMojingWorld(const char * szGlassesName);
 bool MojingSDK_OnSurfaceChanged(int newWidth, int newHeight);
 String MojingSDK_GetDefaultMojingWorld(const char* strLanguageCodeByISO639);
@@ -221,6 +232,8 @@ const char* MojingSDK_GetGpuName();
 
 String MojingSDK_GetUserSettings();
 bool   MojingSDK_SetUserSettings(const char * sUserSettings);
+int    MojingSDK_GetSensorOrigin();
+bool   MojingSDK_SetSensorOrigin(int SensorOrigin);
 /************************************************************************/
 /* 辅助函数：帮助界面开发者做数学运算                                   */
 /************************************************************************/

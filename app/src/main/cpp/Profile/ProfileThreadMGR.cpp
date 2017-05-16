@@ -169,6 +169,16 @@ namespace Baofeng
 #endif
 				return strRet;
 			}
+			else if (szClassName == "UserActionReporter")
+			{
+#ifdef _DEBUG
+				strRet += "192.168.12.58:8088/mojingcms02/170101-1-1-1/android/zh/1/user_actionup";
+				MOJING_TRACE(g_APIlogger, "UserActionReporter using web address." << (IO == Profile_LOAD ? "Load..." : "Post..."));
+#else
+				strRet += "res.static.mojing.cn/170501-1-1-1/android/zh/1/user_actionup";
+#endif
+				return strRet;
+			}
 			else if (szClassName == "MojingMerchantVerify")
 			{
 				strRet += "open.mojing.cn/api/developer/merchantverify";

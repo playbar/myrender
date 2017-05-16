@@ -213,7 +213,6 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
     	public void renderToWindow()
     	{
 			GLES20.glClearColor(0,0,0,1);
-			Log.e("Fun:", "threadid:" + Thread.currentThread().getId());
 			GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 			int texWidth = g_textureImgWidth, texHeight = g_textureImgHeight;
 			GLES20.glViewport(0, 0, texWidth, texHeight);    
@@ -230,7 +229,6 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
 		public void renderTextureToWindow()
     	{
 			GLES20.glClearColor(0,0,0,1);
-			Log.e("Fun:", "threadid:" + Thread.currentThread().getId());
 			GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 			int texWidth = g_textureImgWidth, texHeight = g_textureImgHeight;
 			GLES20.glViewport(0, 0, texWidth, texHeight);    

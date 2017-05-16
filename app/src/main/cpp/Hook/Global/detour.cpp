@@ -447,12 +447,17 @@ enum detour_status inlineHook( uint32_t target_addr )
     if ( item->status == REGISTERED )
     {
 		pid_t pid;
+#ifdef _DEBUG
 		MOJING_TRACE(g_APIlogger, "freeze ..."); 
+#endif
 		pid = freeze(item, ACTION_ENABLE);
-
+#ifdef _DEBUG
 		MOJING_TRACE(g_APIlogger, "doInlineHook ...");
+#endif
         doInlineHook( item );
+#ifdef _DEBUG
 		MOJING_TRACE(g_APIlogger, "unFreeze ...");
+#endif
         unFreeze( pid );
 
         return DETOUR_OK;
@@ -471,15 +476,34 @@ void inlineHookAll()
 {
     pid_t pid;
     int i;
-
+#ifdef _DEBUG
+	MOJING_TRACE(g_APIlogger, "freeze ...");
+#endif
     pid = freeze( NULL, ACTION_ENABLE );
+#ifdef _DEBUG
+	MOJING_TRACE(g_APIlogger, "freeze ... end");
+#endif // endif
     for ( i = 0; i < info.size; ++i )
     {
         if ( info.item[i].status == REGISTERED )
         {
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger , "do hook " << i << " / " << info.size);
+#endif // endif
             doInlineHook( &info.item[i] );
         }
+		else
+		{
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "skip hook " << i << " / " << info.size);
+#endif // endif
+		}
     }
-
+#ifdef _DEBUG
+	MOJING_TRACE(g_APIlogger, "unFreeze ..." );
+#endif // endif
     unFreeze( pid );
+#ifdef _DEBUG
+	MOJING_TRACE(g_APIlogger, "unFreeze ... done");
+#endif // endif
 }

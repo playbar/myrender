@@ -31,7 +31,8 @@ namespace Baofeng
 			ENGINE_NONE = 0,
 			ENGINE_UNITY, 
 			ENGINE_UNREAL,
-			ENGINE_GEAR
+			ENGINE_GEAR,
+			ENGINE_GVR
 		};
 
 		enum DRAW_STATUS

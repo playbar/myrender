@@ -33,6 +33,7 @@
 #include "Tracker/AndroidInternalSensorChecker.h"
 //#include "Tracker/MojingControlPose.h"
 #include "Tracker/MojingControllerSocket.h"
+#include "Reporter/UserActionReporter.h"
 #endif
 
 #include "3rdPart/MD5/MD5.h"
@@ -241,7 +242,7 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 #include <stdio.h>  
 
 
-#ifdef _DEBUG
+#if 0
 	MojingProfileKey Key;
 
 	// Key.SetString("SWAFHF-AZZG4F-CBEYD9-9323ZT-XBXX9T-CGCTAC");
@@ -250,14 +251,21 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 	MOJING_TRACE(g_APIlogger , "2Q2XWR-9YWQSQ-WUHFH7-WWE2WW-8RW84W-XT2FEX >>>>> MID = " << Key.GetManufacturerID() <<
 		"PID = " << Key.GetProductID() <<
 		"GID = " << Key.GetGlassID());
-	
-	Key.SetString("EGWUSS-HR86YL-QHC8C8-EB2YCH-AHDDXH-85A4Y5");
+	Key.SetString("82C2X-XZ86FM-XCCHSZ-4CADDX-CBADDB-YUYZZ7");
+	MOJING_TRACE(g_APIlogger, "82C2X-XZ86FM-XCCHSZ-4CADDX-CBADDB-YUYZZ7 >>>>> MID = " << Key.GetManufacturerID() <<
+		"PID = " << Key.GetProductID() <<
+		"GID = " << Key.GetGlassID());
+
+	String sfo3i = Key.GetGlassKeyIDString("82C2X-XZ86FM-XCCHSZ-4CADDX-CBADDB-YUYZZ7");
+// 	HX944-HMHKZN-9HF58G-4CYU9W-SW4B4X-CNACFN
+// BS9X3-8MAQEX-HMFVHG-DTQQXV-9Y2B8V-2GHK9H
+	Key.SetString("HX944-HMHKZN-9HF58G-4CYU9W-SW4B4X-CNACFN");
 	MOJING_TRACE(g_APIlogger, "EGWUSS-HR86YL-QHC8C8-EB2YCH-AHDDXH-85A4Y5 >>>>> MID = " << Key.GetManufacturerID() <<
 		"PID = " << Key.GetProductID() <<
 		"GID = " << Key.GetGlassID());
 	
-	Key.SetString("932NHM-CNSYA8-DGZ3XQ-XQEYQZ-8NHFDZ-HHDC4C");
-	MOJING_TRACE(g_APIlogger, "932NHM-CNSYA8-DGZ3XQ-XQEYQZ-8NHFDZ-HHDC4C >>>>> MID = " << Key.GetManufacturerID() <<
+	Key.SetString("STYNEX-YTA22N-FGZNZB-XGXQ4S-YVZGZG-2T23DT");
+	MOJING_TRACE(g_APIlogger, "STYNEX-YTA22N-FGZNZB-XGXQ4S-YVZGZG-2T23DT >>>>> MID = " << Key.GetManufacturerID() <<
 		"PID = " << Key.GetProductID() <<
 		"GID = " << Key.GetGlassID());
 #define  PRINT_KEY( MID , PID , GID) do \
@@ -275,7 +283,6 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 	Quatf qTo (-0.090886 , 0.143829 ,0.262451 , 0.949828);
 	//  Fix = (-0.015399 , -0.003783 ,-0.005614 , 0.999858)
 	Quatf qFix = Tracker::CalculateTimeWarpMatrix(qFrom, qTo);
-
 // 	PRINT_KEY(201, 201, 201);
 // 	PRINT_KEY(202, 202, 202);
 // 	PRINT_KEY(203, 203, 203);
@@ -450,6 +457,10 @@ bool MojingSDK_SetEngineVersion(const char* lpszEngine)
 		{
 			pStatus->SetEngineStatus(ENGINE_GEAR);
 		}
+		else if (strstr(szTempEngine, "gvr"))
+		{
+			pStatus->SetEngineStatus(ENGINE_GVR);
+		}
 		else
 		{
 			pStatus->SetEngineStatus(ENGINE_NONE);
@@ -536,6 +547,27 @@ bool MojingSDK_AppResume(const char* szUniqueID)
 {
 	mj_Initialize();
 	//MOJING_FUNC_TRACE(g_APIlogger);
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (pStatus && (ENGINE_GVR & pStatus->GetEngineStatus()))
+	{
+		String sGlass = MojingSDK_GetMojingWorldKey(MOJING_WORLDKEY_DEFAULT);
+		if (sGlass != "")
+		{
+			sGlass = MojingProfileKey::GetGlassKeyIDString(sGlass);
+
+			if (sGlass != "UNKNOWN")
+			{
+				GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->SetGlassesReportName(sGlass);
+			}
+			else
+			{
+			}
+		}
+		else
+		{
+		}
+	}
+
 	MojingRenderBase::SetModify();
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
@@ -638,6 +670,21 @@ void MojingSDK_ReportLog(int iLogType, const char* szTypeName, const char* szLog
 	}
 }
 
+#ifdef MJ_OS_ANDROID
+void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID)
+{
+	mj_Initialize();
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "MojingSDK_ReportUserAction before SDK init! InitStatus = " << pStatus->GetInitStatus());
+		return;
+	}
+	//MOJING_FUNC_TRACE(g_APIlogger);
+	UserActionReporter::GetUserActionReporter()->Post(szActionType, szItemID);
+}
+#endif
+
 void MojingSDK_AppSetReportImmediate(bool bReportImmediate)
 {
 	mj_Initialize();
@@ -735,13 +782,16 @@ bool MojingSDK_StartTracker(int nSampleFrequence, const char* szGlassName)
 		if (pTracker)
 		{
 #ifdef MJ_OS_ANDROID
+			//部分手机直接配置为Java层陀螺仪
 			if (pManager->GetParameters()->GetDeviceParameters()->GetSensorDataFromJava())
 			{
 				pTracker->SetDataFromExternal(true);
 			}
 			else
 			{
+				//通过用户设置确定为Java层还是Native层陀螺仪
 				UserSettingProfile* pProfile = pManager->GetParameters()->GetUserSettingProfile();
+				pProfile->Load();
 				if ((pProfile != NULL) && (szGlassName == NULL))
 				{
 					pTracker->SetDataFromExternal(pProfile->GetSensorDataFromJava());
@@ -1399,40 +1449,7 @@ bool MojingSDK_ChangeMojingWorld(const char * szGlassesName)
 			g_MojingMinidump.SetGlassesName(MojingProfileKey::GetGlassKeyIDString(szGlassesName));
 			g_MojingMinidump.m_bInMojingWorld = true;
 #endif
-
-			MojingProfileKey profileKey;
-			bool bRet = profileKey.SetString(szGlassesName);
-			if (!bRet)
-			{
-				MOJING_ERROR(g_APIlogger, "MojingSDK_ChangeMojingWorld GlassesName is invalid! --- " << szGlassesName);
-				return false;
-			}
-
-			profileKey.SetAppID(0);
-			String szProfileKey = profileKey.GetString();
-			//MOJING_TRACE(g_APIlogger, "szGlassesName : " << szGlassesName << " ++++ szProfileKey : " << szProfileKey.ToCStr());
-			String strFilePath = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();
-			strFilePath += "/MojingWorld.dat";
-			JSON* jsSave = JSON::Load(strFilePath.ToCStr(), g_EncKey);
-			if (jsSave == NULL)
-			{
-				jsSave = JSON::CreateObject();
-				jsSave->AddStringItem("LastMojingWorld", szProfileKey);
-			}
-			else
-			{
-				JSON* jsDefault = jsSave->GetItemByName("LastMojingWorld");
-				if (jsDefault == NULL)
-				{
-					jsSave->AddStringItem("LastMojingWorld", szProfileKey);
-				}
-				else
-				{
-					jsDefault->Value = szProfileKey;
-				}
-			}
-			jsSave->Save(strFilePath.ToCStr(), g_EncKey);
-			//MojingSDK_GetLastMojingWorld("ZH");
+			MojingSDK_SetMojingWorldKey(MOJING_WORLDKEY_LAST, szGlassesName);
 		}
 		else
 		{
@@ -1446,11 +1463,17 @@ bool MojingSDK_ChangeMojingWorld(const char * szGlassesName)
 
 bool MojingSDK_SetDefaultMojingWorld(const char * szGlassesName)
 {
+	return MojingSDK_SetMojingWorldKey(MOJING_WORLDKEY_DEFAULT, szGlassesName);
+}
+
+bool MojingSDK_SetMojingWorldKey(const char* szKeyType, const char* szGlassesName)
+{
+	String szKey = szKeyType;
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
-	MOJING_TRACE(g_APIlogger, "Set default MojingWorld : \"" << szGlassesName << "\"");
+	MOJING_TRACE(g_APIlogger, "Set " << szKey  << ": \"" << szGlassesName << "\"");
 	if (!pStatus->IsMojingSDKEnbaled())
 	{
-		MOJING_ERROR(g_APIlogger, "MojingSDK_SetDefaultMojingWorld with out Init SDK!");
+		MOJING_ERROR(g_APIlogger, "MojingSDK_SetMojingWorldKey with out Init SDK!");
 		return false;
 	}
 
@@ -1458,7 +1481,7 @@ bool MojingSDK_SetDefaultMojingWorld(const char * szGlassesName)
 	bool bRet = profileKey.SetString(szGlassesName);
 	if (!bRet)
 	{
-		MOJING_ERROR(g_APIlogger, "MojingSDK_SetDefaultMojingWorld GlassesName is invalid!");
+		MOJING_ERROR(g_APIlogger, "MojingSDK_SetMojingWorldKey GlassesName is invalid!");
 		return false;
 	}
 
@@ -1471,14 +1494,14 @@ bool MojingSDK_SetDefaultMojingWorld(const char * szGlassesName)
 	if (jsSave == NULL)
 	{
 		jsSave = JSON::CreateObject();
-		jsSave->AddStringItem("DefaultMojingWorld", szProfileKey);
+		jsSave->AddStringItem(szKey, szProfileKey);
 	}
 	else
 	{
-		JSON* jsDefault = jsSave->GetItemByName("DefaultMojingWorld");
+		JSON* jsDefault = jsSave->GetItemByName(szKey);
 		if (jsDefault == NULL)
 		{
-			jsSave->AddStringItem("DefaultMojingWorld", szProfileKey);
+			jsSave->AddStringItem(szKey, szProfileKey);
 		}
 		else
 		{
@@ -1489,71 +1512,68 @@ bool MojingSDK_SetDefaultMojingWorld(const char * szGlassesName)
 
 	return true;
 }
+String MojingSDK_GetMojingWorldKey(const char* szKeyType)
+{
+	String Ret = "";
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (pStatus->IsMojingSDKEnbaled())
+	{
+		Manager* pManager = Manager::GetMojingManager();
+		if (pManager)
+		{
+			GlassesConfigProfileV2* pGlassesConfigProfile = pManager->GetParameters()->GetGlassesConfigProfile();
+			if (pGlassesConfigProfile)
+			{
+				String strFilePath = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();
+				strFilePath += "/MojingWorld.dat";
+				JSON* jsSave = JSON::Load(strFilePath.ToCStr(), g_EncKey);
+				if (jsSave != NULL)
+				{
+
+					JSON* jsDefault = jsSave->GetItemByName(szKeyType);
+					if (jsDefault != NULL)
+					{
+						Ret = jsDefault->Value.ToCStr();
+					}
+				}
+			}
+		}
+	}
+	return Ret;
+}
 
 String MojingSDK_GetDefaultMojingWorld(const char* strLanguageCodeByISO639)
 {
 	String strRet = "{\"ERROR\":\"Get default MojingWorld failed.\"}";
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
-	if (pStatus->IsMojingSDKEnbaled())
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
 	{
-		Manager* pManager = Manager::GetMojingManager();
-		if (pManager)
+		GlassesConfigProfileV2* pGlassesConfigProfile = pManager->GetParameters()->GetGlassesConfigProfile();
+		if (pGlassesConfigProfile)
 		{
-			GlassesConfigProfileV2* pGlassesConfigProfile = pManager->GetParameters()->GetGlassesConfigProfile();
-			if (pGlassesConfigProfile)
-			{
-				String strFilePath = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();
-				strFilePath += "/MojingWorld.dat";
-				JSON* jsSave = JSON::Load(strFilePath.ToCStr(), g_EncKey);
-				if (jsSave == NULL)
-				{
-					return strRet;
-				}
-				JSON* jsDefault = jsSave->GetItemByName("DefaultMojingWorld");
-				if (jsDefault == NULL)
-				{
-					return strRet;
-				}
-				const char* szGlassName = jsDefault->Value.ToCStr();
-				strRet = pGlassesConfigProfile->GetMojingWorldJson(szGlassName, strLanguageCodeByISO639);
-			}
+			strRet = pGlassesConfigProfile->GetMojingWorldJson(MojingSDK_GetMojingWorldKey(MOJING_WORLDKEY_DEFAULT), strLanguageCodeByISO639);
 		}
 	}
-
 	//MOJING_TRACE(g_APIlogger, "Get default MojingWorld : " << strRet.ToCStr());
 	return strRet;
 }
+
 
 String MojingSDK_GetLastMojingWorld(const char* strLanguageCodeByISO639)
 {
 	String strRet = "{\"ERROR\":\"Get last MojingWorld failed.\"}";
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
-	if (pStatus->IsMojingSDKEnbaled())
+
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
 	{
-		Manager* pManager = Manager::GetMojingManager();
-		if (pManager)
+		GlassesConfigProfileV2* pGlassesConfigProfile = pManager->GetParameters()->GetGlassesConfigProfile();
+		if (pGlassesConfigProfile)
 		{
-			GlassesConfigProfileV2* pGlassesConfigProfile = pManager->GetParameters()->GetGlassesConfigProfile();
-			if (pGlassesConfigProfile)
-			{
-				String strFilePath = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();
-				strFilePath += "/MojingWorld.dat";
-				JSON* jsSave = JSON::Load(strFilePath.ToCStr(), g_EncKey);
-				if (jsSave == NULL)
-				{
-					return strRet;
-				}
-				JSON* jsDefault = jsSave->GetItemByName("LastMojingWorld");
-				if (jsDefault == NULL)
-				{
-					return strRet;
-				}
-				const char* szGlassName = jsDefault->Value.ToCStr();
-				strRet = pGlassesConfigProfile->GetMojingWorldJson(szGlassName, strLanguageCodeByISO639);
-			}
+			strRet = pGlassesConfigProfile->GetMojingWorldJson(MojingSDK_GetMojingWorldKey(MOJING_WORLDKEY_LAST), strLanguageCodeByISO639);
 		}
 	}
-
 	//MOJING_TRACE(g_APIlogger, "Get last MojingWorld : " << strRet.ToCStr());
 	return strRet;
 }
@@ -1657,7 +1677,7 @@ bool MojingSDK_IsUseUnityForSVR()
 float MojingSDK_GetFOV()
 {
 	ENTER_MINIDUMP_FUNCTION;
-//	MOJING_FUNC_TRACE(g_APIlogger);
+	MOJING_FUNC_TRACE(g_APIlogger);
 	float fRet = 0.000;
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (pStatus->IsMojingSDKEnbaled())
@@ -1679,6 +1699,40 @@ float MojingSDK_GetFOV()
 			else
 			{
 				MOJING_ERROR(g_APIlogger, "Can not get FOV , pDistortion is NULL...");
+			}
+		}
+		else if (pStatus->GetEngineStatus() == ENGINE_GVR)
+		{
+			MOJING_TRACE(g_APIlogger, "Engine = GVR");
+			MojingProfileKey Key;
+			String sKey = "";
+			if (0 != szGlassesName && 0 != *szGlassesName)
+			{
+				MOJING_TRACE(g_APIlogger, "Try settings....");
+				sKey = szGlassesName;
+			}
+			else
+			{// 注意：因为下面的函数每次都要去读取文件，所以尽量从pStatus->GetGlassesName();获取畸变镜片
+				MOJING_TRACE(g_APIlogger, "Try default....");
+				sKey = MojingSDK_GetMojingWorldKey(MOJING_WORLDKEY_DEFAULT);
+			}
+			if (Key.SetString(sKey))
+			{
+				Baofeng::Mojing::Parameters* pParameters = Baofeng::Mojing::Manager::GetMojingManager()->GetParameters();
+				GlassesConfigProfileV2* pGlassesConfig = pParameters->GetGlassesConfigProfile();
+				GlassInfo *pGlassInfo = pGlassesConfig->GetGlass(Key.GetGlassID());
+				if (pGlassInfo)
+				{
+					fRet = pGlassInfo->GetFOV();
+				}
+				else
+				{
+					MOJING_TRACE(g_APIlogger, "Can not find glasses info....");
+				}
+			}
+			else
+			{
+				MOJING_ERROR(g_APIlogger, "Invalid Key..." << sKey.ToCStr());
 			}
 		}
 		else if (0 != szGlassesName && 0 != *szGlassesName)
@@ -1993,7 +2047,7 @@ void MojingSDK_SetOverlayPosition(const float fLeft, const float fTop, const flo
 #ifdef _DEBUG
 		char szTemp[256];
 		sprintf(szTemp, "MojingSDK_SetOverlayPosition : Left&& Right : Rect = {%1.2f , %1.2f , %1.2f , %1.2f}", OverlayRect.x, OverlayRect.y, OverlayRect.z, OverlayRect.w);
-		MOJING_TRACE(g_APIlogger, szTemp);
+		//MOJING_TRACE(g_APIlogger, szTemp);
 #endif	
         if (pRender != NULL)
         {
@@ -2454,6 +2508,12 @@ String MojingSDK_GetUserSettings()
 {
 	//MOJING_FUNC_TRACE(g_APIlogger);
 	String strRet = "";
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "Call MojingSDK_GetUserSettings befor Init! InitStatus = " << pStatus->GetInitStatus());
+		return "";
+	}
 	UserSettingProfile* pProfile = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile();
 	if (pProfile)
 	{
@@ -2468,11 +2528,17 @@ String MojingSDK_GetUserSettings()
 	}
 	return strRet;
 }
+
 bool   MojingSDK_SetUserSettings(const char * sUserSettings)
 {
 	bool bRet = false;
 	MOJING_FUNC_TRACE(g_APIlogger);
-	String strRet = "";
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "Call MojingSDK_SetUserSettings befor Init! InitStatus = " << pStatus->GetInitStatus());
+		return false;
+	}
 	JSON *pJson = JSON::Parse(sUserSettings);
 	if (pJson)
 	{
@@ -2491,6 +2557,75 @@ bool   MojingSDK_SetUserSettings(const char * sUserSettings)
 		}
 		pJson->Release();
 	}
+	return bRet;
+}
+
+
+int MojingSDK_GetSensorOrigin()
+{
+	//MOJING_FUNC_TRACE(g_APIlogger);
+	int sensorOrigin = SENSOR_ORIGIN_EXTERNAL_SDK;
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "Call MojingSDK_GetSensorOrigin befor Init! InitStatus = " << pStatus->GetInitStatus());
+		return sensorOrigin;
+	}
+	UserSettingProfile* pProfile = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile();
+	if (pProfile)
+	{
+		if (MojingSDK_IsHDMWorking())
+		{
+			sensorOrigin = SENSOR_ORIGIN_EXTERNAL_DEVICE;
+		}
+		else
+		{
+			if (pProfile->GetSensorDataFromMJSDK())
+			{
+				if (pProfile->GetSensorDataFromJava())
+					sensorOrigin = SENSOR_ORIGIN_LOCAL_JAVA;
+				else
+					sensorOrigin = SENSOR_ORIGIN_LOCAL_NATIVE;
+			}
+		}
+	}
+	return sensorOrigin;
+}
+
+bool   MojingSDK_SetSensorOrigin(int SensorOrigin)
+{
+	bool bRet = false;
+	MOJING_FUNC_TRACE(g_APIlogger);
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	if (!pStatus->IsMojingSDKEnbaled())
+	{
+		MOJING_ERROR(g_APIlogger, "Call MojingSDK_SetSensorOrigin befor Init! InitStatus = " << pStatus->GetInitStatus());
+		return false;
+	}
+	if (SensorOrigin == SENSOR_ORIGIN_EXTERNAL_DEVICE)
+	{
+		MOJING_WARN(g_APIlogger, "Can not set External Device");
+		return bRet;
+	}
+
+	UserSettingProfile* pProfile = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile();
+	if (pProfile)
+	{
+		if (SensorOrigin == SENSOR_ORIGIN_EXTERNAL_SDK)
+		{
+			pProfile->SetSensorDataFromMJSDK(false);
+		}
+		else
+		{
+			pProfile->SetSensorDataFromMJSDK(true);
+			if (SensorOrigin == SENSOR_ORIGIN_LOCAL_JAVA)
+				pProfile->SetSensorDataFromJava(true);
+			else if (SENSOR_ORIGIN_LOCAL_NATIVE)
+				pProfile->SetSensorDataFromJava(false);
+		}
+		pProfile->Save();
+	}
+
 	return bRet;
 }
 

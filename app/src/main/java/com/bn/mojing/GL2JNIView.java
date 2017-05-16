@@ -222,7 +222,6 @@ class GL2JNIView extends MojingSurfaceView implements Serializable{
     	public void renderToWindow()
     	{
 			GLES20.glClearColor(0,0,0,1);
-			Log.e("Fun:", "threadid:" + Thread.currentThread().getId());
 			GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 			int texWidth = g_textureImgWidth, texHeight = g_textureImgHeight;
 			GLES20.glViewport(0, 0, texWidth, texHeight);    
@@ -239,7 +238,6 @@ class GL2JNIView extends MojingSurfaceView implements Serializable{
 		public void renderTextureToWindow()
     	{
 			GLES20.glClearColor(0,0,0,1);
-			Log.e("Fun:", "threadid:" + Thread.currentThread().getId());
 			GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 			int texWidth = g_textureImgWidth, texHeight = g_textureImgHeight;
 			GLES20.glViewport(0, 0, texWidth, texHeight);    
@@ -262,8 +260,7 @@ class GL2JNIView extends MojingSurfaceView implements Serializable{
 					GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, EyeTexture.m_EyeTexID, 0);
 					
         			GLES20.glClearColor(0,0,0,1);
-        			GLES20.glViewport(0, 0, EyeTexture.m_Width, EyeTexture.m_Height);
-					Log.e("Fun:", "threadid:" + Thread.currentThread().getId());
+        			GLES20.glViewport(0, 0, EyeTexture.m_Width, EyeTexture.m_Height);        	        	
 					GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);   
 					
 					// GLES20.glViewsport(1, 1, EyeTexture.m_Width - 2,  EyeTexture.m_Height - 2);        	        	
@@ -272,7 +269,6 @@ class GL2JNIView extends MojingSurfaceView implements Serializable{
         			if (status == GLES20.GL_FRAMEBUFFER_COMPLETE)
         			{
         				GLES20.glClearColor(0,0,0,1);
-						Log.e("Fun:", "threadid:" + Thread.currentThread().getId());
 						GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);   
                 
 						MatrixState.pushMatrix();

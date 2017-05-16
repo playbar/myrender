@@ -39,6 +39,7 @@ public class MojingSDK
 	public static int 	SENSOR_ERROR_NoAccel		=0x10;
 	public static int 	SENSOR_ERROR_AccelTooSlow	=0x20;
 
+	public static int	SENSOR_ORIGIN_EXTERNAL_SDK = 0;
 	public static int	SENSOR_ORIGIN_LOCAL_NATIVE = 1;
 	public static int	SENSOR_ORIGIN_LOCAL_JAVA = 2;
 	public static int	SENSOR_ORIGIN_EXTERNAL_DEVICE = 3;
@@ -54,10 +55,12 @@ public class MojingSDK
 		System.loadLibrary("curl");
 		System.loadLibrary("sqlite3");
 		System.loadLibrary("mojing");
+		//System.loadLibrary("hookgvr");
     }
 
 	public static native int GetSystemIntProperty(String property, int defaultValue);
-
+	// FOR HOOK DD
+	//private static native boolean hookGvrInit();
 	private static boolean m_inited = false;
 	private static native boolean Init(String MerchantID, String AppID, String AppKey, String AppName, String packageName, String userID, String channelID, int nWidth, int nHeight, float xdpi, float ydpi, String ProfilePath);
 	public  static native void SetEngineVersion(String jstrEngineVersion);
@@ -76,8 +79,11 @@ public class MojingSDK
 			android.util.DisplayMetrics dm = context.getResources().getDisplayMetrics();	
 			m_inited = true;
 			Init(merchantID, appID, appKey, appName, packageName, userID, channelID, dm.widthPixels,dm.heightPixels,  dm.xdpi , dm.ydpi, path);
-			GetJoystickFileName();
+			//GetJoystickFileName();  //Done in Parameters::Init()
 		}
+		//LogTrace("Befor call hookGvrInit");
+		//hookGvrInit();
+		//LogTrace("After call hookGvrInit");
 		return true;
 	}
    
@@ -315,6 +321,7 @@ public class MojingSDK
 	public static native void AppPageEnd(String pageName);
 	public static native void AppSetEvent(String eventName, String eChannelID, String eInName, float eInData, String eOutName, float eOutData);
 	public static native void AppReportLog(int iLogType, String typeName, String logContent);
+	public static native void AppReportUserAction(String strActionType, String strItemID);
 	public static native void AppSetContinueInterval(int interval);
 	public static native void AppSetReportInterval(int interval);
 	public static native void AppSetReportImmediate(boolean bImmediate);
@@ -379,18 +386,22 @@ public class MojingSDK
 	public static native float GetDistortionR(String strGlassesKey);
 	public static native String GetUserSettings();
 	public static native boolean SetUserSettings(String strUserSettings);
+	public static native int GetSensorOriginStatus();
+	public static native boolean SetSensorOriginStatus(int iSensorOrigin);
 	public static native void SetEnableTimeWarp(boolean bEnable);
 
 	// Mojing5 API
 	public static native boolean IsLowPower();
+	public static native void SetHDMWorking(boolean bHDMWorking);
+	public static native void SetGlassesSN(String strGlassesSN);
 	
 	public static native int GetSocketPort();
 
 	//Motion Input Device
-	public static native int  Device_GetKeymask(int iID, int[] KeyMask);
-	public static native float Device_GetInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray, int[] KeystatusArray);
-	public static native float Device_GetFixInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray);
-	public static native float Device_GetControlFixCurrentInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray, int[] KeystatusArray);
+	public static native int  DeviceGetKeymask(int iID, int[] KeyMask);
+	public static native float DeviceGetInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray, int[] KeystatusArray);
+	public static native float DeviceGetFixInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray);
+	public static native float DeviceGetControlFixCurrentInfo(int iID, float[] QuartArray, float[] AngularAccelArray, float[] LinearAccelArray, float[] PositionArray, int[] KeystatusArray);
 	
 	// Joystatic ?? 
 	public static native String GetEliminateBuiltin();
@@ -437,19 +448,38 @@ public class MojingSDK
 		return MojingSDKSensorManager.useJavaSensor();
 	}
 
+	/*
 	public static int GetSensorOriginStatus()
 	{
-		if(MojingSDKServiceManager.isServiceTracker())
+		if(MojingSDKServiceManager.isHMDWorking())
+		//if(MojingSDKServiceManager.isServiceTracker())
 		{
 			return SENSOR_ORIGIN_EXTERNAL_DEVICE;
 		}
 		else
 		{ 
-			return MojingSDKSensorManager.useJavaSensor() ? SENSOR_ORIGIN_LOCAL_JAVA : SENSOR_ORIGIN_LOCAL_NATIVE;
+			try {
+				String json = GetUserSettings();
+				JSONObject jsonObject = new JSONObject(json);
+				if (jsonObject.has("SensorDataFromMJSDK")) 
+				{
+					if(!jsonObject.getBoolean("SensorDataFromMJSDK"))
+					{
+						return SENSOR_ORIGIN_EXTERNAL_SDK;	
+					}
+				}
+				if (jsonObject.has("SensorDataFromJava")) 
+				{
+					return jsonObject.getBoolean("SensorDataFromJava") ? SENSOR_ORIGIN_LOCAL_JAVA : SENSOR_ORIGIN_LOCAL_NATIVE;
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			return SENSOR_ORIGIN_LOCAL_NATIVE;		
 		}	
 	}
- 
-    public static void onSensorOriginChanged(Context context)
+
+	public static void onSensorOriginChanged(Context context)
 	{
 		try
 		{
@@ -480,6 +510,50 @@ public class MojingSDK
 				MojingSDKSensorManager.UnRegisterSensor(context);
 				MojingSDKSensorManager.RegisterSensor(context);
 				MojingSDKServiceManager.StartTracker();
+			}
+		} 
+		catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	*/
+    public static void onSensorOriginChanged(Context context)
+	{
+		try
+		{
+			if(MojingSDKServiceManager.isHMDWorking()) return;
+
+			boolean bChanged = false;
+			String json = GetUserSettings();
+			JSONObject jsonObject = new JSONObject(json);
+			if (jsonObject.has("SensorDataFromJava")) 
+			{
+				int bFromJava = jsonObject.getInt("SensorDataFromJava");
+				jsonObject.put("SensorDataFromJava", bFromJava==1 ? 0 : 1);
+    			SetUserSettings(jsonObject.toString());
+				json = GetUserSettings();
+				jsonObject = new JSONObject(json);
+				if (jsonObject.has("SensorDataFromJava")) 
+				{
+					if(jsonObject.getInt("SensorDataFromJava") != bFromJava)
+					{
+						bChanged = true;
+					}
+				}
+			}
+			if(bChanged)
+			{
+				if(MojingSDKServiceManager.isServiceTracker())
+				{
+					MojingSDKServiceManager.ClientReStart();
+				}
+				else
+				{
+					StopTracker();
+					MojingSDKSensorManager.UnRegisterSensor(context);
+					MojingSDKSensorManager.RegisterSensor(context);
+					MojingSDKServiceManager.StartTracker();
+				}
 			}
 		} 
 		catch (JSONException e) {

@@ -91,10 +91,11 @@ extern void MojingSDK_SendControllerDataV2(float* pArray, double dTimestamp, boo
         fSensorArray[12] = sensorData.fOrientationZ;
         fSensorArray[13] = sensorData.fOrientationW;
     }
-    NSLog(@"mojing-motion sensor data: CurrentOrientation(%f/%f/%f/%f), FixedOrientation(%f/%f/%f/%f), timestamp(%f), bReCenter(%d)",
-          fSensorArray[0], fSensorArray[1], fSensorArray[2], fSensorArray[3],
-          fSensorArray[10], fSensorArray[11], fSensorArray[12], fSensorArray[13],
-          _timestamp, bRecenter);
+    //NSLog(@"mojing-motion sensor data: CurrentOrientation(%f/%f/%f/%f), FixedOrientation(%f/%f/%f/%f),
+    //        timestamp(%f), bReCenter(%d)",
+    //      fSensorArray[0], fSensorArray[1], fSensorArray[2], fSensorArray[3],
+    //      fSensorArray[10], fSensorArray[11], fSensorArray[12], fSensorArray[13],
+    //      _timestamp, bRecenter);
 
     MojingSDK_SendControllerDataV2(fSensorArray, _timestamp/1000000000.0, bRecenter);
 }

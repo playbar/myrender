@@ -2,6 +2,8 @@
 #include "../../MojingAPI.h"
 #include "../../MojingManager.h"
 #include "../../Distortion/MojingDistortion.h"
+#include "../../Profile/MojingProfileKey.h"
+
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
 #else
@@ -59,45 +61,12 @@ void   Gear_getLastHeadQuarternion(float *w, float *x, float *y, float *z)
 	MojingSDK_getLastHeadQuarternion(w, x, y, z);
 }
 
-String ParseGlassKey(String sJson)
-{
-	String sRet = "";
-	char * szJSON = new char[sJson.GetLength() + 1];
-	strcpy(szJSON, sJson.ToCStr());
-
-	char* szGlassBegin = strstr(szJSON, "},\"Glass\":");
-	if (szGlassBegin)
-	{
-		char * szKeyBegin = strstr(szGlassBegin, ",\"Key\":");
-		if (szKeyBegin)
-		{
-			szKeyBegin += 9;
-			char * szKeyEnd = strstr(szKeyBegin, "\"");
-			*szKeyEnd = 0;
-			sRet = szKeyBegin;
-			
-		}
-	}
-	delete szJSON;
-	return sRet;
-}
 bool  Gear_EnterMojingWorld()
 {
-	String s1 = ParseGlassKey(MojingSDK_GetDefaultMojingWorld("ZH"));
-	String s2 = ParseGlassKey(MojingSDK_GetLastMojingWorld("ZH"));
-	if (MojingSDK_EnterMojingWorld(s2, false, false))
+	String sDefaultKey = MojingSDK_GetMojingWorldKey(MOJING_WORLDKEY_DEFAULT);
+	if (MojingSDK_EnterMojingWorld(sDefaultKey, false, false))
 	{
-		MOJING_TRACE(g_APIlogger , "Using last MojingWorld");
-		return true;
-	}
-	else if (MojingSDK_EnterMojingWorld(s1, false, false))
-	{
-		MOJING_TRACE(g_APIlogger, "Using defalut MojingWorld");
-		return true;
-	}
-	else if (MojingSDK_EnterMojingWorld("2WF5F5-FPWGZZ-H7AE2C-H3F8SW-EE8KCF-YTHBCN", false, false))
-	{
-		MOJING_TRACE(g_APIlogger, "Using Mojing4");
+		MOJING_TRACE(g_APIlogger , "Using defalut MojingWorld");		
 		return true;
 	}
 	return false;
