@@ -254,11 +254,11 @@ static const int GL_FRAMEBUFFER_SRGB_EXT = 0x8DB9;
 
 // EXT_sRGB_decode
 extern bool HasEXT_sRGB_texture_decode;
-//#if !defined(__aarch64__)
-//static const int GL_TEXTURE_SRGB_DECODE_EXT = 0x8A48;
-//static const int GL_DECODE_EXT = 0x8A49;
-//static const int GL_SKIP_DECODE_EXT = 0x8A4A;
-//#endif
+#if !defined(__aarch64__)
+static const int GL_TEXTURE_SRGB_DECODE_EXT = 0x8A48;
+static const int GL_DECODE_EXT = 0x8A49;
+static const int GL_SKIP_DECODE_EXT = 0x8A4A;
+#endif
 
 // To link against the ES2 library for UE4, we need to make our own versions of these
 typedef void (GL_APIENTRYP PFNGLBLITFRAMEBUFFER_) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);

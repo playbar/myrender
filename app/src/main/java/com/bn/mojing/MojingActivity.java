@@ -202,7 +202,7 @@ public class MojingActivity extends MojingVrActivity{
 		if (event.getAction() == MotionEvent.ACTION_UP)
 		{
 			//jump2AdjustActivity();
-			com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
+//			com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
 			String MojingType = MojingKey[StartCount];
 			mView.setGlassesKey(MojingType);
 			//com.baofeng.mojing.MojingSDK.ChangeMojingWorld(MojingType);
