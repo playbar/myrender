@@ -23,8 +23,8 @@ PFNGLDISCARDFRAMEBUFFEREXTPROC glDiscardFramebufferEXT_ = NULL;
 
 bool	IMG_multisampled_render_to_texture;
 #if !defined(__aarch64__)
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC glRenderbufferStorageMultisampleIMG_ = NULL;
-PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC glFramebufferTexture2DMultisampleIMG_ = NULL;
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG glRenderbufferStorageMultisampleIMG_ = NULL;
+PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG_ = NULL;
 #endif
 
 PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR_ = NULL;
@@ -164,8 +164,8 @@ namespace Baofeng
 			{
 				IMG_multisampled_render_to_texture = true;
 #if !defined(__aarch64__)
-				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC)GetExtensionProc("glRenderbufferStorageMultisampleIMG");
-				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC)GetExtensionProc("glFramebufferTexture2DMultisampleIMG");
+				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleIMG");
+				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleIMG");
 #endif
 			}
 			else if (ExtensionStringPresent("GL_EXT_multisampled_render_to_texture", extensions))
@@ -173,8 +173,8 @@ namespace Baofeng
 				// assign to the same function pointers as the IMG extension
 				IMG_multisampled_render_to_texture = true;
 #if !defined(__aarch64__)
-				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC)GetExtensionProc("glRenderbufferStorageMultisampleEXT");
-				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC)GetExtensionProc("glFramebufferTexture2DMultisampleEXT");
+				glRenderbufferStorageMultisampleIMG_ = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG)GetExtensionProc("glRenderbufferStorageMultisampleEXT");
+				glFramebufferTexture2DMultisampleIMG_ = (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG)GetExtensionProc("glFramebufferTexture2DMultisampleEXT");
 #endif
 			}
 
