@@ -164,8 +164,8 @@ namespace Baofeng
 // they will be assigned here as well.
 extern bool	IMG_multisampled_render_to_texture;
 #if !defined(__aarch64__)
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMGPROC glRenderbufferStorageMultisampleIMG_;
-extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMGPROC glFramebufferTexture2DMultisampleIMG_;
+extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEIMG glRenderbufferStorageMultisampleIMG_;
+extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEIMG glFramebufferTexture2DMultisampleIMG_;
 #endif
 
 extern PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR_;
@@ -248,9 +248,9 @@ static const int EGL_GL_COLORSPACE_SRGB_KHR = 0x3089;
 static const int EGL_GL_COLORSPACE_LINEAR_KHR = 0x308A;
 
 // EXT_sRGB_write_control
-//#if !defined(__aarch64__)
-//static const int GL_FRAMEBUFFER_SRGB_EXT = 0x8DB9;
-//#endif
+#if !defined(__aarch64__)
+static const int GL_FRAMEBUFFER_SRGB_EXT = 0x8DB9;
+#endif
 
 // EXT_sRGB_decode
 extern bool HasEXT_sRGB_texture_decode;
