@@ -276,8 +276,8 @@ namespace Baofeng
 			MojingSensorParameters *pSensorParameters = Manager::GetMojingManager()->GetParameters()->GetSensorParameters();
 			/*以上是为了统计陀螺仪的实际采样速度*/
 //			MessageBodyFrame theSample;
-            HeadTrackerData data;
-			memset(&data, 0, sizeof(HeadTrackerData));
+            MessageBodyFrame data;
+			memset(&data, 0, sizeof(MessageBodyFrame));
             data.Temperature = getTemperature();
 			if (data.Temperature < 0) data.Temperature = 2500;	// 如果不能拿到温度值，则设置成25度
 

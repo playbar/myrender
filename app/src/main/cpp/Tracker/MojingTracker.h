@@ -58,10 +58,13 @@ namespace Baofeng
 			void SendSensorData(float* pArray, double dLastSampleTime);
 			CLASS_MEMBER(bool, m_b, DataFromExternal);
 
+            float             headview[16];
+
 		private:
 			int m_nSkipSamples;
 			bool m_bSensorfusionInit;
 			MessageBodyFrame m_sensorFrame;
+
 			friend class Manager;
 
 		private:

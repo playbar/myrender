@@ -40,6 +40,8 @@ namespace Baofeng
 			static UInt64 m_ui64CurrentFrameIndex;
 			static UInt16 m_uiNextFrameKey;
 			static bool m_bMultiThread;
+        public:
+            float headview[16];
 		public:
 			RenderFrame();
 			virtual ~RenderFrame();

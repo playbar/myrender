@@ -103,6 +103,7 @@ namespace Baofeng
 			float        Temperature;
 			// Sensor status described by ovrStatusBits.
 			unsigned     Status;
+            float         headview[16];
 		};
 
 
@@ -258,7 +259,7 @@ namespace Baofeng
 				// time the current state is correct for
 				PoseStatef        State;
 				float             Temperature;
-
+                float             headview[16];
 				StateForPrediction() : Temperature(0) { };
 			};
 

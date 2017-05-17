@@ -118,8 +118,8 @@ namespace Baofeng
 		void SensorFusion::Reset()
 		{
 			//Lock::Locker lockScope(pHandler->GetHandlerLock());
-
-			UpdatedState.SetState(StateForPrediction());
+            StateForPrediction data;
+			UpdatedState.SetState(data);
 			State = PoseStatef();
 			Stage = 0;
 
@@ -282,6 +282,8 @@ namespace Baofeng
 			// Store the lockless state.
 			StateForPrediction state;
 			state.State = State;
+//            state.data = msg;
+            msg.getLastHeadView(state.headview);
 			state.Temperature = msg.Temperature;
 
 #ifdef ENABLE_SENSOR_LOGGER
@@ -767,6 +769,7 @@ namespace Baofeng
 			}
 			sstate.Predicted.AngularAcceleration = state.State.AngularAcceleration;
 			sstate.Predicted.LinearAcceleration = state.State.LinearAcceleration;
+            memcpy(sstate.headview, state.headview, sizeof(float) * 16 );
 //			dTime[1] = Timer::GetSeconds();
 //			MOJING_TRACE(g_APIlogger, "GetPredictionForTime Time All = " << Timer::FormatDoubleTime(dTime[1] - dTime[0]));
 			if (pdOutSensotTime)

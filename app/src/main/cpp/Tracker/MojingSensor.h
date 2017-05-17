@@ -35,10 +35,10 @@ namespace Baofeng
 			double	 LastSampleTime;
 			double   lastTempTime;
 			double   AbsoluteTimeSeconds;
-		};
-
-		struct HeadTrackerData : public MessageBodyFrame
-		{
+//		};
+//
+//		struct HeadTrackerData : public MessageBodyFrame
+//		{
 			Vector3dJ gyroBias;
 			Vector3dJ latestGyro;
 			Vector3dJ latestAcc;
@@ -57,7 +57,7 @@ namespace Baofeng
             }
 
             void getLastHeadView(float *headView){
-                float rotation = 0.0f;
+                float rotation = 90.0f;
                 displayRotation = rotation;
                 float sensorToDisplay[16];
                 float ekfToHeadTracker[16];

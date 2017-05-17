@@ -364,6 +364,7 @@ namespace Baofeng
 				//if (sensorState.Predicted.Transform.Orientation != Quatf(0, 0, 0, 1))
 				{
 					Ret = m_pLastSensorState.Predicted.Transform.Orientation;
+					memcpy(headview, sstate.headview, sizeof(float) * 16 );
 				}
 				//else
 				//{

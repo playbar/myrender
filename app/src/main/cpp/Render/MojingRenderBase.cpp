@@ -24,6 +24,7 @@
 #include <map>
 #include <string>
 #include <ctime>
+#include <Base/MojingLog.h>
 
 #ifdef MJ_OS_ANDROID
 #include "MojingRenderMultithread.h"
@@ -1097,6 +1098,8 @@ namespace Baofeng
 				{
 					pMatrix[i] = viewMatrix.M[i / 4][i % 4];
 				}
+
+//                memcpy(pMatrix, pRF->headview, sizeof(float) * 16 );
 			}
 			return pRF->GetFrameIndex();
 		}
