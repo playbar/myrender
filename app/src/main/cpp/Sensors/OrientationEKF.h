@@ -25,15 +25,15 @@ public:
     Matrix3x3d mS;
     Matrix3x3d mH;
     Matrix3x3d mK;
-    Vector3d mNu;
-    Vector3d mz;
-    Vector3d mh;
-    Vector3d mu;
-    Vector3d mx;
-    Vector3d down;
-    Vector3d north;
+    Vector3dJ mNu;
+    Vector3dJ mz;
+    Vector3dJ mh;
+    Vector3dJ mu;
+    Vector3dJ mx;
+    Vector3dJ down;
+    Vector3dJ north;
     long sensorTimeStampGyro;
-    Vector3d lastGyro;
+    Vector3dJ lastGyro;
     double previousAccelNorm = 0.0;
     double movingAverageAccelNormChange = 0.0;
     float filteredGyroTimestep;
@@ -42,7 +42,7 @@ public:
     bool gyroFilterValid = true;
     Matrix3x3d getPredictedGLMatrixTempM1;
     Matrix3x3d getPredictedGLMatrixTempM2;
-    Vector3d getPredictedGLMatrixTempV1;
+    Vector3dJ getPredictedGLMatrixTempV1;
     Matrix3x3d setHeadingDegreesTempM1;
     Matrix3x3d processGyroTempM1;
     Matrix3x3d processGyroTempM2;
@@ -51,14 +51,14 @@ public:
     Matrix3x3d processAccTempM3;
     Matrix3x3d processAccTempM4;
     Matrix3x3d processAccTempM5;
-    Vector3d processAccTempV1;
-    Vector3d processAccTempV2;
-    Vector3d processAccVDelta;
-    Vector3d processMagTempV1;
-    Vector3d processMagTempV2;
-    Vector3d processMagTempV3;
-    Vector3d processMagTempV4;
-    Vector3d processMagTempV5;
+    Vector3dJ processAccTempV1;
+    Vector3dJ processAccTempV2;
+    Vector3dJ processAccVDelta;
+    Vector3dJ processMagTempV1;
+    Vector3dJ processMagTempV2;
+    Vector3dJ processMagTempV3;
+    Vector3dJ processMagTempV4;
+    Vector3dJ processMagTempV5;
     Matrix3x3d processMagTempM1;
     Matrix3x3d processMagTempM2;
     Matrix3x3d processMagTempM4;
@@ -149,7 +149,7 @@ public:
 //public synchronized
     double* getPredictedGLMatrix(double secondsAfterLastGyroEvent) {
         double dT = secondsAfterLastGyroEvent;
-        Vector3d pmu = getPredictedGLMatrixTempV1;
+        Vector3dJ pmu = getPredictedGLMatrixTempV1;
         pmu.set(lastGyro);
         pmu.scale(- dT);
         Matrix3x3d so3PredictedMotion = getPredictedGLMatrixTempM1;
@@ -183,7 +183,7 @@ public:
     }
 
 //public synchronized
-    void processGyro(Vector3d &gyro, long sensorTimeStamp) {
+    void processGyro(Vector3dJ &gyro, long sensorTimeStamp) {
         float kTimeThreshold = 0.04f;
         float kdTdefault = 0.01f;
         if (sensorTimeStampGyro != 0) {
@@ -220,21 +220,21 @@ public:
     }
 
 //public synchronized
-    void processAcc(Vector3d &acc, long sensorTimeStamp) {
+    void processAcc(Vector3dJ &acc, long sensorTimeStamp) {
         mz.set(acc);
         updateAccelCovariance(mz.length());
         if (alignedToGravity) {
             accObservationFunctionForNumericalJacobian(so3SensorFromWorld, mNu);
             double eps = 1.0E-7;
             for (int dof = 0; dof < 3; ++dof) {
-                Vector3d delta = processAccVDelta;
+                Vector3dJ delta = processAccVDelta;
                 delta.setZero();
                 delta.setComponent(dof, eps);
                 So3Util::sO3FromMu(delta, processAccTempM1);
                 Matrix3x3d::mult(processAccTempM1, so3SensorFromWorld, processAccTempM2);
                 accObservationFunctionForNumericalJacobian(processAccTempM2, processAccTempV1);
-                Vector3d withDelta = processAccTempV1;
-                Vector3d::sub(mNu, withDelta, processAccTempV2);
+                Vector3dJ withDelta = processAccTempV1;
+                Vector3dJ::sub(mNu, withDelta, processAccTempV2);
                 processAccTempV2.scale(1.0 / eps);
                 mH.setColumn(dof, processAccTempV2);
             }
@@ -268,27 +268,27 @@ public:
         }
         mz.set(mag[0], mag[1], mag[2]);
         mz.normalize();
-        Vector3d downInSensorFrame;
+        Vector3dJ downInSensorFrame;
         so3SensorFromWorld.getColumn(2, downInSensorFrame);
-        Vector3d::cross(mz, downInSensorFrame, processMagTempV1);
-        Vector3d perpToDownAndMag = processMagTempV1;
+        Vector3dJ::cross(mz, downInSensorFrame, processMagTempV1);
+        Vector3dJ perpToDownAndMag = processMagTempV1;
         perpToDownAndMag.normalize();
-        Vector3d::cross(downInSensorFrame, perpToDownAndMag, processMagTempV2);
-        Vector3d magHorizontal = processMagTempV2;
+        Vector3dJ::cross(downInSensorFrame, perpToDownAndMag, processMagTempV2);
+        Vector3dJ magHorizontal = processMagTempV2;
         magHorizontal.normalize();
         mz.set(magHorizontal);
         if (alignedToNorth) {
             magObservationFunctionForNumericalJacobian(so3SensorFromWorld, mNu);
             double eps = 1.0E-7;
             for (int dof = 0; dof < 3; ++dof) {
-                Vector3d delta = processMagTempV3;
+                Vector3dJ delta = processMagTempV3;
                 delta.setZero();
                 delta.setComponent(dof, eps);
                 So3Util::sO3FromMu(delta, processMagTempM1);
                 Matrix3x3d::mult(processMagTempM1, so3SensorFromWorld, processMagTempM2);
                 magObservationFunctionForNumericalJacobian(processMagTempM2, processMagTempV4);
-                Vector3d withDelta = processMagTempV4;
-                Vector3d::sub(mNu, withDelta, processMagTempV5);
+                Vector3dJ withDelta = processMagTempV4;
+                Vector3dJ::sub(mNu, withDelta, processMagTempV5);
                 processMagTempV5.scale(1.0 / eps);
                 mH.setColumn(dof, processMagTempV5);
             }
@@ -358,13 +358,13 @@ public:
         so3LastMotion.setIdentity();
     }
 
-    void accObservationFunctionForNumericalJacobian(Matrix3x3d so3SensorFromWorldPred, Vector3d result) {
+    void accObservationFunctionForNumericalJacobian(Matrix3x3d so3SensorFromWorldPred, Vector3dJ result) {
         Matrix3x3d::mult(so3SensorFromWorldPred, down, mh);
         So3Util::sO3FromTwoVec(mh, mz, accObservationFunctionForNumericalJacobianTempM);
         So3Util::muFromSO3(accObservationFunctionForNumericalJacobianTempM, result);
     }
 
-    void magObservationFunctionForNumericalJacobian(Matrix3x3d so3SensorFromWorldPred, Vector3d result) {
+    void magObservationFunctionForNumericalJacobian(Matrix3x3d so3SensorFromWorldPred, Vector3dJ result) {
         Matrix3x3d::mult(so3SensorFromWorldPred, north, mh);
         So3Util::sO3FromTwoVec(mh, mz, magObservationFunctionForNumericalJacobianTempM);
         So3Util::muFromSO3(magObservationFunctionForNumericalJacobianTempM, result);

@@ -1,5 +1,9 @@
 ﻿#pragma once
 
+#include <Sensors/Vector3d.h>
+#include <Sensors/OrientationEKF.h>
+#include <Sensors/GyroscopeBiasEstimator.h>
+#include <Sensors/Matrix.h>
 #include "../Base/MojingMath.h"
 #include "../Base/MojingThreads.h"
 #include "../Base/MojingString.h"
@@ -33,6 +37,56 @@ namespace Baofeng
 			double   AbsoluteTimeSeconds;
 		};
 
+		struct HeadTrackerData : public MessageBodyFrame
+		{
+			Vector3dJ gyroBias;
+			Vector3dJ latestGyro;
+			Vector3dJ latestAcc;
+			GyroscopeBiasEstimator gyroBiasEstimator;
+			OrientationEKF tracker;
+			long latestGyroEventClockTimeNs = 0;
+			float initialSystemGyroBias[3];
+			float neckModelTranslation[16];
+
+			float neckModelFactor = 1.0;
+            float displayRotation = 0.0;
+            void setNeckModelFactor(float factor){
+                if( factor < 0.0 || factor > 1.0 )
+                    return;
+                neckModelFactor = factor;
+            }
+
+            void getLastHeadView(float *headView){
+                float rotation = 0.0f;
+                displayRotation = rotation;
+                float sensorToDisplay[16];
+                float ekfToHeadTracker[16];
+				float tmpHeadView[16];
+				float tmpHeadView2[16];
+                Matrix::setRotateEulerM(sensorToDisplay, 0, 0, 0, -rotation);
+                Matrix::setRotateEulerM(ekfToHeadTracker, 0, -90, 0, rotation);
+
+                    if (!tracker.isReady())
+					{
+                        return;
+                    }
+                    double secondsSinceLastGyroEvent = (GetTimeNano() - latestGyroEventClockTimeNs)/1000000000.0;
+                    double secondsToPredictForward = secondsSinceLastGyroEvent + 0.057999998331069946;
+                    double *mat = tracker.getPredictedGLMatrix(secondsToPredictForward);
+                    for (int i = 0; i < 16; ++i) {
+                        tmpHeadView[i] = (float)mat[i];
+                    }
+
+                Matrix::multiplyMM(tmpHeadView2, sensorToDisplay, tmpHeadView);
+                Matrix::multiplyMM(headView, tmpHeadView2, ekfToHeadTracker);
+                Matrix::setIdentityM(neckModelTranslation,  0);
+                Matrix::translateM(neckModelTranslation,  0, (float) 0.0f,  ((-neckModelFactor) * 0.075f),  (neckModelFactor * 0.08f));
+                Matrix::multiplyMM(tmpHeadView, neckModelTranslation, headView);
+                Matrix::translateM(headView, 0, tmpHeadView,  0,  0.0f,  (neckModelFactor * 0.075f), (float) 0.0f);
+				return;
+            }
+
+		};
 
 		// SensorDataHandler is a base class from which users derive to receive Sensor Data
 		class Sensor;

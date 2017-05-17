@@ -10,20 +10,20 @@
 #include <string>
 #include <cstdlib>
 
-class Vector3d
+class Vector3dJ
 {
 public:
     double x;
     double y;
     double z;
 
-    Vector3d() {
+    Vector3dJ() {
         x = 0;
         y = 0;
         z = 0;
     }
 
-    Vector3d(double xx, double yy, double zz) {
+    Vector3dJ(double xx, double yy, double zz) {
         set(xx, yy, zz);
     }
 
@@ -56,7 +56,7 @@ public:
         x = 0.0;
     }
 
-    void set(Vector3d other) {
+    void set(Vector3dJ other) {
         x = other.x;
         y = other.y;
         z = other.z;
@@ -75,7 +75,7 @@ public:
         }
     }
 
-    static double dot(Vector3d a, Vector3d b) {
+    static double dot(Vector3dJ &a, Vector3dJ &b) {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
@@ -83,30 +83,30 @@ public:
         return sqrt(x * x + y * y + z * z);
     }
 
-    bool sameValues(Vector3d &other) {
+    bool sameValues(Vector3dJ &other) {
         return x == other.x && y == other.y && z == other.z;
     }
 
-    static void add(Vector3d &a, Vector3d &b, Vector3d &result) {
+    static void add(Vector3dJ &a, Vector3dJ &b, Vector3dJ &result) {
         result.set(a.x + b.x, a.y + b.y, a.z + b.z);
     }
 
-    static void sub(Vector3d &a, Vector3d &b, Vector3d &result) {
+    static void sub(Vector3dJ &a, Vector3dJ &b, Vector3dJ &result) {
         result.set(a.x - b.x, a.y - b.y, a.z - b.z);
     }
 
-    static void cross(Vector3d &a, Vector3d &b, Vector3d &result) {
+    static void cross(Vector3dJ &a, Vector3dJ &b, Vector3dJ &result) {
         result.set(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
     }
 
-    static void ortho(Vector3d &v, Vector3d &result) {
-        int k = Vector3d::largestAbsComponent(v) - 1;
+    static void ortho(Vector3dJ &v, Vector3dJ &result) {
+        int k = Vector3dJ::largestAbsComponent(v) - 1;
         if (k < 0) {
             k = 2;
         }
         result.setZero();
         result.setComponent(k, 1.0);
-        Vector3d::cross(v, result, result);
+        Vector3dJ::cross(v, result, result);
         result.normalize();
     }
 
@@ -116,7 +116,7 @@ public:
         return std::string(szTmp);
     }
 
-    static int largestAbsComponent(Vector3d &v) {
+    static int largestAbsComponent(Vector3dJ &v) {
         double xAbs = abs(v.x);
         double yAbs = abs(v.y);
         double zAbs = abs(v.z);

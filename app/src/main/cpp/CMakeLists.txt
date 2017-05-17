@@ -146,6 +146,8 @@ add_library(mojing SHARED
     		Sensors/OrientationEKF.cpp
     		Sensors/LowPassFilter.cpp
     		Sensors/GyroscopeBiasEstimator.cpp
+    		Sensors/Matrix.cpp
+    		Tracker/HeadTracker.cpp
             Tracker/AndroidInternalSensorChecker.cpp
 			Tracker/MojingAndroidSensor.cpp
 			Tracker/MojingGyroTempCalibration.cpp

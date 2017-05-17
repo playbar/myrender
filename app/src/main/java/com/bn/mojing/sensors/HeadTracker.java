@@ -75,7 +75,7 @@ public class HeadTracker implements SensorEventListener {
      * WARNING - Removed try catching itself - possible behaviour change.
      */
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == 1) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             this.latestAcc.set(event.values[0], event.values[1], event.values[2]);
             this.tracker.processAcc(this.latestAcc, event.timestamp);
             Object object = this.gyroBiasEstimatorMutex;
@@ -85,9 +85,9 @@ public class HeadTracker implements SensorEventListener {
                 }
             }
         }
-        if (event.sensor.getType() == 4 || event.sensor.getType() == 16) {
+        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE || event.sensor.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED) {
             this.latestGyroEventClockTimeNs = this.clock.nanoTime();
-            if (event.sensor.getType() == 16) {
+            if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED) {
                 if (this.firstGyroValue && event.values.length == 6) {
                     this.initialSystemGyroBias[0] = event.values[3];
                     this.initialSystemGyroBias[1] = event.values[4];

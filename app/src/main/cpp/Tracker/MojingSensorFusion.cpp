@@ -209,6 +209,7 @@ namespace Baofeng
 		{
 			//if (msg.Type != Message_BodyFrame || !IsMotionTrackingEnabled())
 			//	return;
+            LOGE("%s", __FUNCTION__ );
 			if (m_pSensorCalibration == NULL)
 			{
 				return;

@@ -1105,6 +1105,7 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled() || pStatus->GetTrackerStatus() != TRACKER_START)
 	{
+		pStatus->SetTrackerStatus(TRACKER_START);
 		MOJING_ERROR(g_APIlogger, "getLastHeadView FAILD! InitStatus = " << pStatus->GetInitStatus() << " , TrackerStatus = " << pStatus->GetTrackerStatus());
 		memset(pfViewMatrix , 0 , sizeof(float ) * 16);
 		pfViewMatrix[0] = pfViewMatrix[5] = pfViewMatrix[10] = pfViewMatrix[15] = 1.0f;

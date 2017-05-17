@@ -8,14 +8,16 @@
 
 #include "Vector3d.h"
 
+uint64_t GetTimeNano();
+
 class LowPassFilter {
 public:
     static double NANOS_TO_SECONDS;
     double timeConstantSecs;
-    Vector3d filteredData;
+    Vector3dJ filteredData;
     long lastTimestampNs;
     int numSamples;
-    Vector3d temp;
+    Vector3dJ temp;
 
     LowPassFilter(double cutoffFrequency) {
         timeConstantSecs = 1.0 / (6.283185307179586 * cutoffFrequency);
@@ -30,11 +32,11 @@ public:
         return numSamples;
     }
 
-    void addSample(Vector3d &sampleData, long timestampNs) {
+    void addSample(Vector3dJ &sampleData, long timestampNs) {
         addWeightedSample(sampleData, timestampNs, 1.0);
     }
 
-    void addWeightedSample(Vector3d &sampleData, long timestampNs, double weight) {
+    void addWeightedSample(Vector3dJ &sampleData, long timestampNs, double weight) {
         ++numSamples;
         if (numSamples == 1) {
             filteredData.set(sampleData);
@@ -46,11 +48,11 @@ public:
         filteredData.scale(1.0 - alpha);
         temp.set(sampleData);
         temp.scale(alpha);
-        Vector3d::add(temp, filteredData, filteredData);
+        Vector3dJ::add(temp, filteredData, filteredData);
         lastTimestampNs = timestampNs;
     }
 
-    Vector3d& getFilteredData() {
+    Vector3dJ& getFilteredData() {
         return filteredData;
     }
 };

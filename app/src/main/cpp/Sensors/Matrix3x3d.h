@@ -108,13 +108,13 @@ public:
         m[3 * row + col] = value;
     }
 
-    void getColumn(int col, Vector3d &v) {
+    void getColumn(int col, Vector3dJ &v) {
         v.x = m[col];
         v.y = m[col + 3];
         v.z = m[col + 6];
     }
 
-    void setColumn(int col, Vector3d &v) {
+    void setColumn(int col, Vector3dJ &v) {
         m[col] = v.x;
         m[col + 3] = v.y;
         m[col + 6] = v.z;
@@ -228,7 +228,7 @@ public:
         result.set(a.m[0] * b.m[0] + a.m[1] * b.m[3] + a.m[2] * b.m[6], a.m[0] * b.m[1] + a.m[1] * b.m[4] + a.m[2] * b.m[7], a.m[0] * b.m[2] + a.m[1] * b.m[5] + a.m[2] * b.m[8], a.m[3] * b.m[0] + a.m[4] * b.m[3] + a.m[5] * b.m[6], a.m[3] * b.m[1] + a.m[4] * b.m[4] + a.m[5] * b.m[7], a.m[3] * b.m[2] + a.m[4] * b.m[5] + a.m[5] * b.m[8], a.m[6] * b.m[0] + a.m[7] * b.m[3] + a.m[8] * b.m[6], a.m[6] * b.m[1] + a.m[7] * b.m[4] + a.m[8] * b.m[7], a.m[6] * b.m[2] + a.m[7] * b.m[5] + a.m[8] * b.m[8]);
     }
 
-    static void mult(Matrix3x3d &a, Vector3d &v, Vector3d &result) {
+    static void mult(Matrix3x3d &a, Vector3dJ &v, Vector3dJ &result) {
         double x = a.m[0] * v.x + a.m[1] * v.y + a.m[2] * v.z;
         double y = a.m[3] * v.x + a.m[4] * v.y + a.m[5] * v.z;
         double z = a.m[6] * v.x + a.m[7] * v.y + a.m[8] * v.z;

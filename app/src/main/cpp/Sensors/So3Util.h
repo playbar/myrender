@@ -14,24 +14,24 @@ public:
 
     static double ONE_6TH;
     static double ONE_20TH;
-    static Vector3d temp31;
-    static Vector3d sO3FromTwoVecN;
-    static Vector3d sO3FromTwoVecA;
-    static Vector3d sO3FromTwoVecB;
-    static Vector3d sO3FromTwoVecRotationAxis;
+    static Vector3dJ temp31;
+    static Vector3dJ sO3FromTwoVecN;
+    static Vector3dJ sO3FromTwoVecA;
+    static Vector3dJ sO3FromTwoVecB;
+    static Vector3dJ sO3FromTwoVecRotationAxis;
     static Matrix3x3d sO3FromTwoVec33R1;
     static Matrix3x3d sO3FromTwoVec33R2;
-    static Vector3d muFromSO3R2;
-    static Vector3d rotationPiAboutAxisTemp;
+    static Vector3dJ muFromSO3R2;
+    static Vector3dJ rotationPiAboutAxisTemp;
 
-    static void sO3FromTwoVec(Vector3d &a, Vector3d &b, Matrix3x3d &result) {
-        Vector3d::cross(a, b, sO3FromTwoVecN);
+    static void sO3FromTwoVec(Vector3dJ &a, Vector3dJ &b, Matrix3x3d &result) {
+        Vector3dJ::cross(a, b, sO3FromTwoVecN);
         if (sO3FromTwoVecN.length() == 0.0) {
-            double dot = Vector3d::dot(a, b);
+            double dot = Vector3dJ::dot(a, b);
             if (dot >= 0.0) {
                 result.setIdentity();
             } else {
-                Vector3d::ortho(a, sO3FromTwoVecRotationAxis);
+                Vector3dJ::ortho(a, sO3FromTwoVecRotationAxis);
                 So3Util::rotationPiAboutAxis(sO3FromTwoVecRotationAxis, result);
             }
             return;
@@ -44,18 +44,18 @@ public:
         Matrix3x3d r1 = sO3FromTwoVec33R1;
         r1.setColumn(0, sO3FromTwoVecA);
         r1.setColumn(1, sO3FromTwoVecN);
-        Vector3d::cross(sO3FromTwoVecN, sO3FromTwoVecA, temp31);
+        Vector3dJ::cross(sO3FromTwoVecN, sO3FromTwoVecA, temp31);
         r1.setColumn(2, temp31);
         Matrix3x3d r2 = sO3FromTwoVec33R2;
         r2.setColumn(0, sO3FromTwoVecB);
         r2.setColumn(1, sO3FromTwoVecN);
-        Vector3d::cross(sO3FromTwoVecN, sO3FromTwoVecB, temp31);
+        Vector3dJ::cross(sO3FromTwoVecN, sO3FromTwoVecB, temp31);
         r2.setColumn(2, temp31);
         r1.transpose();
         Matrix3x3d::mult(r2, r1, result);
     }
 
-    static void rotationPiAboutAxis(Vector3d &v, Matrix3x3d &result) {
+    static void rotationPiAboutAxis(Vector3dJ &v, Matrix3x3d &result) {
         rotationPiAboutAxisTemp.set(v);
         rotationPiAboutAxisTemp.scale(3.141592653589793 / rotationPiAboutAxisTemp.length());
         double invTheta = 0.3183098861837907;
@@ -64,10 +64,10 @@ public:
         So3Util::rodriguesSo3Exp(rotationPiAboutAxisTemp, kA, kB, result);
     }
 
-    static void sO3FromMu(Vector3d &w, Matrix3x3d &result) {
+    static void sO3FromMu(Vector3dJ &w, Matrix3x3d &result) {
         double kA;
         double kB;
-        double thetaSq = Vector3d::dot(w, w);
+        double thetaSq = Vector3dJ::dot(w, w);
         double theta = sqrt(thetaSq);
         if (thetaSq < 1.0E-8) {
             kA = 1.0 - 0.1666666716337204 * thetaSq;
@@ -83,7 +83,7 @@ public:
         So3Util::rodriguesSo3Exp(w, kA, kB, result);
     }
 
-    static void muFromSO3(Matrix3x3d &so3, Vector3d &result) {
+    static void muFromSO3(Matrix3x3d &so3, Vector3dJ &result) {
         double cosAngle = (so3.get(0, 0) + so3.get(1, 1) + so3.get(2, 2) - 1.0) * 0.5;
         result.set((so3.get(2, 1) - so3.get(1, 2)) / 2.0, (so3.get(0, 2) - so3.get(2, 0)) / 2.0, (so3.get(1, 0) - so3.get(0, 1)) / 2.0);
         double sinAngleAbs = result.length();
@@ -99,7 +99,7 @@ public:
             double d0 = so3.get(0, 0) - cosAngle;
             double d1 = so3.get(1, 1) - cosAngle;
             double d2 = so3.get(2, 2) - cosAngle;
-            Vector3d r2 = muFromSO3R2;
+            Vector3dJ r2 = muFromSO3R2;
             if (d0 * d0 > d1 * d1 && d0 * d0 > d2 * d2) {
                 r2.set(d0, (so3.get(1, 0) + so3.get(0, 1)) / 2.0, (so3.get(0, 2) + so3.get(2, 0)) / 2.0);
             } else if (d1 * d1 > d2 * d2) {
@@ -107,7 +107,7 @@ public:
             } else {
                 r2.set((so3.get(0, 2) + so3.get(2, 0)) / 2.0, (so3.get(2, 1) + so3.get(1, 2)) / 2.0, d2);
             }
-            if (Vector3d::dot(r2, result) < 0.0) {
+            if (Vector3dJ::dot(r2, result) < 0.0) {
                 r2.scale(-1.0);
             }
             r2.normalize();
@@ -116,7 +116,7 @@ public:
         }
     }
 
-    static void rodriguesSo3Exp(Vector3d &w, double kA, double kB, Matrix3x3d &result) {
+    static void rodriguesSo3Exp(Vector3dJ &w, double kA, double kB, Matrix3x3d &result) {
         double wx2 = w.x * w.x;
         double wy2 = w.y * w.y;
         double wz2 = w.z * w.z;

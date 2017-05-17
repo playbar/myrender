@@ -45,8 +45,8 @@ public:
     LowPassFilter gyroLowPass;
     LowPassFilter gyroBiasLowPass;
 
-    Vector3d smoothedGyroDiff;
-    Vector3d smoothedAccelDiff;
+    Vector3dJ smoothedGyroDiff;
+    Vector3dJ smoothedAccelDiff;
 
     IsStaticCounter isAccelStatic;
     IsStaticCounter isGyroStatic;
@@ -66,22 +66,22 @@ public:
         isGyroStatic.reset(10);
     }
 
-    void processGyroscope(Vector3d &gyro, long sensorTimestampNs) {
+    void processGyroscope(Vector3dJ &gyro, long sensorTimestampNs) {
         gyroLowPass.addSample(gyro, sensorTimestampNs);
-        Vector3d::sub(gyro, gyroLowPass.getFilteredData(), smoothedGyroDiff);
+        Vector3dJ::sub(gyro, gyroLowPass.getFilteredData(), smoothedGyroDiff);
         isGyroStatic.appendFrame(smoothedGyroDiff.length() < 0.00800000037997961);
         if (isGyroStatic.isRecentlyStatic() && isAccelStatic.isRecentlyStatic()) {
             updateGyroBias(gyro, sensorTimestampNs);
         }
     }
 
-    void processAccelerometer(Vector3d accel, long sensorTimestampNs) {
+    void processAccelerometer(Vector3dJ &accel, long sensorTimestampNs) {
         accelLowPass.addSample(accel, sensorTimestampNs);
-        Vector3d::sub(accel, accelLowPass.getFilteredData(), smoothedAccelDiff);
+        Vector3dJ::sub(accel, accelLowPass.getFilteredData(), smoothedAccelDiff);
         isAccelStatic.appendFrame(smoothedAccelDiff.length() < 0.5);
     }
 
-    void getGyroBias(Vector3d result) {
+    void getGyroBias(Vector3dJ &result) {
         if (gyroBiasLowPass.getNumSamples() < 30) {
             result.setZero();
         } else {
@@ -91,7 +91,7 @@ public:
         }
     }
 
-    void updateGyroBias(Vector3d gyro, long sensorTimestampNs) {
+    void updateGyroBias(Vector3dJ &gyro, long sensorTimestampNs) {
         if (gyro.length() >= 0.3499999940395355) {
             return;
         }

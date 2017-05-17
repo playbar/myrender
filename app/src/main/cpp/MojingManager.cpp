@@ -1,5 +1,6 @@
 ﻿#include <stddef.h>
 #include <unistd.h>
+#include <Tracker/HeadTracker.h>
 #include "Base/MojingTypes.h"
 #include "MojingManager.h"
 #include "Tracker/MojingTracker.h"
@@ -104,12 +105,14 @@ namespace Baofeng
             }
 #endif
 #if defined(MJ_OS_ANDROID)
-			if (m_bInited && m_pDefaultSensor == NULL)
-				m_pDefaultSensor = new AndroidInternalSensor();
+			if (m_bInited && m_pDefaultSensor == NULL) {
+//				m_pDefaultSensor = new AndroidInternalSensor();
+				m_pDefaultSensor = new HeadTracker();
+			}
 			if (m_bInited && m_pGlassSensor == NULL)
 				m_pGlassSensor = new GlassSensor();
-			if (m_bInited && m_pCheckSensor == NULL)
-				m_pCheckSensor = new AndroidInternalSensorChecker();
+//			if (m_bInited && m_pCheckSensor == NULL)
+//				m_pCheckSensor = new AndroidInternalSensorChecker();
 #elif defined(MJ_OS_IOS)
             if (m_bInited && m_pSensor == NULL)
                 m_pDefaultSensor = new IOSInternalSensor();

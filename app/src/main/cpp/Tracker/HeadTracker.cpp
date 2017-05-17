@@ -1,4 +1,5 @@
 ﻿#include <stdio.h>
+#include <Sensors/LowPassFilter.h>
 #include "../MojingManager.h"
 #include "../Parameters/MojingParameters.h"
 #include "../Base/MojingTypes.h"
@@ -6,7 +7,7 @@
 #include "../Base/MojingLog.h"
 #include "MojingTemperature.h"
 #ifdef MJ_OS_ANDROID
-#include "MojingAndroidSensor.h"
+#include "HeadTracker.h"
 #endif
 
 #ifdef LOG4CPLUS_IMPORT
@@ -46,8 +47,9 @@ namespace Baofeng
 	{
 
 #define US_PER_SAMPLE(frequence)	(1000L * 1000 / (frequence))
+
 // #define max(a, b) ((a)>(b))?(a):(b) //MojingTypes已经增加此定义
-		AndroidInternalSensor::AndroidInternalSensor()
+		HeadTracker::HeadTracker()
 			: m_pQueue(NULL)
 			, pAccelerometerSensor(NULL)
 			, pGyroScopeSensor(NULL)
@@ -55,15 +57,16 @@ namespace Baofeng
 			, pMagneticFieldSensor(NULL)
 			, looper(NULL)
 		{
+			firstGyroValue = true;
 		}
 
-		AndroidInternalSensor::~AndroidInternalSensor()
+		HeadTracker::~HeadTracker()
 		{
 			// In any case user forgot stop sensor......
 			StopSensor();
 		}
 
-		int AndroidInternalSensor::CheckSensors()const
+		int HeadTracker::CheckSensors()const
 		{
 			int nSensorState = SENSOR_OK;
 
@@ -110,7 +113,7 @@ namespace Baofeng
 			return nSensorState;
 		}
 
-		int AndroidInternalSensor::GetMaxSampleRate()
+		int HeadTracker::GetMaxSampleRate()
 		{
 			if (m_iMaxSampleRate == 0)
 			{
@@ -134,7 +137,7 @@ namespace Baofeng
 			}
 			return m_iMaxSampleRate;
 		}
-		void AndroidInternalSensor::CreateSensor()
+		void HeadTracker::CreateSensor()
 		{
 			Manager *pManager = Manager::GetMojingManager();
 			MojingSensorParameters * pSensorParameters = NULL;
@@ -235,7 +238,7 @@ namespace Baofeng
 			pSensor = NULL; \
 		}
 
-		void AndroidInternalSensor::DeleteSensor()
+		void HeadTracker::DeleteSensor()
 		{
 			DELETE_SENSOR(m_pQueue, pAccelerometerSensor);
 			DELETE_SENSOR(m_pQueue, pGyroScopeSensor);
@@ -251,11 +254,12 @@ namespace Baofeng
 			looper = NULL;
 		}
 
-		int g_startcount = 0;
-		int AndroidInternalSensor::Run()
+
+		int HeadTracker::Run()
 		{
+			int static gstartcount = 0;
 			char buf[64];
-			int myCount = g_startcount++;
+			int myCount = gstartcount++;
 			sprintf(buf, "MojingSenser_%d", myCount);
 
 			SetThreadName(buf);
@@ -271,10 +275,11 @@ namespace Baofeng
 			UInt64 ui64Last50FirstSampleTime = 0;
 			MojingSensorParameters *pSensorParameters = Manager::GetMojingManager()->GetParameters()->GetSensorParameters();
 			/*以上是为了统计陀螺仪的实际采样速度*/
-			MessageBodyFrame theSample;
-			memset(&theSample, 0, sizeof(MessageBodyFrame));
-			theSample.Temperature = getTemperature();
-			if (theSample.Temperature < 0) theSample.Temperature = 2500;	// 如果不能拿到温度值，则设置成25度
+//			MessageBodyFrame theSample;
+            HeadTrackerData data;
+			memset(&data, 0, sizeof(HeadTrackerData));
+            data.Temperature = getTemperature();
+			if (data.Temperature < 0) data.Temperature = 2500;	// 如果不能拿到温度值，则设置成25度
 
 			// 有些手机刚开始启动陀螺仪时，给出的数据完全不靠谱，需要扔掉几个采样
 			// 这样可以把给初始时间的获取，也放在这里
@@ -294,7 +299,7 @@ namespace Baofeng
 							if (event.type == ASENSOR_TYPE_GYROSCOPE)
 							{
 								skipSamples--;
-								theSample.LastSampleTime = theSample.lastTempTime = NanoSecondToSecond(event.timestamp);
+								data.LastSampleTime = data.lastTempTime = NanoSecondToSecond(event.timestamp);
 #ifdef ENABLE_SENSOR_LOGGER
 								MOJING_TRACE(g_Sensorlogger, "Skip Gyro (" << event.vector.x << ", " << event.vector.y << ", " <<
 									event.vector.z << ")");
@@ -315,43 +320,58 @@ namespace Baofeng
 						ASensorEvent event;
 						while (ASensorEventQueue_getEvents(m_pQueue, &event, 1) > 0)
 						{
-							//if (theSample.LastSampleTime == 0)
-							//{
-							//	theSample.LastSampleTime = theSample.lastTempTime = NanoSecondToSecond(event.timestamp);
-							//}
 							if (event.type == ASENSOR_TYPE_ACCELEROMETER)
 							{
-								//SensorData *pAccel = new SensorData;
-								theSample.Acceleration.x = -event.acceleration.y;
-								theSample.Acceleration.y = event.acceleration.x;
-								theSample.Acceleration.z = event.acceleration.z;
-#ifdef ENABLE_SENSOR_LOGGER
-								MOJING_TRACE(g_Sensorlogger, "time = " << event.timestamp / 1000000 <<
-									", Accel(" << theSample.Acceleration.x << ", " << theSample.Acceleration.y <<
-									", " << theSample.Acceleration.z << ")");
-#endif							
+								data.latestAcc.set(event.data[0], event.data[1], event.data[2] );
+                                data.tracker.processAcc(data.latestAcc, event.timestamp);
+///////////////////////////////////////////
+                                data.Acceleration.x = -event.acceleration.y;
+                                data.Acceleration.y = event.acceleration.x;
+                                data.Acceleration.z = event.acceleration.z;
 							}
-							else if (event.type == ASENSOR_TYPE_GYROSCOPE)
+							else if (event.type == ASENSOR_TYPE_GYROSCOPE || event.type == ASENSOR_TYPE_GYROSCOPE_UNCALIBRATED)
 							{
-								theSample.RotationRate.x = -event.vector.y;
-								theSample.RotationRate.y = event.vector.x;
-								theSample.RotationRate.z = event.vector.z;
-								theSample.TimeDelta = NanoSecondToSecond(event.timestamp) - theSample.LastSampleTime;
-								theSample.LastSampleTime = NanoSecondToSecond(event.timestamp);
-								theSample.AbsoluteTimeSeconds = Timer::GetSeconds();
+                                data.latestGyroEventClockTimeNs = GetTimeNano();
+
+								if( event.type == ASENSOR_TYPE_GYROSCOPE_UNCALIBRATED)
+								{
+									if( firstGyroValue) {
+                                        data.initialSystemGyroBias[0] = event.data[3];
+                                        data.initialSystemGyroBias[1] = event.data[4];
+                                        data.initialSystemGyroBias[2] = event.data[5];
+									}
+                                    data.latestGyro.set(event.data[0] - data.initialSystemGyroBias[0], event.data[1] - data.initialSystemGyroBias[1],
+												   event.data[2] - data.initialSystemGyroBias[2]);
+								} else{
+                                    data.latestGyro.set(event.data[0], event.data[1], event.data[2]);
+								}
+								firstGyroValue = false;
+
+                                data.gyroBiasEstimator.processGyroscope(data.latestGyro, event.timestamp );
+                                data.gyroBiasEstimator.getGyroBias(data.gyroBias);
+                                Vector3dJ::sub(data.latestGyro, data.gyroBias, data.latestGyro );
+                                data.tracker.processGyro(data.latestGyro, event.timestamp);
+
+                                ///////////////////////////////
+                                data.RotationRate.x = -event.vector.y;
+                                data.RotationRate.y = event.vector.x;
+                                data.RotationRate.z = event.vector.z;
+                                data.TimeDelta = NanoSecondToSecond(event.timestamp) - data.LastSampleTime;
+                                data.LastSampleTime = NanoSecondToSecond(event.timestamp);
+                                data.AbsoluteTimeSeconds = Timer::GetSeconds();
 								if (ui64FirstSampleTime == 0)
 								{
 									ui64Last50FirstSampleTime = ui64FirstSampleTime = event.timestamp;
 									ui64SampleCount = 1;
-									fMinTimeSpace = fMaxTimeSpace = theSample.TimeDelta;
+									fMinTimeSpace = fMaxTimeSpace = data.TimeDelta;
 								}
 								else
 								{
 									ui64SampleCount++;
 									if (ui64SampleCount)// 防溢出处理
 										fAvgTimeSpace = NanoSecondToSecond(event.timestamp - ui64FirstSampleTime) / ui64SampleCount;
-									fMinTimeSpace = std::min(fMinTimeSpace, theSample.TimeDelta);
-									fMaxTimeSpace = std::max(fMaxTimeSpace, theSample.TimeDelta);
+									fMinTimeSpace = std::min(fMinTimeSpace, data.TimeDelta);
+									fMaxTimeSpace = std::max(fMaxTimeSpace, data.TimeDelta);
 									if (ui64SampleCount % 50 == 0)
 									{
 										float fLast50AvgTimeSpace = NanoSecondToSecond(event.timestamp - ui64Last50FirstSampleTime) / 50;
@@ -368,35 +388,28 @@ namespace Baofeng
 									", Gyro(" << theSample.RotationRate.x << ", " << theSample.RotationRate.y << ", " <<
 									theSample.RotationRate.z << ")");
 #endif
-// #ifdef _DEBUG
-// 								static int64_t i64Last = 0;
-// 								if (i64Last == 0)
-// 								{
-// 									MOJING_TRACE(g_APIlogger, "Gyro Time = " << Timer::FormatDoubleTime(NanoSecondToSecond(event.timestamp)));
-// 								}
-// 								else
-// 								{
-// 									MOJING_TRACE(g_APIlogger, "Gyro Time = " << Timer::FormatDoubleTime(NanoSecondToSecond(event.timestamp)) << " AVG = " << 1 / NanoSecondToSecond(event.timestamp - i64Last) << " Hz");
-// 								}
-// 									i64Last = event.timestamp;
-// #endif
+
 								
-								if (!GetExitFlag() && theSample.TimeDelta > 0.002f)
-									OnSensorData(theSample);
+								if (!GetExitFlag() && data.TimeDelta > 0.002f)
+                                {
+//                                    OnSensorData(theSample);
+                                    OnSensorData(data);
+                                }
+
 							}
 							else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED)
 							{
-								theSample.MagneticField.Set(-event.uncalibrated_magnetic.y_uncalib,
+								data.MagneticField.Set(-event.uncalibrated_magnetic.y_uncalib,
 									event.uncalibrated_magnetic.x_uncalib,
 									event.uncalibrated_magnetic.z_uncalib);
 
-								theSample.MagneticBias.Set(-event.uncalibrated_magnetic.y_bias,
+								data.MagneticBias.Set(-event.uncalibrated_magnetic.y_bias,
 									event.uncalibrated_magnetic.x_bias,
 									event.uncalibrated_magnetic.z_bias);
 
 								// Phone values are in micro-Tesla. Convert it to Gauss and flip axes.
-								theSample.MagneticField *= 10000.0f / 1000000.0f;
-								theSample.MagneticBias *= 10000.0f / 1000000.0f;
+								data.MagneticField *= 10000.0f / 1000000.0f;
+								data.MagneticBias *= 10000.0f / 1000000.0f;
 
 #ifdef ENABLE_SENSOR_LOGGER
 								MOJING_TRACE(g_Sensorlogger, "time = " << event.timestamp / 1000000 <<
@@ -406,16 +419,16 @@ namespace Baofeng
 							}
 							else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD)
 							{
-								theSample.MagneticField.Set(-event.vector.y, event.vector.x, event.vector.z);
+								data.MagneticField.Set(-event.vector.y, event.vector.x, event.vector.z);
 #ifdef ENABLE_SENSOR_LOGGER
 								MOJING_TRACE(g_Sensorlogger, "time = " << event.timestamp / 1000000 <<
 									", Mag(" << theSample.MagneticField.x << ", " << theSample.MagneticField.y << ", " <<
 									theSample.MagneticField.z << ")");
 #endif
 								// Phone values are in micro-Tesla. Convert it to Gauss and flip axes.
-								theSample.MagneticField *= 10000.0f / 1000000.0f;
+								data.MagneticField *= 10000.0f / 1000000.0f;
 							}
-						}
+						}// end of while
 					}
 				}
 			}
@@ -425,7 +438,7 @@ namespace Baofeng
 			return 0;
 		}
 
-		void AndroidInternalSensor::OnSensorData(MessageBodyFrame& sensorFrame)
+		void HeadTracker::OnSensorData(MessageBodyFrame& sensorFrame)
 		{
 			if (m_pHandler)
 			{
