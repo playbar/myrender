@@ -9,6 +9,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <algorithm>
+#include "Vector3d.h"
 
 class Matrix3x3d {
 public:
@@ -32,7 +33,8 @@ public:
         m[8] = m22;
     }
 
-    Matrix3x3d(Matrix3x3d o) {
+    Matrix3x3d(Matrix3x3d &o)
+    {
         m[0] = o.m[0];
         m[1] = o.m[1];
         m[2] = o.m[2];
@@ -57,7 +59,7 @@ public:
         m[8] = m22;
     }
 
-    void set(Matrix3x3d o) {
+    void set(Matrix3x3d &o) {
         m[0] = o.m[0];
         m[1] = o.m[1];
         m[2] = o.m[2];
@@ -106,13 +108,13 @@ public:
         m[3 * row + col] = value;
     }
 
-    void getColumn(int col, Vector3d v) {
+    void getColumn(int col, Vector3d &v) {
         v.x = m[col];
         v.y = m[col + 3];
         v.z = m[col + 6];
     }
 
-    void setColumn(int col, Vector3d v) {
+    void setColumn(int col, Vector3d &v) {
         m[col] = v.x;
         m[col + 3] = v.y;
         m[col + 6] = v.z;
@@ -140,7 +142,7 @@ public:
     }
 
 
-    void plusEquals(Matrix3x3d b) {
+    void plusEquals(Matrix3x3d &b) {
         double *arrd = m;
         arrd[0] = arrd[0] + b.m[0];
         double *arrd2 = m;
@@ -162,7 +164,7 @@ public:
     }
 
 
-    void minusEquals(Matrix3x3d b) {
+    void minusEquals(Matrix3x3d &b) {
         double *arrd = m;
         arrd[0] = arrd[0] - b.m[0];
         double *arrd2 = m;
@@ -195,7 +197,7 @@ public:
         m[7] = tmp;
     }
 
-    void transpose(Matrix3x3d result) {
+    void transpose(Matrix3x3d &result) {
         double m1 = m[1];
         double m2 = m[2];
         double m5 = m[5];
@@ -210,7 +212,7 @@ public:
         result.m[8] = m[8];
     }
 
-    static void add(Matrix3x3d a, Matrix3x3d b, Matrix3x3d result) {
+    static void add(Matrix3x3d &a, Matrix3x3d &b, Matrix3x3d &result) {
         result.m[0] = a.m[0] + b.m[0];
         result.m[1] = a.m[1] + b.m[1];
         result.m[2] = a.m[2] + b.m[2];
@@ -222,11 +224,11 @@ public:
         result.m[8] = a.m[8] + b.m[8];
     }
 
-    static void mult(Matrix3x3d a, Matrix3x3d b, Matrix3x3d result) {
+    static void mult(Matrix3x3d &a, Matrix3x3d &b, Matrix3x3d &result) {
         result.set(a.m[0] * b.m[0] + a.m[1] * b.m[3] + a.m[2] * b.m[6], a.m[0] * b.m[1] + a.m[1] * b.m[4] + a.m[2] * b.m[7], a.m[0] * b.m[2] + a.m[1] * b.m[5] + a.m[2] * b.m[8], a.m[3] * b.m[0] + a.m[4] * b.m[3] + a.m[5] * b.m[6], a.m[3] * b.m[1] + a.m[4] * b.m[4] + a.m[5] * b.m[7], a.m[3] * b.m[2] + a.m[4] * b.m[5] + a.m[5] * b.m[8], a.m[6] * b.m[0] + a.m[7] * b.m[3] + a.m[8] * b.m[6], a.m[6] * b.m[1] + a.m[7] * b.m[4] + a.m[8] * b.m[7], a.m[6] * b.m[2] + a.m[7] * b.m[5] + a.m[8] * b.m[8]);
     }
 
-    static void mult(Matrix3x3d a, Vector3d v, Vector3d result) {
+    static void mult(Matrix3x3d &a, Vector3d &v, Vector3d &result) {
         double x = a.m[0] * v.x + a.m[1] * v.y + a.m[2] * v.z;
         double y = a.m[3] * v.x + a.m[4] * v.y + a.m[5] * v.z;
         double z = a.m[6] * v.x + a.m[7] * v.y + a.m[8] * v.z;
@@ -239,7 +241,7 @@ public:
         return get(0, 0) * (get(1, 1) * get(2, 2) - get(2, 1) * get(1, 2)) - get(0, 1) * (get(1, 0) * get(2, 2) - get(1, 2) * get(2, 0)) + get(0, 2) * (get(1, 0) * get(2, 1) - get(1, 1) * get(2, 0));
     }
 
-    bool invert(Matrix3x3d result) {
+    bool invert(Matrix3x3d &result) {
         double d = determinant();
         if (d == 0.0) {
             return false;
@@ -253,7 +255,7 @@ public:
         double maxVal = abs(m[0]);
         int len = sizeof(m) / sizeof(m[0]);
         for (int i = 1; i < len; ++i) {
-            maxVal = std::max(maxVal, abs(m[i]));
+            maxVal = std::max((double)maxVal, (double)abs(m[i]));
         }
         return maxVal;
     }

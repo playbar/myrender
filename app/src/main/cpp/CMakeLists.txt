@@ -142,6 +142,10 @@ add_library(mojing SHARED
     		Reporter/UserActionReporter.cpp
     		Sensors/Matrix3x3d.cpp
     		Sensors/Vector3d.cpp
+    		Sensors/So3Util.cpp
+    		Sensors/OrientationEKF.cpp
+    		Sensors/LowPassFilter.cpp
+    		Sensors/GyroscopeBiasEstimator.cpp
             Tracker/AndroidInternalSensorChecker.cpp
 			Tracker/MojingAndroidSensor.cpp
 			Tracker/MojingGyroTempCalibration.cpp
