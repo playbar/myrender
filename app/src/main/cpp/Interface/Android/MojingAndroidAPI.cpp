@@ -405,7 +405,13 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv 
 	{
 		MojingSDK_getLastHeadView(pMatrixArray);
 	}
-	
+//	char szTemp[256] = {0};
+    LOGE("matrix:%0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f",
+		   pMatrixArray[0],pMatrixArray[1],pMatrixArray[2],pMatrixArray[3],
+		   pMatrixArray[4],pMatrixArray[5],pMatrixArray[6],pMatrixArray[7],
+		   pMatrixArray[8],pMatrixArray[9],pMatrixArray[10],pMatrixArray[11],
+		   pMatrixArray[12],pMatrixArray[13],pMatrixArray[14],pMatrixArray[15]);
+//	LOGE(szTemp);
 	jEnv->ReleaseFloatArrayElements(jViewMatrix, pMatrixArray, 0);
 }
 

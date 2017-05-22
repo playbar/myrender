@@ -316,7 +316,7 @@ namespace Baofeng
 				{
 					if (ident == LOOPER_ID)
 					{
-                        LOGE("ASensorEventQueue_getEvents");
+//                        LOGE("ASensorEventQueue_getEvents");
 						ASensorEvent event;
 						while (ASensorEventQueue_getEvents(m_pQueue, &event, 1) > 0)
 						{
@@ -324,6 +324,8 @@ namespace Baofeng
 							{
 								data.latestAcc.set(event.data[0], event.data[1], event.data[2] );
                                 data.tracker.processAcc(data.latestAcc, event.timestamp);
+								data.gyroBiasEstimator.processAccelerometer(data.latestAcc, event.timestamp);
+
 ///////////////////////////////////////////
                                 data.Acceleration.x = -event.acceleration.y;
                                 data.Acceleration.y = event.acceleration.x;
@@ -340,8 +342,9 @@ namespace Baofeng
                                         data.initialSystemGyroBias[1] = event.data[4];
                                         data.initialSystemGyroBias[2] = event.data[5];
 									}
-                                    data.latestGyro.set(event.data[0] - data.initialSystemGyroBias[0], event.data[1] - data.initialSystemGyroBias[1],
-												   event.data[2] - data.initialSystemGyroBias[2]);
+                                    data.latestGyro.set(event.data[0] - data.initialSystemGyroBias[0],
+                                                        event.data[1] - data.initialSystemGyroBias[1],
+												        event.data[2] - data.initialSystemGyroBias[2]);
 								} else{
                                     data.latestGyro.set(event.data[0], event.data[1], event.data[2]);
 								}

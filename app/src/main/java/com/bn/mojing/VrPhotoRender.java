@@ -274,6 +274,10 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
 										  0f,1.0f,200.0f);  
 
 						com.baofeng.mojing.MojingSDK.getLastHeadView(fM);
+//						Log.e("fM","0:"+fM[0] + ",1:" + fM[1] + ",2:"+fM[2] + ",3:" + fM[3] +
+//								   ",4:"+fM[4] + ",5:" + fM[5] + ",6:"+fM[6] + ",7:" + fM[7] +
+//								   ",8:"+fM[8] + ",9:" + fM[9] + ",10:"+fM[10] + ",11:" + fM[11] +
+//								   ",12:"+fM[12] + ",13:" + fM[13] + ",14:"+fM[14] + ",15:" + fM[15]);
 	        			MatrixState.setViewMatrix(fM);
 						//sphere.drawSelf(g_TexId);
 						

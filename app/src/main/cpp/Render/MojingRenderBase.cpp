@@ -1093,13 +1093,13 @@ namespace Baofeng
 			pRF->UpdatePredictView();
 			if (pMatrix)
 			{
-				Matrix4f viewMatrix(pRF->GetPredictView());
-				for (int i = 0; i < 16; i++)
-				{
-					pMatrix[i] = viewMatrix.M[i / 4][i % 4];
-				}
+//				Matrix4f viewMatrix(pRF->GetPredictView());
+//				for (int i = 0; i < 16; i++)
+//				{
+//					pMatrix[i] = viewMatrix.M[i / 4][i % 4];
+//				}
 
-//                memcpy(pMatrix, pRF->headview, sizeof(float) * 16 );
+                memcpy(pMatrix, pRF->headview, sizeof(float) * 16 );
 			}
 			return pRF->GetFrameIndex();
 		}
