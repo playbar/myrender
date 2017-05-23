@@ -247,7 +247,15 @@ public:
             return false;
         }
         double invdet = 1.0 / d;
-        result.set((m[4] * m[8] - m[7] * m[5]) * invdet, (- m[1] * m[8] - m[2] * m[7]) * invdet, (m[1] * m[5] - m[2] * m[4]) * invdet, (- m[3] * m[8] - m[5] * m[6]) * invdet, (m[0] * m[8] - m[2] * m[6]) * invdet, (- m[0] * m[5] - m[3] * m[2]) * invdet, (m[3] * m[7] - m[6] * m[4]) * invdet, (- m[0] * m[7] - m[6] * m[1]) * invdet, (m[0] * m[4] - m[3] * m[1]) * invdet);
+        result.set((m[4] * m[8] - m[7] * m[5]) * invdet,
+                   (- m[1] * m[8] - m[2] * m[7]) * invdet,
+                   (m[1] * m[5] - m[2] * m[4]) * invdet,
+                   (- m[3] * m[8] - m[5] * m[6]) * invdet,
+                   (m[0] * m[8] - m[2] * m[6]) * invdet,
+                   (- m[0] * m[5] - m[3] * m[2]) * invdet,
+                   (m[3] * m[7] - m[6] * m[4]) * invdet,
+                   (- m[0] * m[7] - m[6] * m[1]) * invdet,
+                   (m[0] * m[4] - m[3] * m[1]) * invdet);
         return true;
     }
 

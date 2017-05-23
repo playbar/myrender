@@ -56,7 +56,7 @@ public:
         x = 0.0;
     }
 
-    void set(Vector3dJ other) {
+    void set(Vector3dJ &other) {
         x = other.x;
         y = other.y;
         z = other.z;

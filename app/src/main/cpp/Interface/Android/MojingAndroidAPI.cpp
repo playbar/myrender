@@ -387,6 +387,7 @@ JNIEXPORT jdouble JNICALL Java_com_baofeng_mojing_MojingSDK_getLastSensorState(J
 	return dRet;
 }
 
+extern   MessageBodyFrame gHeadTrackdata;
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv *jEnv, jclass, jfloatArray jViewMatrix)
 {
 	// USING_MINIDUMP;
@@ -403,7 +404,8 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv 
 	}
 	else
 	{
-		MojingSDK_getLastHeadView(pMatrixArray);
+//		MojingSDK_getLastHeadView(pMatrixArray);
+		gHeadTrackdata.getLastHeadView(pMatrixArray);
 	}
 //	char szTemp[256] = {0};
     LOGE("matrix:%0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f",

@@ -20,6 +20,8 @@ extern MojingLogger g_Sensorlogger;
 extern MojingLogger g_APIlogger;
 #endif
 
+Baofeng::Mojing::MessageBodyFrame gHeadTrackdata;
+
 #define	ASENSOR_TYPE_ACCELEROMETER		1
 #define	ASENSOR_TYPE_MAGNETIC_FIELD		2
 #define	ASENSOR_TYPE_ORIENTATION		3
@@ -276,10 +278,10 @@ namespace Baofeng
 			MojingSensorParameters *pSensorParameters = Manager::GetMojingManager()->GetParameters()->GetSensorParameters();
 			/*以上是为了统计陀螺仪的实际采样速度*/
 //			MessageBodyFrame theSample;
-            MessageBodyFrame data;
-			memset(&data, 0, sizeof(MessageBodyFrame));
-            data.Temperature = getTemperature();
-			if (data.Temperature < 0) data.Temperature = 2500;	// 如果不能拿到温度值，则设置成25度
+
+//			memset(&gHeadTrackdata, 0, sizeof(MessageBodyFrame));
+            gHeadTrackdata.Temperature = getTemperature();
+			if (gHeadTrackdata.Temperature < 0) gHeadTrackdata.Temperature = 2500;	// 如果不能拿到温度值，则设置成25度
 
 			// 有些手机刚开始启动陀螺仪时，给出的数据完全不靠谱，需要扔掉几个采样
 			// 这样可以把给初始时间的获取，也放在这里
@@ -299,7 +301,7 @@ namespace Baofeng
 							if (event.type == ASENSOR_TYPE_GYROSCOPE)
 							{
 								skipSamples--;
-								data.LastSampleTime = data.lastTempTime = NanoSecondToSecond(event.timestamp);
+								gHeadTrackdata.LastSampleTime = gHeadTrackdata.lastTempTime = NanoSecondToSecond(event.timestamp);
 #ifdef ENABLE_SENSOR_LOGGER
 								MOJING_TRACE(g_Sensorlogger, "Skip Gyro (" << event.vector.x << ", " << event.vector.y << ", " <<
 									event.vector.z << ")");
@@ -322,59 +324,64 @@ namespace Baofeng
 						{
 							if (event.type == ASENSOR_TYPE_ACCELEROMETER)
 							{
-								data.latestAcc.set(event.data[0], event.data[1], event.data[2] );
-                                data.tracker.processAcc(data.latestAcc, event.timestamp);
-								data.gyroBiasEstimator.processAccelerometer(data.latestAcc, event.timestamp);
+								gHeadTrackdata.latestAcc.set(event.data[0], event.data[1], event.data[2] );
+								gHeadTrackdata.lock();
+                                gHeadTrackdata.tracker.processAcc(gHeadTrackdata.latestAcc, event.timestamp);
+								gHeadTrackdata.unlock();
+								gHeadTrackdata.gyroBiasEstimator.processAccelerometer(gHeadTrackdata.latestAcc, event.timestamp);
 
 ///////////////////////////////////////////
-                                data.Acceleration.x = -event.acceleration.y;
-                                data.Acceleration.y = event.acceleration.x;
-                                data.Acceleration.z = event.acceleration.z;
+                                gHeadTrackdata.Acceleration.x = -event.acceleration.y;
+                                gHeadTrackdata.Acceleration.y = event.acceleration.x;
+                                gHeadTrackdata.Acceleration.z = event.acceleration.z;
 							}
 							else if (event.type == ASENSOR_TYPE_GYROSCOPE || event.type == ASENSOR_TYPE_GYROSCOPE_UNCALIBRATED)
 							{
-                                data.latestGyroEventClockTimeNs = GetTimeNano();
+                                gHeadTrackdata.latestGyroEventClockTimeNs = GetTimeNano();
+                                LOGE("timenano: %lld", gHeadTrackdata.latestGyroEventClockTimeNs);
 
 								if( event.type == ASENSOR_TYPE_GYROSCOPE_UNCALIBRATED)
 								{
 									if( firstGyroValue) {
-                                        data.initialSystemGyroBias[0] = event.data[3];
-                                        data.initialSystemGyroBias[1] = event.data[4];
-                                        data.initialSystemGyroBias[2] = event.data[5];
+                                        gHeadTrackdata.initialSystemGyroBias[0] = event.data[3];
+                                        gHeadTrackdata.initialSystemGyroBias[1] = event.data[4];
+                                        gHeadTrackdata.initialSystemGyroBias[2] = event.data[5];
 									}
-                                    data.latestGyro.set(event.data[0] - data.initialSystemGyroBias[0],
-                                                        event.data[1] - data.initialSystemGyroBias[1],
-												        event.data[2] - data.initialSystemGyroBias[2]);
+                                    gHeadTrackdata.latestGyro.set(event.data[0] - gHeadTrackdata.initialSystemGyroBias[0],
+                                                        event.data[1] - gHeadTrackdata.initialSystemGyroBias[1],
+												        event.data[2] - gHeadTrackdata.initialSystemGyroBias[2]);
 								} else{
-                                    data.latestGyro.set(event.data[0], event.data[1], event.data[2]);
+                                    gHeadTrackdata.latestGyro.set(event.data[0], event.data[1], event.data[2]);
 								}
 								firstGyroValue = false;
 
-                                data.gyroBiasEstimator.processGyroscope(data.latestGyro, event.timestamp );
-                                data.gyroBiasEstimator.getGyroBias(data.gyroBias);
-                                Vector3dJ::sub(data.latestGyro, data.gyroBias, data.latestGyro );
-                                data.tracker.processGyro(data.latestGyro, event.timestamp);
+                                gHeadTrackdata.gyroBiasEstimator.processGyroscope(gHeadTrackdata.latestGyro, event.timestamp );
+                                gHeadTrackdata.gyroBiasEstimator.getGyroBias(gHeadTrackdata.gyroBias);
+                                Vector3dJ::sub(gHeadTrackdata.latestGyro, gHeadTrackdata.gyroBias, gHeadTrackdata.latestGyro );
+								gHeadTrackdata.lock();
+                                gHeadTrackdata.tracker.processGyro(gHeadTrackdata.latestGyro, event.timestamp);
+								gHeadTrackdata.unlock();
 
                                 ///////////////////////////////
-                                data.RotationRate.x = -event.vector.y;
-                                data.RotationRate.y = event.vector.x;
-                                data.RotationRate.z = event.vector.z;
-                                data.TimeDelta = NanoSecondToSecond(event.timestamp) - data.LastSampleTime;
-                                data.LastSampleTime = NanoSecondToSecond(event.timestamp);
-                                data.AbsoluteTimeSeconds = Timer::GetSeconds();
+                                gHeadTrackdata.RotationRate.x = -event.vector.y;
+                                gHeadTrackdata.RotationRate.y = event.vector.x;
+                                gHeadTrackdata.RotationRate.z = event.vector.z;
+                                gHeadTrackdata.TimeDelta = NanoSecondToSecond(event.timestamp) - gHeadTrackdata.LastSampleTime;
+                                gHeadTrackdata.LastSampleTime = NanoSecondToSecond(event.timestamp);
+                                gHeadTrackdata.AbsoluteTimeSeconds = Timer::GetSeconds();
 								if (ui64FirstSampleTime == 0)
 								{
 									ui64Last50FirstSampleTime = ui64FirstSampleTime = event.timestamp;
 									ui64SampleCount = 1;
-									fMinTimeSpace = fMaxTimeSpace = data.TimeDelta;
+									fMinTimeSpace = fMaxTimeSpace = gHeadTrackdata.TimeDelta;
 								}
 								else
 								{
 									ui64SampleCount++;
 									if (ui64SampleCount)// 防溢出处理
 										fAvgTimeSpace = NanoSecondToSecond(event.timestamp - ui64FirstSampleTime) / ui64SampleCount;
-									fMinTimeSpace = std::min(fMinTimeSpace, data.TimeDelta);
-									fMaxTimeSpace = std::max(fMaxTimeSpace, data.TimeDelta);
+									fMinTimeSpace = std::min(fMinTimeSpace, gHeadTrackdata.TimeDelta);
+									fMaxTimeSpace = std::max(fMaxTimeSpace, gHeadTrackdata.TimeDelta);
 									if (ui64SampleCount % 50 == 0)
 									{
 										float fLast50AvgTimeSpace = NanoSecondToSecond(event.timestamp - ui64Last50FirstSampleTime) / 50;
@@ -393,26 +400,26 @@ namespace Baofeng
 #endif
 
 								
-								if (!GetExitFlag() && data.TimeDelta > 0.002f)
+								if (!GetExitFlag() && gHeadTrackdata.TimeDelta > 0.002f)
                                 {
 //                                    OnSensorData(theSample);
-                                    OnSensorData(data);
+                                    OnSensorData(gHeadTrackdata);
                                 }
 
 							}
 							else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED)
 							{
-								data.MagneticField.Set(-event.uncalibrated_magnetic.y_uncalib,
+								gHeadTrackdata.MagneticField.Set(-event.uncalibrated_magnetic.y_uncalib,
 									event.uncalibrated_magnetic.x_uncalib,
 									event.uncalibrated_magnetic.z_uncalib);
 
-								data.MagneticBias.Set(-event.uncalibrated_magnetic.y_bias,
+								gHeadTrackdata.MagneticBias.Set(-event.uncalibrated_magnetic.y_bias,
 									event.uncalibrated_magnetic.x_bias,
 									event.uncalibrated_magnetic.z_bias);
 
 								// Phone values are in micro-Tesla. Convert it to Gauss and flip axes.
-								data.MagneticField *= 10000.0f / 1000000.0f;
-								data.MagneticBias *= 10000.0f / 1000000.0f;
+								gHeadTrackdata.MagneticField *= 10000.0f / 1000000.0f;
+								gHeadTrackdata.MagneticBias *= 10000.0f / 1000000.0f;
 
 #ifdef ENABLE_SENSOR_LOGGER
 								MOJING_TRACE(g_Sensorlogger, "time = " << event.timestamp / 1000000 <<
@@ -422,14 +429,14 @@ namespace Baofeng
 							}
 							else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD)
 							{
-								data.MagneticField.Set(-event.vector.y, event.vector.x, event.vector.z);
+								gHeadTrackdata.MagneticField.Set(-event.vector.y, event.vector.x, event.vector.z);
 #ifdef ENABLE_SENSOR_LOGGER
 								MOJING_TRACE(g_Sensorlogger, "time = " << event.timestamp / 1000000 <<
 									", Mag(" << theSample.MagneticField.x << ", " << theSample.MagneticField.y << ", " <<
 									theSample.MagneticField.z << ")");
 #endif
 								// Phone values are in micro-Tesla. Convert it to Gauss and flip axes.
-								data.MagneticField *= 10000.0f / 1000000.0f;
+								gHeadTrackdata.MagneticField *= 10000.0f / 1000000.0f;
 							}
 						}// end of while
 					}

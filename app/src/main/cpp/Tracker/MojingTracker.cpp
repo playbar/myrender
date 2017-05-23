@@ -318,9 +318,9 @@ namespace Baofeng
 				if (m_pSensorfusion->m_bHasData)
 				{
 					m_pLastSensorState = sstate;
+                    memcpy(headview, sstate.headview, sizeof(float) * 16 );
 				}
 			}
-
 			// Convert sensor.Recorded to view matrix
 			mHeadView = Matrix4f(m_pLastSensorState.Predicted.Transform.Orientation);
 		}

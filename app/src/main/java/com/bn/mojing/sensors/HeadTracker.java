@@ -19,6 +19,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.Matrix;
+import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -75,6 +76,8 @@ public class HeadTracker implements SensorEventListener {
      * WARNING - Removed try catching itself - possible behaviour change.
      */
     public void onSensorChanged(SensorEvent event) {
+        Thread t = Thread.currentThread();
+        Log.e("headtracker", "onSensorChanged, id=" + t.getId());
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             this.latestAcc.set(event.values[0], event.values[1], event.values[2]);
             this.tracker.processAcc(this.latestAcc, event.timestamp);
@@ -87,6 +90,7 @@ public class HeadTracker implements SensorEventListener {
         }
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE || event.sensor.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED) {
             this.latestGyroEventClockTimeNs = this.clock.nanoTime();
+//            Log.e("timenano", "timenano: " + this.latestGyroEventClockTimeNs);
             if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED) {
                 if (this.firstGyroValue && event.values.length == 6) {
                     this.initialSystemGyroBias[0] = event.values[3];
@@ -98,14 +102,14 @@ public class HeadTracker implements SensorEventListener {
                 this.latestGyro.set(event.values[0], event.values[1], event.values[2]);
             }
             this.firstGyroValue = false;
-            Object object = this.gyroBiasEstimatorMutex;
-            synchronized (object) {
+//            Object object = this.gyroBiasEstimatorMutex;
+//            synchronized (object) {
                 if (this.gyroBiasEstimator != null) {
                     this.gyroBiasEstimator.processGyroscope(this.latestGyro, event.timestamp);
                     this.gyroBiasEstimator.getGyroBias(this.gyroBias);
                     Vector3d.sub(this.latestGyro, this.gyroBias, this.latestGyro);
                 }
-            }
+//            }
             this.tracker.processGyro(this.latestGyro, event.timestamp);
         }
     }
@@ -181,6 +185,8 @@ public class HeadTracker implements SensorEventListener {
      * WARNING - Removed try catching itself - possible behaviour change.
      */
     public void getLastHeadView(float[] headView, int offset) {
+        Thread t = Thread.currentThread();
+        Log.e("headtracker", "getLastHeadView, id=" + t.getId());
         if (offset + 16 > headView.length) {
             throw new IllegalArgumentException("Not enough space to write the result");
         }

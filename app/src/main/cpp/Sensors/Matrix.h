@@ -524,6 +524,20 @@ public:
 
         translateM(rm, rmOffset, -eyeX, -eyeY, -eyeZ);
     }
+
+    static void QuatToMat(float *data, float x, float y, float z, float w)
+    {
+        float ww = w * w;
+        float xx = x*x;
+        float yy = y*y;
+        float zz = z*z;
+
+        data[0] = ww + xx - yy - zz; data[1] = 2 * (x*y - w*z);   data[2] = 2 * (x*z + w*y);    data[3] = 0;
+        data[4] = 2 * (x*y + w*z);   data[5] = ww - xx + yy - zz; data[6] = 2 * (y*z - w*x);    data[7] = 0;
+        data[8] = 2 * (x*z - w*y);   data[9] = 2 * (y*z + w*x);   data[10] = ww - xx - yy + zz; data[11] = 0;
+        data[12] = 0;                data[13] = 0;                data[14] = 0;                 data[15] = 1;
+    }
+
 };
 
 

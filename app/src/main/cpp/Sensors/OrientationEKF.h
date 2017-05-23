@@ -149,12 +149,12 @@ public:
 //public synchronized
     double* getPredictedGLMatrix(double secondsAfterLastGyroEvent) {
         double dT = secondsAfterLastGyroEvent;
-        Vector3dJ pmu = getPredictedGLMatrixTempV1;
+        Vector3dJ &pmu = getPredictedGLMatrixTempV1;
         pmu.set(lastGyro);
         pmu.scale(- dT);
-        Matrix3x3d so3PredictedMotion = getPredictedGLMatrixTempM1;
+        Matrix3x3d &so3PredictedMotion = getPredictedGLMatrixTempM1;
         So3Util::sO3FromMu(pmu, so3PredictedMotion);
-        Matrix3x3d so3PredictedState = getPredictedGLMatrixTempM2;
+        Matrix3x3d &so3PredictedState = getPredictedGLMatrixTempM2;
         Matrix3x3d::mult(so3PredictedMotion, so3SensorFromWorld, so3PredictedState);
         return glMatrixFromSo3(so3PredictedState);
     }
@@ -227,13 +227,13 @@ public:
             accObservationFunctionForNumericalJacobian(so3SensorFromWorld, mNu);
             double eps = 1.0E-7;
             for (int dof = 0; dof < 3; ++dof) {
-                Vector3dJ delta = processAccVDelta;
+                Vector3dJ &delta = processAccVDelta;
                 delta.setZero();
                 delta.setComponent(dof, eps);
                 So3Util::sO3FromMu(delta, processAccTempM1);
                 Matrix3x3d::mult(processAccTempM1, so3SensorFromWorld, processAccTempM2);
                 accObservationFunctionForNumericalJacobian(processAccTempM2, processAccTempV1);
-                Vector3dJ withDelta = processAccTempV1;
+                Vector3dJ &withDelta = processAccTempV1;
                 Vector3dJ::sub(mNu, withDelta, processAccTempV2);
                 processAccTempV2.scale(1.0 / eps);
                 mH.setColumn(dof, processAccTempV2);
@@ -271,23 +271,23 @@ public:
         Vector3dJ downInSensorFrame;
         so3SensorFromWorld.getColumn(2, downInSensorFrame);
         Vector3dJ::cross(mz, downInSensorFrame, processMagTempV1);
-        Vector3dJ perpToDownAndMag = processMagTempV1;
+        Vector3dJ &perpToDownAndMag = processMagTempV1;
         perpToDownAndMag.normalize();
         Vector3dJ::cross(downInSensorFrame, perpToDownAndMag, processMagTempV2);
-        Vector3dJ magHorizontal = processMagTempV2;
+        Vector3dJ &magHorizontal = processMagTempV2;
         magHorizontal.normalize();
         mz.set(magHorizontal);
         if (alignedToNorth) {
             magObservationFunctionForNumericalJacobian(so3SensorFromWorld, mNu);
             double eps = 1.0E-7;
             for (int dof = 0; dof < 3; ++dof) {
-                Vector3dJ delta = processMagTempV3;
+                Vector3dJ &delta = processMagTempV3;
                 delta.setZero();
                 delta.setComponent(dof, eps);
                 So3Util::sO3FromMu(delta, processMagTempM1);
                 Matrix3x3d::mult(processMagTempM1, so3SensorFromWorld, processMagTempM2);
                 magObservationFunctionForNumericalJacobian(processMagTempM2, processMagTempV4);
-                Vector3dJ withDelta = processMagTempV4;
+                Vector3dJ &withDelta = processMagTempV4;
                 Vector3dJ::sub(mNu, withDelta, processMagTempV5);
                 processMagTempV5.scale(1.0 / eps);
                 mH.setColumn(dof, processMagTempV5);
@@ -358,13 +358,13 @@ public:
         so3LastMotion.setIdentity();
     }
 
-    void accObservationFunctionForNumericalJacobian(Matrix3x3d so3SensorFromWorldPred, Vector3dJ result) {
+    void accObservationFunctionForNumericalJacobian(Matrix3x3d &so3SensorFromWorldPred, Vector3dJ &result) {
         Matrix3x3d::mult(so3SensorFromWorldPred, down, mh);
         So3Util::sO3FromTwoVec(mh, mz, accObservationFunctionForNumericalJacobianTempM);
         So3Util::muFromSO3(accObservationFunctionForNumericalJacobianTempM, result);
     }
 
-    void magObservationFunctionForNumericalJacobian(Matrix3x3d so3SensorFromWorldPred, Vector3dJ result) {
+    void magObservationFunctionForNumericalJacobian(Matrix3x3d &so3SensorFromWorldPred, Vector3dJ &result) {
         Matrix3x3d::mult(so3SensorFromWorldPred, north, mh);
         So3Util::sO3FromTwoVec(mh, mz, magObservationFunctionForNumericalJacobianTempM);
         So3Util::muFromSO3(magObservationFunctionForNumericalJacobianTempM, result);

@@ -41,12 +41,12 @@ public:
         sO3FromTwoVecN.normalize();
         sO3FromTwoVecA.normalize();
         sO3FromTwoVecB.normalize();
-        Matrix3x3d r1 = sO3FromTwoVec33R1;
+        Matrix3x3d &r1 = sO3FromTwoVec33R1;
         r1.setColumn(0, sO3FromTwoVecA);
         r1.setColumn(1, sO3FromTwoVecN);
         Vector3dJ::cross(sO3FromTwoVecN, sO3FromTwoVecA, temp31);
         r1.setColumn(2, temp31);
-        Matrix3x3d r2 = sO3FromTwoVec33R2;
+        Matrix3x3d &r2 = sO3FromTwoVec33R2;
         r2.setColumn(0, sO3FromTwoVecB);
         r2.setColumn(1, sO3FromTwoVecN);
         Vector3dJ::cross(sO3FromTwoVecN, sO3FromTwoVecB, temp31);
@@ -99,7 +99,7 @@ public:
             double d0 = so3.get(0, 0) - cosAngle;
             double d1 = so3.get(1, 1) - cosAngle;
             double d2 = so3.get(2, 2) - cosAngle;
-            Vector3dJ r2 = muFromSO3R2;
+            Vector3dJ &r2 = muFromSO3R2;
             if (d0 * d0 > d1 * d1 && d0 * d0 > d2 * d2) {
                 r2.set(d0, (so3.get(1, 0) + so3.get(0, 1)) / 2.0, (so3.get(0, 2) + so3.get(2, 0)) / 2.0);
             } else if (d1 * d1 > d2 * d2) {

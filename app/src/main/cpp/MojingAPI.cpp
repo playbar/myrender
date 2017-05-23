@@ -1114,10 +1114,10 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 	/*首先尝试从正在绘制畸变的显示帧数据中获取正确的显示矩阵*/
 	MojingRenderBase *pRender = MojingRenderBase::GetCurrentRender();
 	double dTime = 0;
-	if (pRender && pRender->GetEnableTimeWarp())
-	{// 不需要TimeWarp的时候是不需要取得预测数据的
-		Ret = pRender->GetCurrentModelFrameInfo(&dTime, pfViewMatrix);
-	}
+//	if (pRender && pRender->GetEnableTimeWarp())
+//	{// 不需要TimeWarp的时候是不需要取得预测数据的
+//		Ret = pRender->GetCurrentModelFrameInfo(&dTime, pfViewMatrix);
+//	}
 	if (Ret == 0)
 	{
 		Manager* pManager = Manager::GetMojingManager();
@@ -1127,10 +1127,12 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 			Matrix4f viewMatrix;
 			pTracker->getLastHeadView(viewMatrix);
 
-			for (int i = 0; i < 16; i++)
-			{
-				pfViewMatrix[i] = viewMatrix.M[i / 4][i % 4];
-			}
+//			for (int i = 0; i < 16; i++)
+//			{
+//				pfViewMatrix[i] = viewMatrix.M[i / 4][i % 4];
+//			}
+
+            memcpy(pfViewMatrix, pTracker->headview, sizeof(float) * 16 );
 		}
 	}
     

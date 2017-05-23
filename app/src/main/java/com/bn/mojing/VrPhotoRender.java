@@ -16,6 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
 import com.baofeng.mojing.MojingSDK;
 import com.bn.mojing.MatrixState;
 import com.bn.mojing.SphereModel;
+import com.bn.mojing.sensors.HeadTracker;
 
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
@@ -39,10 +40,13 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
 		private int g_RightTexLayout = 0;
 		private int g_frameBufferObject;
 		private float g_Radius = 400;
+		private HeadTracker headtracker;
 		public VrPhotoRender(Activity activity)
 		{
 			//this.mojingSurfaceView = mojingSurfaceView;
 			mContext = activity;
+			headtracker = HeadTracker.createFromContext(mContext);
+			headtracker.startTracking();
 		}
 		
         public void onDrawFrame(GL10 gl) {
@@ -274,6 +278,8 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
 										  0f,1.0f,200.0f);  
 
 						com.baofeng.mojing.MojingSDK.getLastHeadView(fM);
+//						headtracker.getLastHeadView(fM, 0);
+
 //						Log.e("fM","0:"+fM[0] + ",1:" + fM[1] + ",2:"+fM[2] + ",3:" + fM[3] +
 //								   ",4:"+fM[4] + ",5:" + fM[5] + ",6:"+fM[6] + ",7:" + fM[7] +
 //								   ",8:"+fM[8] + ",9:" + fM[9] + ",10:"+fM[10] + ",11:" + fM[11] +
