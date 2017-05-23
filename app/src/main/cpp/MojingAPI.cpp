@@ -1127,12 +1127,12 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 			Matrix4f viewMatrix;
 			pTracker->getLastHeadView(viewMatrix);
 
-//			for (int i = 0; i < 16; i++)
-//			{
-//				pfViewMatrix[i] = viewMatrix.M[i / 4][i % 4];
-//			}
+			for (int i = 0; i < 16; i++)
+			{
+				pfViewMatrix[i] = viewMatrix.M[i / 4][i % 4];
+			}
 
-            memcpy(pfViewMatrix, pTracker->headview, sizeof(float) * 16 );
+//            memcpy(pfViewMatrix, pTracker->headview, sizeof(float) * 16 );
 		}
 	}
     

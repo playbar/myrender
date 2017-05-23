@@ -282,8 +282,6 @@ namespace Baofeng
 			// Store the lockless state.
 			StateForPrediction state;
 			state.State = State;
-//            state.data = msg;
-            msg.getLastHeadView(state.headview);
 			state.Temperature = msg.Temperature;
 
 #ifdef ENABLE_SENSOR_LOGGER
@@ -749,12 +747,6 @@ namespace Baofeng
 			if (angularSpeed > 0.001)
 				pose.Orientation = pose.Orientation * Quatf(angularVelocity, angularSpeed * dynamicDt);
 
-			float data[16];
-			Matrix::QuatToMat(data, angularVelocity.x, angularVelocity.y, angularVelocity.z,angularSpeed * dynamicDt );
-			float tmp[16];
-			memcpy( tmp, poseS.headview, sizeof(float) * 16);
-			Matrix::multiplyMM(poseS.headview, tmp, data);
-
 			pose.Position += poseState.LinearVelocity * dynamicDt;
 
 			return pose;
@@ -814,11 +806,6 @@ namespace Baofeng
 			sstate.Predicted.LinearAcceleration = state.State.LinearAcceleration;
 
 
-            float tmp[16] = {0};
-            memcpy( tmp, state.headview, sizeof(float) * 16);
-//            Matrix::multiplyMM(sstate.headview,  tmp, data);
-
-            memcpy(sstate.headview, state.headview, sizeof(float) * 16 );
 //			dTime[1] = Timer::GetSeconds();
 //			MOJING_TRACE(g_APIlogger, "GetPredictionForTime Time All = " << Timer::FormatDoubleTime(dTime[1] - dTime[0]));
 			if (pdOutSensotTime)

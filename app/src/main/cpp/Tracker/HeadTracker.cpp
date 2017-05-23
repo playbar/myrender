@@ -338,7 +338,7 @@ namespace Baofeng
 							else if (event.type == ASENSOR_TYPE_GYROSCOPE || event.type == ASENSOR_TYPE_GYROSCOPE_UNCALIBRATED)
 							{
                                 gHeadTrackdata.latestGyroEventClockTimeNs = GetTimeNano();
-                                LOGE("timenano: %lld", gHeadTrackdata.latestGyroEventClockTimeNs);
+//                                LOGE("timenano: %lld", gHeadTrackdata.latestGyroEventClockTimeNs);
 
 								if( event.type == ASENSOR_TYPE_GYROSCOPE_UNCALIBRATED)
 								{

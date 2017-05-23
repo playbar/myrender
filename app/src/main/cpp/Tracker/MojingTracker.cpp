@@ -318,7 +318,6 @@ namespace Baofeng
 				if (m_pSensorfusion->m_bHasData)
 				{
 					m_pLastSensorState = sstate;
-                    memcpy(headview, sstate.headview, sizeof(float) * 16 );
 				}
 			}
 			// Convert sensor.Recorded to view matrix
@@ -364,7 +363,6 @@ namespace Baofeng
 				//if (sensorState.Predicted.Transform.Orientation != Quatf(0, 0, 0, 1))
 				{
 					Ret = m_pLastSensorState.Predicted.Transform.Orientation;
-					memcpy(headview, sstate.headview, sizeof(float) * 16 );
 				}
 				//else
 				//{

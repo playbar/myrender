@@ -142,7 +142,6 @@ namespace Baofeng
 				if (pTracker)
 				{
 					m_PredictView = pTracker->getPredictionPosition(m_dPredictDisplayTime + SWAP_SHOW_DELAY);
-					memcpy(headview, pTracker->headview, sizeof(float) * 16 );
 					//MOJING_WARN(g_APIlogger, "RenderFrame::UpdatePredictView PredictView: x = " << m_PredictView.x << ", y = " << m_PredictView.y << ", z = " << m_PredictView.z << ", w = " << m_PredictView.w);
 				}
 			}
