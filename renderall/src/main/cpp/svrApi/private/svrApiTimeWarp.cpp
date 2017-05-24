@@ -805,7 +805,8 @@ bool svrCreateWarpContext()
         LOGE("svrCreateWarpContext: Failed to create EGL context");
         return false;
     }
-
+	
+	
     //Check the context priority that was actually assigned to ensure we are high priority
     EGLint resultPriority;
     eglQueryContext(display, context, EGL_CONTEXT_PRIORITY_LEVEL_IMG, &resultPriority);
@@ -1190,183 +1191,183 @@ void AddOneQuad(unsigned int currentIndex, unsigned int *indexData, warpMeshVert
     }
 
 }
+void AutoCreateVertexTable(int eye, unsigned int numRows, unsigned int numCols, unsigned int* pOutNumVerts, unsigned int* pNumIndices, warpMeshVert **pOutVertData , unsigned int **pOutIndexData)
+{
+	unsigned int numVerts = (numRows + 1) * (numCols + 1);
+	LOGI("Creating TimeWarp Render Mesh: %d verts in a (%d rows x %d columns) grid", numVerts, numRows, numCols);
+	// Allocate memory for the vertex data
+	warpMeshVert *vertData = new warpMeshVert[numVerts];
+	if (vertData == NULL)
+	{
+		LOGE("Unable to allocate memory for render mesh!");
+		return;
+	}
+	memset(vertData, 0, numVerts * sizeof(warpMeshVert));
+	float MinUV[2] = { 0 , 0 };
+	float MaxUV[2] = { 1 , 1 };
+	float MinPos[2] = { -1 , -1 };
+	float MaxPos[2] = { 0 , 1 };
+	if ((eye & 0x0F) == 2)
+	{// right eye
+		MinPos[0] = 0;
+		MaxPos[0] = 1;
+	}
 
+	float deltaX = (MaxPos[0] -MinPos[0]) / (float)numCols;
+	float deltaY = (MaxPos[1] -MinPos[1]) / (float)numRows;
+
+	float deltaU = (MaxUV[0] - MinUV[0]) / (float)numCols;
+	float deltaV = (MaxUV[1] - MinUV[1]) / (float)numRows;
+
+	bool oldDistortFlag = gDisableLensCorrection;
+
+	// ********************************
+	// Fill in the vertex data
+	// ********************************
+	
+	float baseUV[2];
+	for (unsigned int whichX = 0; whichX < (numCols + 1); whichX++)
+	{
+		for (unsigned int whichY = 0; whichY < (numRows + 1); whichY++)
+		{
+			// Based on the mesh type we want to do columns or rows
+			unsigned int whichVert = whichX * (numRows + 1) + whichY;   // Columns
+																		// unsigned int whichVert = whichY * (numCols + 1) + whichX;   // Rows
+
+			vertData[whichVert].Position[0] = MinPos[0] + deltaX * whichX;
+			vertData[whichVert].Position[1] = MinPos[1] + deltaY * whichY;
+			vertData[whichVert].EyeIndex[0] = eye - 1;// left = 0 , right = 1
+			vertData[whichVert].EyeIndex[1] = 0;
+			baseUV[0] = MinUV[0] + deltaU * whichX;
+			baseUV[1] = MinUV[1] + deltaV * whichY;
+
+			GenerateWarpCoords(baseUV, vertData[whichVert].TexCoordR, vertData[whichVert].TexCoordG, vertData[whichVert].TexCoordB);
+
+
+		}   // Each Column
+	}   // Each Row
+
+	if (gLogMeshCreation)
+	{
+		for (unsigned int whichVert = 0; whichVert < numVerts; whichVert++)
+		{
+			LOGI("Vert %d of %d: Pos = (%0.5f, %0.5f); UV = (%0.5f, %0.5f);", whichVert + 1, numVerts, vertData[whichVert].Position[0], vertData[whichVert].Position[1], vertData[whichVert].TexCoordR[0], vertData[whichVert].TexCoordR[1]);
+		}
+		LOGI("****************************************");
+		LOGI("****************************************");
+	}
+
+	// ********************************
+	// Generate the indices for triangles
+	// ********************************
+	// Each row has numCols quads, each quad is two triangles, each triangle is three indices
+	unsigned int maxIndices = numRows * numCols * 2 * 3;
+	unsigned int numIndices = 0;
+
+	// Allocate memory for the index data
+	unsigned int *indexData = new unsigned int[maxIndices];
+	if (indexData == NULL)
+	{
+		LOGE("Unable to allocate memory for render mesh indices!");
+		delete[] vertData;
+		return;
+	}
+	memset(indexData, 0, maxIndices * sizeof(unsigned int));
+
+	// Fill in the index data (Notice loops don't do last ones since we look right and up)
+	unsigned int currentIndex = 0;
+
+    svrMeshMode meshMode = kMeshModeRows;
+	switch (meshMode)
+	{
+		// ****************************************************
+	case kMeshModeColumns:
+		// ****************************************************
+		if (gMeshOrderEnum == kMeshOrderLeftToRight)
+		{
+			for (unsigned int whichX = 0; whichX < numCols; whichX++)
+			{
+				for (unsigned int whichY = 0; whichY < numRows; whichY++)
+				{
+					// What index is the bottom left corner of this quad
+					currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+																	  // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+					AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+					numIndices += 6;
+
+				}   // Each Column
+			}   // Each Row
+		}   // Columns Left To Right
+		else if (gMeshOrderEnum == kMeshOrderRightToLeft) // Columns Right To Left
+		{
+			for (int whichX = numCols - 1; whichX >= 0; whichX--)
+			{
+				for (unsigned int whichY = 0; whichY < numRows; whichY++)
+				{
+					// What index is the bottom left corner of this quad
+					currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+																	  // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+					AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+					numIndices += 6;
+
+				}   // Each Column
+			}   // Each Row
+		}   // Columns Left To Right
+		break;
+
+		// ****************************************************
+	case kMeshModeRows:
+		// ****************************************************
+		if (gMeshOrderEnum == kMeshOrderTopToBottom)
+		{
+			for (int whichY = numRows - 1; whichY >= 0; whichY--)
+			{
+				for (unsigned int whichX = 0; whichX < numCols; whichX++)
+				{
+					// What index is the bottom left corner of this quad
+					currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+																	  // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+					AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+					numIndices += 6;
+
+				}   // Each Column
+			}   // Each Row
+		}   // Rows Top to Bottom
+		else if (gMeshOrderEnum == kMeshOrderBottomToTop)
+		{
+			for (unsigned int whichY = 0; whichY < numRows; whichY++)
+			{
+				for (unsigned int whichX = 0; whichX < numCols; whichX++)
+				{
+					// What index is the bottom left corner of this quad
+					currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+																	  // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+					AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+					numIndices += 6;
+
+				}   // Each Column
+			}   // Each Row
+		}   // Rows Bottom to Top
+		break;
+	}
+
+	LOGI("Warp mesh has %d indices (out of maximum of %d)", numIndices, maxIndices);
+
+	*pOutVertData = vertData;
+	*pOutIndexData = indexData;
+	*pOutNumVerts = numVerts;
+	*pNumIndices = numIndices;
+}
+
+extern void ReleaseVertexTable();
 //-----------------------------------------------------------------------------
 void InitializeWarpMesh(int eye, SvrGeometry& warpGeom, unsigned int numRows, unsigned int numCols, float *pMinPos, float *pMaxPos, float *pMinUV, float *pMaxUV, svrMeshMode meshMode, svrMeshDistortion distortType)
 //-----------------------------------------------------------------------------
 {
-    // Make sure we are at least 2x2
-    if (numRows < 2)
-        numRows = 2;
-    if (numCols < 2)
-        numCols = 2;
-
-    unsigned int numVerts = (numRows + 1) * (numCols + 1);
-    LOGI("Creating TimeWarp Render Mesh: %d verts in a (%d rows x %d columns) grid", numVerts, numRows, numCols);
-
-    // Allocate memory for the vertex data
-    warpMeshVert *vertData = new warpMeshVert[numVerts];
-    if (vertData == NULL)
-    {
-        LOGE("Unable to allocate memory for render mesh!");
-        return;
-    }
-    memset(vertData, 0, numVerts * sizeof(warpMeshVert));
-
-    float deltaX = (pMaxPos[0] - pMinPos[0]) / (float)numCols;
-    float deltaY = (pMaxPos[1] - pMinPos[1]) / (float)numRows;
-
-    float deltaU = (pMaxUV[0] - pMinUV[0]) / (float)numCols;
-    float deltaV = (pMaxUV[1] - pMinUV[1]) / (float)numRows;
-
-    bool oldDistortFlag = gDisableLensCorrection;
-
-    // ********************************
-    // Fill in the vertex data
-    // ********************************
-    float baseUV[2];
-    for (unsigned int whichX = 0; whichX < (numCols + 1); whichX++)
-    {
-        for (unsigned int whichY = 0; whichY < (numRows + 1); whichY++)
-        {
-            // Based on the mesh type we want to do columns or rows
-            unsigned int whichVert = whichX * (numRows + 1) + whichY;   // Columns
-            // unsigned int whichVert = whichY * (numCols + 1) + whichX;   // Rows
-
-            vertData[whichVert].Position[0] = pMinPos[0] + deltaX * whichX;
-            vertData[whichVert].Position[1] = pMinPos[1] + deltaY * whichY;
-
-            baseUV[0] = pMinUV[0] + deltaU * whichX;
-            baseUV[1] = pMinUV[1] + deltaV * whichY;
-
-            switch (distortType)
-            {
-            case kNoDistortion:
-            default:
-                // Don't want distortion on these, but don't want to change the flag
-                gDisableLensCorrection = true;
-                GenerateWarpCoords(baseUV, vertData[whichVert].TexCoordR, vertData[whichVert].TexCoordG, vertData[whichVert].TexCoordB);
-                gDisableLensCorrection = oldDistortFlag;
-                break;
-
-            case kBarrleDistortion:
-                // Warp the base texture coordinates based on lens properties
-                GenerateWarpCoords(baseUV, vertData[whichVert].TexCoordR, vertData[whichVert].TexCoordG, vertData[whichVert].TexCoordB);
-                break;
-            }
-
-        }   // Each Column
-    }   // Each Row
-
-    if (gLogMeshCreation)
-    {
-        for (unsigned int whichVert = 0; whichVert < numVerts; whichVert++)
-        {
-            LOGI("Vert %d of %d: Pos = (%0.5f, %0.5f); UV = (%0.5f, %0.5f);", whichVert + 1, numVerts, vertData[whichVert].Position[0], vertData[whichVert].Position[1], vertData[whichVert].TexCoordR[0], vertData[whichVert].TexCoordR[1]);
-        }
-        LOGI("****************************************");
-        LOGI("****************************************");
-    }
-
-    // ********************************
-    // Generate the indices for triangles
-    // ********************************
-    // Each row has numCols quads, each quad is two triangles, each triangle is three indices
-    unsigned int maxIndices = numRows * numCols * 2 * 3;
-    unsigned int numIndices = 0;
-
-    // Allocate memory for the index data
-    unsigned int *indexData = new unsigned int[maxIndices];
-    if (indexData == NULL)
-    {
-        LOGE("Unable to allocate memory for render mesh indices!");
-        delete [] vertData;
-        return;
-    }
-    memset(indexData, 0, maxIndices * sizeof(unsigned int));
-
-    // Fill in the index data (Notice loops don't do last ones since we look right and up)
-    unsigned int currentIndex = 0;
-
-    switch (meshMode)
-    {
-    // ****************************************************
-    case kMeshModeColumns:
-    // ****************************************************
-        if (gMeshOrderEnum == kMeshOrderLeftToRight)
-        {
-            for (unsigned int whichX = 0; whichX < numCols; whichX++)
-            {
-                for (unsigned int whichY = 0; whichY < numRows; whichY++)
-                {
-                    // What index is the bottom left corner of this quad
-                    currentIndex = whichX * (numRows + 1) + whichY;   // Columns
-                    // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
-
-                    AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
-                    numIndices += 6;
-
-                }   // Each Column
-            }   // Each Row
-        }   // Columns Left To Right
-        else if (gMeshOrderEnum == kMeshOrderRightToLeft) // Columns Right To Left
-        {
-            for (int whichX = numCols - 1; whichX >= 0; whichX--)
-            {
-                for (unsigned int whichY = 0; whichY < numRows; whichY++)
-                {
-                    // What index is the bottom left corner of this quad
-                    currentIndex = whichX * (numRows + 1) + whichY;   // Columns
-                    // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
-
-                    AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
-                    numIndices += 6;
-
-                }   // Each Column
-            }   // Each Row
-        }   // Columns Left To Right
-        break;
-
-    // ****************************************************
-    case kMeshModeRows:
-    // ****************************************************
-        if (gMeshOrderEnum == kMeshOrderTopToBottom)
-        {
-            for (int whichY = numRows - 1; whichY >= 0; whichY--)
-            {
-                for (unsigned int whichX = 0; whichX < numCols; whichX++)
-                {
-                    // What index is the bottom left corner of this quad
-                    currentIndex = whichX * (numRows + 1) + whichY;   // Columns
-                    // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
-
-                    AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
-                    numIndices += 6;
-
-                }   // Each Column
-            }   // Each Row
-        }   // Rows Top to Bottom
-        else if (gMeshOrderEnum == kMeshOrderBottomToTop)
-        {
-            for (unsigned int whichY = 0; whichY < numRows; whichY++)
-            {
-                for (unsigned int whichX = 0; whichX < numCols; whichX++)
-                {
-                    // What index is the bottom left corner of this quad
-                    currentIndex = whichX * (numRows + 1) + whichY;   // Columns
-                    // currentIndex = whichY * (numCols + 1) + whichX;   // Rows
-
-                    AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
-                    numIndices += 6;
-
-                }   // Each Column
-            }   // Each Row
-        }   // Rows Bottom to Top
-        break;
-    }
-
-    LOGI("Warp mesh has %d indices (out of maximum of %d)", numIndices, maxIndices);
-
     // Need to create the layout attributes for the data.
     // Must fit these in to reserved types:
     //      kPosition  => Position
@@ -1375,168 +1376,387 @@ void InitializeWarpMesh(int eye, SvrGeometry& warpGeom, unsigned int numRows, un
     //      kTexcoord0 => TexCoordB
     //      kTexcoord1 => Not Used
     SvrProgramAttribute attribs[NUM_VERT_ATTRIBS] =
-    {
-        //  Index       Size    Type        Normalized      Stride              Offset
-        {   kPosition,  2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   0       },
-        {   kNormal,    2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   8       },
-        {   kColor,     2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   16      },
-        {   kTexcoord0, 2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   24      }
+            {
+                    //  Index       Size    Type        Normalized      Stride              Offset
+                    {   kPosition,  2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   0       },
+                    {   kNormal,    2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   8       },
+                    {   kColor,     2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   16      },
+                    {   kTexcoord0, 2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   24      }
 #if USE_MOJING_MERGED_MESH
-        ,{   kTexcoord1, 2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   32      }
+                    ,{   kTexcoord1, 2,      GL_FLOAT,   false,          sizeof(warpMeshVert),   32      }
 #endif
-    };
+            };
 
-    //
-    if (eye == 0)
-    {
-        warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                            indexData, numIndices,
-                            vertData, sizeof(warpMeshVert) * numVerts,
-                            numVerts);
-    }
-    // MojingLeft
-    else if ( (eye & 0x0F) == 1)
-    {
-    	int iEyeType = eye & 0xF0;
-    	if (iEyeType == 0x10)
-    	{// UP
-    		warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                            &(gVertexTable->m_pIndex[gVertexTable->m_iIndexSize / 2]),  
-                            gVertexTable->m_iIndexSize / 2, // ̷ӽ¶¼ԃسқ
-                            gVertexTable->m_pVertexLeft, 
-                            4 * gVertexTable->m_iVertexSize,
-                            gVertexTable->m_iVertexSize / 10);
-    	}
-    	else if (iEyeType == 0x20)
-    	{// Lower
-    		warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                           gVertexTable->m_pIndex,  
-                            gVertexTable->m_iIndexSize / 2, // ̷ӽ¶¼ԃسқ
-                            gVertexTable->m_pVertexLeft, 
-                            4 * gVertexTable->m_iVertexSize,
-							gVertexTable->m_iVertexSize / 10);
-    	}
-    	else
-        {// Full
-        	warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                            gVertexTable->m_pIndex,  gVertexTable->m_iIndexSize, // ̷ӽ¶¼ԃسқ
-                            gVertexTable->m_pVertexLeft, 4 * gVertexTable->m_iVertexSize,
-							gVertexTable->m_iVertexSize / 10);
+	if (eye == 0 || eye == 1 )
+	{
+		// Make sure we are at least 2x2
+		if (numRows < 2)
+			numRows = 2;
+		if (numCols < 2)
+			numCols = 2;
+
+		unsigned int numVerts = (numRows + 1) * (numCols + 1) * 2;
+		LOGI("Creating TimeWarp Render Mesh: %d verts in a (%d rows x %d columns) grid", numVerts, numRows, numCols);
+
+		// Allocate memory for the vertex data
+		warpMeshVert *vertData = new warpMeshVert[numVerts];
+		if (vertData == NULL)
+		{
+			LOGE("Unable to allocate memory for render mesh!");
+			return;
+		}
+		memset(vertData, 0, numVerts * sizeof(warpMeshVert));
+
+		float deltaX = (pMaxPos[0] - pMinPos[0]) / ((float)numCols);
+		float deltaY = (pMaxPos[1] - pMinPos[1]) / (float)numRows;
+
+		float deltaU = (pMaxUV[0] - pMinUV[0]) / (float)numCols;
+		float deltaV = (pMaxUV[1] - pMinUV[1]) / (float)numRows;
+
+		bool oldDistortFlag = gDisableLensCorrection;
+
+		// ********************************
+		// Fill in the vertex data
+		// ********************************
+        int pos = (numRows + 1) * (numCols + 1);
+		float baseUV[2];
+		for (unsigned int whichX = 0; whichX < ((numCols + 1) ); whichX++)
+		{
+			for (unsigned int whichY = 0; whichY < (numRows + 1); whichY++)
+			{
+				// Based on the mesh type we want to do columns or rows
+				unsigned int whichVert = whichX * (numRows +1 ) + whichY;   // Columns
+				// unsigned int whichVert = whichY * (numCols + 1) + whichX;   // Rows
+                unsigned int whichVertr = whichX * ((numRows + 1)) + whichY + pos;
+
+                vertData[whichVert].Position[0] = pMinPos[0] + deltaX * whichX;
+				vertData[whichVert].Position[1] = pMinPos[1] + deltaY * whichY;
+
+                vertData[whichVertr].Position[0] = pMinPos[0] + deltaX * whichX + 1;
+                vertData[whichVertr].Position[1] = pMinPos[1] + deltaY * whichY;
+
+//                vertData[whichVert].EyeIndex[0] = eye;
+//                vertData[whichVert].EyeIndex[1] = 0;
+
+				baseUV[0] = pMinUV[0] + deltaU * whichX;
+				baseUV[1] = pMinUV[1] + deltaV * whichY;
+
+				switch (distortType)
+				{
+				case kNoDistortion:
+				default:
+					// Don't want distortion on these, but don't want to change the flag
+					gDisableLensCorrection = true;
+					GenerateWarpCoords(baseUV, vertData[whichVert].TexCoordR, vertData[whichVert].TexCoordG, vertData[whichVert].TexCoordB);
+                    GenerateWarpCoords(baseUV, vertData[whichVertr].TexCoordR, vertData[whichVertr].TexCoordG, vertData[whichVertr].TexCoordB);
+					gDisableLensCorrection = oldDistortFlag;
+					break;
+
+				case kBarrleDistortion:
+					// Warp the base texture coordinates based on lens properties
+					GenerateWarpCoords(baseUV, vertData[whichVert].TexCoordR, vertData[whichVert].TexCoordG, vertData[whichVert].TexCoordB);
+                    GenerateWarpCoords(baseUV, vertData[whichVertr].TexCoordR, vertData[whichVertr].TexCoordG, vertData[whichVertr].TexCoordB);
+					break;
+				}
+
+			}   // Each Column
+		}   // Each Row
+
+		if (gLogMeshCreation)
+		{
+			for (unsigned int whichVert = 0; whichVert < numVerts; whichVert++)
+			{
+				LOGI("Vert %d of %d: Pos = (%0.5f, %0.5f); UV = (%0.5f, %0.5f);", whichVert + 1, numVerts, vertData[whichVert].Position[0], vertData[whichVert].Position[1], vertData[whichVert].TexCoordR[0], vertData[whichVert].TexCoordR[1]);
+			}
+			LOGI("****************************************");
+			LOGI("****************************************");
+		}
+
+		// ********************************
+		// Generate the indices for triangles
+		// ********************************
+		// Each row has numCols quads, each quad is two triangles, each triangle is three indices
+		unsigned int maxIndices = numRows * numCols * 2 * 2 * 3;
+		unsigned int numIndices = 0;
+
+		// Allocate memory for the index data
+		unsigned int *indexData = new unsigned int[maxIndices];
+		if (indexData == NULL)
+		{
+			LOGE("Unable to allocate memory for render mesh indices!");
+			delete[] vertData;
+			return;
+		}
+		memset(indexData, 0, maxIndices * sizeof(unsigned int));
+
+		// Fill in the index data (Notice loops don't do last ones since we look right and up)
+		unsigned int currentIndex = 0;
+
+		switch (meshMode)
+		{
+			// ****************************************************
+		case kMeshModeColumns:
+			// ****************************************************
+			if (gMeshOrderEnum == kMeshOrderLeftToRight)
+			{
+				for (unsigned int whichX = 0; whichX < numCols * 2; whichX++)
+				{
+					for (unsigned int whichY = 0; whichY < numRows; whichY++)
+					{
+						// What index is the bottom left corner of this quad
+						currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+						// currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+						AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+						numIndices += 6;
+
+					}   // Each Column
+				}   // Each Row
+			}   // Columns Left To Right
+			else if (gMeshOrderEnum == kMeshOrderRightToLeft) // Columns Right To Left
+			{
+				for (int whichX = (numCols * 2) - 1; whichX >= 0; whichX--)
+				{
+					for (unsigned int whichY = 0; whichY < numRows; whichY++)
+					{
+						// What index is the bottom left corner of this quad
+						currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+						// currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+						AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+						numIndices += 6;
+
+					}   // Each Column
+				}   // Each Row
+			}   // Columns Left To Right
+			break;
+
+			// ****************************************************
+		case kMeshModeRows:
+			// ****************************************************
+			if (gMeshOrderEnum == kMeshOrderTopToBottom)
+			{
+				for (int whichY = numRows - 1; whichY >= 0; whichY--)
+				{
+					for (unsigned int whichX = 0; whichX < (numCols * 2); whichX++)
+					{
+						// What index is the bottom left corner of this quad
+						currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+						// currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+						AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+						numIndices += 6;
+
+					}   // Each Column
+				}   // Each Row
+			}   // Rows Top to Bottom
+			else if (gMeshOrderEnum == kMeshOrderBottomToTop)
+			{
+				for (unsigned int whichY = 0; whichY < numRows; whichY++)
+				{
+					for (unsigned int whichX = 0; whichX < (numCols * 2); whichX++)
+					{
+						// What index is the bottom left corner of this quad
+						currentIndex = whichX * (numRows + 1) + whichY;   // Columns
+						// currentIndex = whichY * (numCols + 1) + whichX;   // Rows
+
+						AddOneQuad(currentIndex, indexData, vertData, numIndices, numRows, numCols);
+						numIndices += 6;
+
+					}   // Each Column
+				}   // Each Row
+			}   // Rows Bottom to Top
+			break;
+		}
+
+		LOGI("Warp mesh has %d indices (out of maximum of %d)", numIndices, maxIndices);
+
+		warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+			indexData, numIndices,
+			vertData, sizeof(warpMeshVert) * numVerts,
+			numVerts);
+
+		// Clean up local memory
+		delete[] vertData;
+		delete[] indexData;
+        return;
+	}// end of eye == 0
+	// MojingLeft
+	else if ((eye & 0x0F) == 1)
+	{
+		int iEyeType = eye & 0xF0;
+		if (iEyeType == 0x10)
+		{// UP
+			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+				&(gVertexTable->m_pIndex[gVertexTable->m_iIndexSize / 2]),
+				gVertexTable->m_iIndexSize / 2, // ̷ӽ¶¼ԃسқ
+				gVertexTable->m_pVertexLeft,
+				4 * gVertexTable->m_iVertexSize,
+				gVertexTable->m_iVertexSize / 10);
+		}
+		else if (iEyeType == 0x20)
+		{// Lower
+			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+				gVertexTable->m_pIndex,
+				gVertexTable->m_iIndexSize / 2, // ̷ӽ¶¼ԃسқ
+				gVertexTable->m_pVertexLeft,
+				4 * gVertexTable->m_iVertexSize,
+				gVertexTable->m_iVertexSize / 10);
+		}
+		else
+		{// Full
+			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+				gVertexTable->m_pIndex, gVertexTable->m_iIndexSize, // ̷ӽ¶¼ԃسқ
+				gVertexTable->m_pVertexLeft, 4 * gVertexTable->m_iVertexSize,
+				gVertexTable->m_iVertexSize / 10);
 			LOGI("Set MojingMesh to LEFT DONE");
 		}
-    }
-    // MojingRight
-    else if ( (eye & 0x0F) == 2)
-    {
-    	int iEyeType = eye & 0xF0;
-        if (iEyeType == 0x10)
-    	{// UP
-    		LOGI("Set MojingMesh to TOP-RIGHT");
-			
+	}
+	// MojingRight
+	else if ((eye & 0x0F) == 2)
+	{
+		int iEyeType = eye & 0xF0;
+		if (iEyeType == 0x10)
+		{// UP
+			LOGI("Set MojingMesh to TOP-RIGHT");
+
 			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                            &(gVertexTable->m_pIndex[gVertexTable->m_iIndexSize / 2]),  
-                            gVertexTable->m_iIndexSize / 2,
-                            gVertexTable->m_pVertexRight, 
-                            4 * gVertexTable->m_iVertexSize,
-							gVertexTable->m_iVertexSize / 10);
-    	}
-    	else if (iEyeType == 0x20)
-    	{// Lower
-    		warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                           gVertexTable->m_pIndex,  
-                            gVertexTable->m_iIndexSize / 2,
-                            gVertexTable->m_pVertexRight, 
-                            4 * gVertexTable->m_iVertexSize,
-							gVertexTable->m_iVertexSize / 10);
-    	}
-    	else
-        {// Full
-        	warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                           gVertexTable->m_pIndex,  gVertexTable->m_iIndexSize, 
-                            gVertexTable->m_pVertexRight, 4 * gVertexTable->m_iVertexSize,
-							gVertexTable->m_iVertexSize / 10);
-        }
-    }
-    else if ((eye & 0x0F) == 0x03)
-    {// 垂直区分的分区 
-    	int iEyeType = eye & 0xF0;
-    	if (iEyeType == 0x10 || iEyeType == 0x20 )
-    	{// UP
-			LOGI("Set MojingMesh to %s", (iEyeType == 0x10) ?  "UP" : "LOW");
-    		int iAttributeSize = 10;
-    		int iAttributeSizeNew = 10;
-    		int iVertexLines = (int)sqrt(gVertexTable->m_iVertexSize / iAttributeSize);
-    		
-    		int iVertexCells_W = iVertexLines - 1;
-    		int iVertexCells_H = iVertexCells_W / 2;
-    		
-    		int iVertexLines_W = iVertexCells_W + 1;
-    		int iVertexLines_H = iVertexCells_H + 1;
-    		    		
-    		int iIndexCount = 2 * iVertexCells_W * iVertexCells_H * 6;
-    		int iVertexCount = 2 * iVertexLines_W * iVertexLines_H;
-			
-			int iSrcOffset =  iEyeType == 0x10 ? (iVertexLines_H - 1)* iVertexLines_W : 0;
+				&(gVertexTable->m_pIndex[gVertexTable->m_iIndexSize / 2]),
+				gVertexTable->m_iIndexSize / 2,
+				gVertexTable->m_pVertexRight,
+				4 * gVertexTable->m_iVertexSize,
+				gVertexTable->m_iVertexSize / 10);
+		}
+		else if (iEyeType == 0x20)
+		{// Lower
+			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+				gVertexTable->m_pIndex,
+				gVertexTable->m_iIndexSize / 2,
+				gVertexTable->m_pVertexRight,
+				4 * gVertexTable->m_iVertexSize,
+				gVertexTable->m_iVertexSize / 10);
+		}
+		else
+		{// Full
+			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+				gVertexTable->m_pIndex, gVertexTable->m_iIndexSize,
+				gVertexTable->m_pVertexRight, 4 * gVertexTable->m_iVertexSize,
+				gVertexTable->m_iVertexSize / 10);
+		}
+	}
+	else if ((eye & 0x0F) == 0x03)
+	{// 垂直区分的分区 
+		// 测试代码开始 ，用于生成SVR原生的畸变表
+		unsigned int VertexSize = 0;
+		unsigned int IndexSize = 0;
+		warpMeshVert* pVertexL = NULL;
+		warpMeshVert* pVertexR = NULL;
+		unsigned int *pIndexDataL = NULL;
+		unsigned int *pIndexDataR = NULL;
+		// left eye
+		AutoCreateVertexTable(1, numRows, numCols, &VertexSize, &IndexSize, &pVertexL, &pIndexDataL);
+		// right eye
+		AutoCreateVertexTable(2, numRows, numCols, &VertexSize, &IndexSize, &pVertexR, &pIndexDataR);
+		//------------------------------------------------
+		ReleaseVertexTable();
+		VertexTable * pVertexTable;
+		pVertexTable = new VertexTable;
+		pVertexTable->m_iVertexSize = VertexSize / 8 * 10;
+        pVertexTable->m_pVertexLeft = (float*)pVertexL;
+        pVertexTable->m_pVertexRight = (float*)pVertexR;
+// 		float fAppend[2] = { 0,0 };
+// 		pVertexTable->m_pVertexLeft = VertexAttribute8To10(pVertexL, VertexSize, fAppend);
+//
+// 		fAppend[0] = 1;
+// 		pVertexTable->m_pVertexRight = VertexAttribute8To10(pVertexR, VertexSize, fAppend);
+
+		pVertexTable->m_iIndexSize = IndexSize;
+		pVertexTable->m_pIndex = new unsigned int[IndexSize];
+		memcpy(pVertexTable->m_pIndex, pIndexDataR, IndexSize * sizeof(unsigned int));
+
+		gVertexTable = pVertexTable;
+
+        delete  []pIndexDataL;
+        delete  []pIndexDataR;
+
+		//------------------------------------------------
+		// 测试代码结束 ，用于生成SVR原生的畸变表
+		int iEyeType = eye & 0xF0;
+		if (iEyeType == 0x10 || iEyeType == 0x20)
+		{// UP
+			LOGI("Set MojingMesh to %s", (iEyeType == 0x10) ? "UP" : "LOW");
+			int iAttributeSize = 10;
+			int iAttributeSizeNew = 10;
+			int iVertexLines = (int)sqrt(gVertexTable->m_iVertexSize / iAttributeSize);
+
+			int iVertexCells_W = iVertexLines - 1;
+			int iVertexCells_H = iVertexCells_W / 2;
+
+			int iVertexLines_W = iVertexCells_W + 1;
+			int iVertexLines_H = iVertexCells_H + 1;
+
+			int iIndexCount = 2 * iVertexCells_W * iVertexCells_H * 6;
+			int iVertexCount = 2 * iVertexLines_W * iVertexLines_H;
+
+			int iSrcOffset = iEyeType == 0x10 ? (iVertexLines_H - 1)* iVertexLines_W : 0;
 			int iDestOffset = 0;
 			unsigned int *pIndex = new unsigned int[iIndexCount];
 			float *pVertex = new float[iVertexCount * iAttributeSizeNew];
 			// Copy Left Eye    		
-			for (int iY = 0 ; iY < iVertexLines_H ; iY++)
+			for (int iY = 0; iY < iVertexLines_H; iY++)
 			{
 				int iLineOffset = iY * iVertexLines_W;
-				for (int iX = 0 ; iX < iVertexLines_W ; iX++)
-				{
-					int iOrder = iLineOffset + iX;
-					int iOrderSrc = (iOrder  + iSrcOffset) * iAttributeSize;
-					int iOrderNew = (iOrder + iDestOffset)* iAttributeSizeNew;
-					memcpy(pVertex + iOrderNew , 
-							gVertexTable->m_pVertexLeft + iOrderSrc , 
-							sizeof(float) * iAttributeSize);
-//  					pVertex[iOrderNew + 8] = 0.0f;
-//  					pVertex[iOrderNew + 9] = 0.0f;
-				}
-			}
-			// Copy Right Eye
-			iDestOffset = iVertexLines_H * iVertexLines_W;
-			for (int iY = 0 ; iY < iVertexLines_H ; iY++)
-			{
-				int iLineOffset = iY * iVertexLines_W ;
-				for (int iX = 0 ; iX < iVertexLines_W ; iX++)
+				for (int iX = 0; iX < iVertexLines_W; iX++)
 				{
 					int iOrder = iLineOffset + iX;
 					int iOrderSrc = (iOrder + iSrcOffset) * iAttributeSize;
 					int iOrderNew = (iOrder + iDestOffset)* iAttributeSizeNew;
-					memcpy(pVertex + iOrderNew , 
-							gVertexTable->m_pVertexRight + iOrderSrc , 
-							sizeof(float) * iAttributeSize);
-//  					pVertex[iOrderNew + 8] = 1.0f;
-//  					pVertex[iOrderNew + 9] = 0.0f;
+					memcpy(pVertex + iOrderNew,
+						gVertexTable->m_pVertexLeft + iOrderSrc,
+						sizeof(float) * iAttributeSize);
+					//  					pVertex[iOrderNew + 8] = 0.0f;
+					//  					pVertex[iOrderNew + 9] = 0.0f;
 				}
 			}
-    		// Make Index Left Eye
-    		memcpy(pIndex ,gVertexTable->m_pIndex , iIndexCount / 2 * sizeof(int));
-    		int iIndex = iIndexCount / 2;
-    		while (iIndex < iIndexCount)
-    		{
-    			pIndex[iIndex] = pIndex[iIndex - iIndexCount / 2] + iVertexCount / 2;
-    			iIndex++;
-    		}
+			// Copy Right Eye
+			iDestOffset = iVertexLines_H * iVertexLines_W;
+			for (int iY = 0; iY < iVertexLines_H; iY++)
+			{
+				int iLineOffset = iY * iVertexLines_W;
+				for (int iX = 0; iX < iVertexLines_W; iX++)
+				{
+					int iOrder = iLineOffset + iX;
+					int iOrderSrc = (iOrder + iSrcOffset) * iAttributeSize;
+					int iOrderNew = (iOrder + iDestOffset)* iAttributeSizeNew;
+					memcpy(pVertex + iOrderNew,
+						gVertexTable->m_pVertexRight + iOrderSrc,
+						sizeof(float) * iAttributeSize);
+					//  					pVertex[iOrderNew + 8] = 1.0f;
+					//  					pVertex[iOrderNew + 9] = 0.0f;
+				}
+			}
+			// Make Index Left Eye
+			memcpy(pIndex, gVertexTable->m_pIndex, iIndexCount / 2 * sizeof(int));
+			int iIndex = iIndexCount / 2;
+			while (iIndex < iIndexCount)
+			{
+				pIndex[iIndex] = pIndex[iIndex - iIndexCount / 2] + iVertexCount / 2;
+				iIndex++;
+			}
 
-            warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
-                           pIndex,
-                           iIndexCount,
-                           pVertex,
-                           4 * iVertexCount * iAttributeSizeNew,
-                           iVertexCount);
+			warpGeom.Initialize(&attribs[0], NUM_VERT_ATTRIBS,
+				pIndex,
+				iIndexCount,
+				pVertex,
+				4 * iVertexCount * iAttributeSizeNew,
+				iVertexCount);
 
-            delete[] pIndex;
-            delete[] pVertex;
-        }
-    }
+			delete[] pIndex;
+			delete[] pVertex;
+		}
+	}
 
-    // Clean up local memory
-    delete [] vertData;
-    delete [] indexData;
+
 
 }
 
@@ -1545,8 +1765,8 @@ glm::mat4 CalculateWarpMatrix(glm::fquat& origPose, glm::fquat& latestPose)
 //-----------------------------------------------------------------------------
 {
     glm::fquat diff = origPose * glm::inverse(latestPose);
-
     glm::fquat invDiff = glm::inverse(diff);
+
     invDiff.z *= -1.0f;
     if(fabs(latestPose.x) < 0.0001 && fabs(latestPose.y) < 0.0001 && fabs(latestPose.z)<0.0001 && fabs(latestPose.w) > 0.9999){
 //        LOGI("latestPose is zero");
@@ -1555,23 +1775,6 @@ glm::mat4 CalculateWarpMatrix(glm::fquat& origPose, glm::fquat& latestPose)
         invDiff.z = 0;
         invDiff.w = 1;
     }
-
-//    if( fabs(origPose.x - latestPose.x) > 0.0001 ||
-//        fabs(origPose.y - latestPose.y) > 0.0001 ||
-//        fabs(origPose.z - latestPose.z) > 0.0001 ||
-//        fabs(origPose.w - latestPose.w) > 0.0001)
-//    {
-//        LOGI("mjsvr origPose:  [%0.6f, %0.6f, %0.6f, %0.6f]", origPose.x, origPose.y, origPose.z, origPose.w);
-//        LOGI("mjsvr latestPose:[%0.6f, %0.6f, %0.6f, %0.6f], invDiff:[%0.6f, %0.6f, %0.6f, %0.6f]\n",
-//             latestPose.x, latestPose.y, latestPose.z, latestPose.w,
-//             invDiff.x, invDiff.y, invDiff.z, invDiff.w);
-//    }
-//    if( invDiff.w < 0.99){
-//        LOGI("mjsvrE");
-//    }
-//    if( fabs(invDiff.x) < 0.0001 && fabs(invDiff.y) < 0.0001 && fabs(invDiff.z) < 0.0001 && fabs(invDiff.w) > 0.9999){
-//        LOGI("invDiff is zero");
-//    }
 
     return glm::mat4_cast(invDiff);
 }
@@ -1662,8 +1865,8 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
         maxPos[0] = 0.0f;  maxPos[1] = 1.0f;
         minUV[0] = 0.0f;   minUV[1] = 0.0f;
         maxUV[0] = 1.0f;   maxUV[1] = 1.0f;
-        InitializeWarpMesh(1, pWarpData->warpMeshes[kMeshLeft], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeColumns, kBarrleDistortion);
-        InitializeWarpMesh(1, pWarpData->warpMeshes[kMeshLeft_Low], undistortedRows, undistortedCols, minPos, maxPos, minUV, maxUV, kMeshModeColumns, kNoDistortion);
+        InitializeWarpMesh(1, pWarpData->warpMeshes[kMeshLeft]		, gWarpMeshRows	 , gWarpMeshCols	, minPos, maxPos, minUV, maxUV, kMeshModeColumns, kBarrleDistortion);
+        InitializeWarpMesh(1, pWarpData->warpMeshes[kMeshLeft_Low]	, undistortedRows, undistortedCols	, minPos, maxPos, minUV, maxUV, kMeshModeColumns, kNoDistortion);
 
         minPos[0] = -1.0f;  minPos[1] = -1.0f;
         maxPos[0] = 0.0f;  maxPos[1] = 1.0f;
@@ -1753,9 +1956,20 @@ bool InitializeAsyncWarpData(SvrAsyncWarpResources* pWarpData)
 
 		// Create merged mesh
         LOGI("--madi-- create merged warp mesh: %d, %d", (int)kMeshU, (int)kMeshL);
-		InitializeWarpMesh(3 | 0x10, pWarpData->warpMeshes[kMeshU], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeRows, kBarrleDistortion);
-    	InitializeWarpMesh(3 | 0x20, pWarpData->warpMeshes[kMeshL], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeRows, kBarrleDistortion);
+//		InitializeWarpMesh(3 | 0x10, pWarpData->warpMeshes[kMeshU], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeRows, kBarrleDistortion);
+//    	InitializeWarpMesh(3 | 0x20, pWarpData->warpMeshes[kMeshL], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeRows, kBarrleDistortion);
+		// AutoCreate SVR Distortion table
 
+        minPos[0] = -1.0f;  minPos[1] = 0.0f;
+        maxPos[0] = 0.0f;  maxPos[1] = 1.0f;
+        minUV[0] = 0.0f;  minUV[1] = 0.5f;
+        maxUV[0] = 1.0f;  maxUV[1] = 1.0f;
+		InitializeWarpMesh(0, pWarpData->warpMeshes[kMeshU], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeRows, kBarrleDistortion);
+        minPos[0] = -1.0f;  minPos[1] = -1.0f;
+        maxPos[0] = 0.0f;  maxPos[1] = 0.0f;
+        minUV[0] = 0.0f;  minUV[1] = 0.0f;
+        maxUV[0] = 1.0f;  maxUV[1] = 0.5f;
+		InitializeWarpMesh(0, pWarpData->warpMeshes[kMeshL], gWarpMeshRows, gWarpMeshCols, minPos, maxPos, minUV, maxUV, kMeshModeRows, kBarrleDistortion);
         break;
     }
 
@@ -2842,12 +3056,12 @@ void* WarpThreadMain(void* arg)
     		glDeleteSync(gpWarpFrame->warpSync);
     		gpWarpFrame->warpSync = 0;
 		}
-//		LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 1]" ,
-//			curSubmitFrameCount,
-//			gAppContext->modeContext->submitFrameCount,
-//			gAppContext->modeContext->warpFrameCount,
-//			gpWarpFrame->frameParams.eyeBufferArray[0]
-//		);
+		// LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 1]" ,
+		// 	curSubmitFrameCount,
+		// 	gAppContext->modeContext->submitFrameCount,
+		// 	gAppContext->modeContext->warpFrameCount,
+		// 	gpWarpFrame->frameParams.eyeBufferArray[0]
+		// );
 		
         int frameDoubled = 0;
         if (gLogFrameDoubles && gpWarpFrame->frameParams.minVsyncs == 1 && gAppContext->modeContext->warpFrameCount == prevWarpFrameCount)
@@ -3835,12 +4049,12 @@ void* WarpThreadMain(void* arg)
 
         PROFILE_EXIT(GROUP_TIMEWARP); //PROFILE_SCOPE_DEFAULT(GROUP_TIMEWARP);
 
-//        LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 2]" ,
-//			curSubmitFrameCount,
-//			gAppContext->modeContext->submitFrameCount,
-//			gAppContext->modeContext->warpFrameCount,
-//			gpWarpFrame->frameParams.eyeBufferArray[0]
-//		);
+  //       LOGV("-- HX -- curSubmitFrameCount = %d , submitFrameCount = %d , warpFrameCount = %d , TID = %d    [SWAP - 2]" ,
+		// 	curSubmitFrameCount,
+		// 	gAppContext->modeContext->submitFrameCount,
+		// 	gAppContext->modeContext->warpFrameCount,
+		// 	gpWarpFrame->frameParams.eyeBufferArray[0]
+		// );
 
         gpWarpFrame = NULL;
 //        LOGE("end while");
