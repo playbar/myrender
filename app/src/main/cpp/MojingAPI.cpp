@@ -978,7 +978,25 @@ int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult)
 
 	return 1;
 }
-#endif
+
+void MojingSDK_DD_SetEnableTracker(bool bEnable)// 开启或关闭DD陀螺仪
+{
+	g_bEnableDDTracker = bEnable;
+}
+bool MojingSDK_DD_GetEnableTracker()// 获取DD陀螺仪状态
+{
+	return g_bEnableDDTracker;
+}
+bool MojingSDK_DD_GetLastHeadView(float* pfViewMatrix)// 当DD陀螺仪关闭时，存放真实的陀螺仪数据
+{
+	if (!g_bEnableDDTracker)
+	{
+		memcpy(pfViewMatrix, g_fDDHeaderView, sizeof(float)* 16);
+	}
+	return !g_bEnableDDTracker;
+}
+
+#endif // ANDROID
 
 float MojingSDK_IsTrackerCalibrated()
 {
@@ -1105,7 +1123,6 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled() || pStatus->GetTrackerStatus() != TRACKER_START)
 	{
-		pStatus->SetTrackerStatus(TRACKER_START);
 		MOJING_ERROR(g_APIlogger, "getLastHeadView FAILD! InitStatus = " << pStatus->GetInitStatus() << " , TrackerStatus = " << pStatus->GetTrackerStatus());
 		memset(pfViewMatrix , 0 , sizeof(float ) * 16);
 		pfViewMatrix[0] = pfViewMatrix[5] = pfViewMatrix[10] = pfViewMatrix[15] = 1.0f;
@@ -1114,10 +1131,10 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 	/*首先尝试从正在绘制畸变的显示帧数据中获取正确的显示矩阵*/
 	MojingRenderBase *pRender = MojingRenderBase::GetCurrentRender();
 	double dTime = 0;
-//	if (pRender && pRender->GetEnableTimeWarp())
-//	{// 不需要TimeWarp的时候是不需要取得预测数据的
-//		Ret = pRender->GetCurrentModelFrameInfo(&dTime, pfViewMatrix);
-//	}
+	if (pRender && pRender->GetEnableTimeWarp())
+	{// 不需要TimeWarp的时候是不需要取得预测数据的
+		Ret = pRender->GetCurrentModelFrameInfo(&dTime, pfViewMatrix);
+	}
 	if (Ret == 0)
 	{
 		Manager* pManager = Manager::GetMojingManager();
@@ -1131,8 +1148,6 @@ uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 			{
 				pfViewMatrix[i] = viewMatrix.M[i / 4][i % 4];
 			}
-
-//            memcpy(pfViewMatrix, pTracker->headview, sizeof(float) * 16 );
 		}
 	}
     
@@ -1680,7 +1695,7 @@ bool MojingSDK_IsUseUnityForSVR()
 float MojingSDK_GetFOV()
 {
 	ENTER_MINIDUMP_FUNCTION;
-	MOJING_FUNC_TRACE(g_APIlogger);
+	//MOJING_FUNC_TRACE(g_APIlogger);
 	float fRet = 0.000;
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (pStatus->IsMojingSDKEnbaled())
@@ -2616,15 +2631,22 @@ bool   MojingSDK_SetSensorOrigin(int SensorOrigin)
 	{
 		if (SensorOrigin == SENSOR_ORIGIN_EXTERNAL_SDK)
 		{
+			MOJING_TRACE(g_APIlogger, "Set sensor origin: not MojingSDK");
 			pProfile->SetSensorDataFromMJSDK(false);
 		}
 		else
 		{
 			pProfile->SetSensorDataFromMJSDK(true);
 			if (SensorOrigin == SENSOR_ORIGIN_LOCAL_JAVA)
+			{
+				MOJING_TRACE(g_APIlogger, "Set sensor origin: MojingSDK Java");
 				pProfile->SetSensorDataFromJava(true);
+			}
 			else if (SENSOR_ORIGIN_LOCAL_NATIVE)
+			{
+				MOJING_TRACE(g_APIlogger, "Set sensor origin: MojingSDK Native");
 				pProfile->SetSensorDataFromJava(false);
+			}
 		}
 		pProfile->Save();
 	}

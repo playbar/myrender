@@ -121,6 +121,16 @@ bool MojingSDK_IsUseUnityForSVR();
 int MojingSDK_GetSocketPort();// Socket向服务报告端口的
 int MojingSDK_StartTrackerChecker(int nSampleFrequence);
 int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
+/*以下接口用于控制DD的陀螺仪*/
+// 开启或关闭DD陀螺仪
+void MojingSDK_DD_SetEnableTracker(bool bEnable);
+
+// 获取DD陀螺仪状态
+bool MojingSDK_DD_GetEnableTracker();
+
+// 当DD陀螺仪关闭时，存放真实的陀螺仪数据
+bool MojingSDK_DD_GetLastHeadView(float* pfViewMatrix);
+/*以上接口用于控制DD的陀螺仪*/
 #endif
 #if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 int MojingSDK_Device_GetKeymask(int iID, int *pKeyMask);

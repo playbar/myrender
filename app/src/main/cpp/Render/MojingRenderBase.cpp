@@ -24,7 +24,6 @@
 #include <map>
 #include <string>
 #include <ctime>
-#include <Base/MojingLog.h>
 
 #ifdef MJ_OS_ANDROID
 #include "MojingRenderMultithread.h"
@@ -287,7 +286,9 @@ namespace Baofeng
 				g_pmtMojingRenderBaseMap->DoLock();
 				std::map<int, MojingRenderBase *>::iterator it = g_MojingRenderBaseMap.find(iID);
 				if (it != g_MojingRenderBaseMap.end())
+				{				
 					delete it->second;
+				}
 				g_MojingRenderBaseMap.erase(it);
 				g_pmtMojingRenderBaseMap->Unlock();
 			}
@@ -1093,13 +1094,11 @@ namespace Baofeng
 			pRF->UpdatePredictView();
 			if (pMatrix)
 			{
-//				Matrix4f viewMatrix(pRF->GetPredictView());
-//				for (int i = 0; i < 16; i++)
-//				{
-//					pMatrix[i] = viewMatrix.M[i / 4][i % 4];
-//				}
-
-                memcpy(pMatrix, pRF->headview, sizeof(float) * 16 );
+				Matrix4f viewMatrix(pRF->GetPredictView());
+				for (int i = 0; i < 16; i++)
+				{
+					pMatrix[i] = viewMatrix.M[i / 4][i % 4];
+				}
 			}
 			return pRF->GetFrameIndex();
 		}

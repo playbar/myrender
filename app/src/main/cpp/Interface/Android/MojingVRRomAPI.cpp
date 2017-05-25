@@ -108,7 +108,7 @@ GlGeometryTriangles *g_pTriangles = NULL;
 
 bool MojingVRRomAPI_CreateDistortion(void *pBuffer, int iLength)
 {
-#ifdef _DEBUG
+#ifdef DEBUG
 	bool bNeedDeleteBuffer = false;
 	if (pBuffer == NULL)
 	{
@@ -143,7 +143,7 @@ bool MojingVRRomAPI_CreateDistortion(void *pBuffer, int iLength)
 		delete g_pTriangles;
 		g_pTriangles = NULL;
 	}
-#ifdef _DEBUG
+#ifdef DEBUG
 	if (bNeedDeleteBuffer)
 	{
 		free(pBuffer);

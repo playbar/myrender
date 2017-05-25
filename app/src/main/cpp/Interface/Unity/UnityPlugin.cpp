@@ -963,6 +963,25 @@ extern "C"
     {
         return OnRenderEvent;
     }
+
+#ifdef MJ_OS_ANDROID
+	 void Unity_DD_SetEnableTracker(bool bEnable)
+	 {
+		 MojingSDK_DD_SetEnableTracker(bEnable);
+	 }
+
+	 // 获取DD陀螺仪状态
+	 bool Unity_DD_GetEnableTracker()
+	 {
+		return MojingSDK_DD_GetEnableTracker();
+	 }
+
+	 // 当DD陀螺仪关闭时，存放真实的陀螺仪数据
+	 bool Unity_DD_GetLastHeadView(float* pfViewMatrix)
+	 {
+		 return MojingSDK_DD_GetLastHeadView(pfViewMatrix);
+	 }
+#endif
 }	// extern "C"
 
 	// --------------------------------------------------------------------------

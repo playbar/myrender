@@ -20,6 +20,11 @@ extern MojingLogger g_APIlogger;
 #endif
 
 #define GET_DLL_FUNCION(DLL , FUNC)  m_fp_##FUNC = (FP_##FUNC)dlsym(DLL , FN_##FUNC)
+bool g_bEnableDDTracker = true;
+float g_fDDHeaderView[16] = {	1,0,0,0,
+								0,1,0,0,
+								0,0,1,0,
+								0,0,0,1};
 
 void * HookGVRTools::m_hGVR = NULL;
 FP_gvr_get_head_space_from_start_space_rotation HookGVRTools::m_fp_gvr_get_head_space_from_start_space_rotation = NULL;
@@ -58,6 +63,10 @@ bool HookGVRTools::Init()
 			String sEngenVersion = "GVR ";
 			sEngenVersion += m_fp_gvr_get_version_string();
 			MojingSDK_SetEngineVersion(sEngenVersion);
+
+			g_bEnableDDTracker = true;
+			memset(g_fDDHeaderView, 0, sizeof(float)* 16);
+			g_fDDHeaderView[0] = g_fDDHeaderView[5] = g_fDDHeaderView[10] = g_fDDHeaderView[15] = 1;
 		}
 		/*if (HOOK_FUNCTION(gvr_get_head_space_from_start_space_rotation) &&
 			HOOK_FUNCTION(gvr_reset_tracking) &&
@@ -161,10 +170,14 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	bool bEnableMojingTracker = pStatus->GetTrackerStatus() == TRACKER_START;
-	if (bEnableMojingTracker)
+	bool bIsMJ5 = MojingSDK_IsHDMWorking();
+	if (bEnableMojingTracker || bIsMJ5)
 	{// Ê¹ÓÃMojing ÍÓÂÝÒÇ
-		bool bIsMJ5 = MojingSDK_IsHDMWorking();
+		
 		bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+#ifdef _DEBUG
+		MOJING_TRACE(g_APIlogger, "HOOK_gvr_get_head_space_from_start_space_rotation IsMJ5: " << bIsMJ5 << " SensorDataFromMJSDK: " << bSensorDataFromMJSDK);
+#endif
 		if (bIsMJ5 || bSensorDataFromMJSDK)
 		{
 			static float fTemp[16];
@@ -186,6 +199,15 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		}// else !bIsMJ5
 	}
 	// else !bEnableMojingTracker 
+
+	if (!g_bEnableDDTracker)
+	{// DDÍÓÂÝÒÇÒÑ¹Ø±Õ
+		memcpy(g_fDDHeaderView , Ret.m[0] , 16 * sizeof(float));
+
+		memset(&Ret, 0, sizeof(gvr_mat4f));
+		Ret.m[0][0] = Ret.m[1][1] = Ret.m[2][2] = Ret.m[3][3] = 1;
+	}
+
 	return Ret;
 }
 
@@ -195,7 +217,8 @@ void HookGVRTools::HOOK_gvr_reset_tracking(const gvr_context *gvr)
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
 	bool bIsMJ5 = MojingSDK_IsHDMWorking();
-	if (bIsMJ5)
+	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+	if (bIsMJ5 || bSensorDataFromMJSDK)
 	{
 		MojingSDK_ResetSensorOrientation();
 	}

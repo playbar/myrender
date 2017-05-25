@@ -47,5 +47,6 @@ private:
 	static FP_gvr_get_viewer_vendor m_fp_gvr_get_viewer_vendor;
 	static FP_gvr_get_version_string m_fp_gvr_get_version_string;
 };
-
+extern bool g_bEnableDDTracker;
+extern float g_fDDHeaderView[16];
 #endif
