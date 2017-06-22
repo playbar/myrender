@@ -239,7 +239,7 @@ namespace Baofeng
 							for (int i = 0; i < 6; i++)
 							{
 								v[2 + i] = fovScale * bufferVerts
-									[(y*(tesselationsX + 1) * 2 + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
+									[(y*(tesselationsX + 1) * 2 + x + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
 							}
 
 							// 下标8是X坐标在条带内的位置比值，越靠近条带右边界数值越大，越靠近条带左边界数值越小

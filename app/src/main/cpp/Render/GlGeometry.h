@@ -6,7 +6,7 @@
 #include "../Base/MojingMath.h"
 
 #include <vector>
-#define USING_NEW_MESH 1
+#define USING_NEW_MESH 0
 namespace Baofeng
 {
 	namespace Mojing

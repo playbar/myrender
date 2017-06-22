@@ -1,5 +1,6 @@
 ﻿#include <dirent.h>
 #include <unistd.h>
+#include <android/input.h>
 #include "MojingAPI.h"
 #include "Base/MojingTypes.h"
 #include "MojingManager.h"
@@ -393,7 +394,6 @@ void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const cha
 		pPlatform->SetAppKey(szAppKey);
 		pPlatform->SetChannelID(szChannelID);
 	}
-
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
