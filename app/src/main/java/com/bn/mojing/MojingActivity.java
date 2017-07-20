@@ -68,7 +68,7 @@ public class MojingActivity extends MojingVrActivity{
 	
 	static boolean   bTimeWarp = false;
 	static boolean   bMultiThread = false;
-	static String DefaultGlass = MJ4 ;// MJ2;//MJ_QB820;RK3288;
+	static String DefaultGlass = MJ2 ;// MJ2;//MJ_QB820;RK3288;
 	private VrPhotoRender renderer;
 	
 	private Handler handler = new Handler( );
@@ -204,7 +204,7 @@ public class MojingActivity extends MojingVrActivity{
 			//jump2AdjustActivity();
 //			com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
 			String MojingType = MojingKey[StartCount];
-			mView.setGlassesKey(MojingType);
+//			mView.setGlassesKey(MojingType);
 			//com.baofeng.mojing.MojingSDK.ChangeMojingWorld(MojingType);
 			StartCount  = StartCount + 1;
 			StartCount %=  MojingKey.length;
