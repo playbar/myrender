@@ -5,9 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
+
 import android.opengl.GLES20;
-import android.opengl.GLES30;
 
 public class FovTestModel {
 	int mProgram;			//Shader的运行脚本ID
@@ -34,12 +33,19 @@ public class FovTestModel {
     	String vertexShader = 
     			"uniform mat4 uMVPMatrix;" +
 				"uniform mat4 uPMatrix;" +
-    			"attribute vec3 aPosition;" +
+    			"attribute vec4 aPosition;" +
     			"attribute vec2 aTexCoor;" +
     			"varying vec2 vTextureCoord;" +
     			"void main()" +     
     			"{" +  			                          	
-    			"   gl_Position = uPMatrix * uMVPMatrix * vec4(aPosition,1);" +
+    			"   gl_Position = uPMatrix * aPosition;" +
+//				"   vec4 p1 = uMVPMatrix * vec4(aPosition,1);" +
+//				"   vec4 p2 = vec4(p1.x/p1.w, p1.y/p1.w, p1.z/p1.w, 1);" +
+//				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z));" +
+//				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z));" +
+//				"   p1.z = sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);" +
+//				"	 p1.w = 1;"+
+//				"   gl_Position = uPMatrix * p1;" +
     			"   vTextureCoord = aTexCoor;" +
     			"}";
     			
@@ -56,30 +62,96 @@ public class FovTestModel {
     	//璋冪敤鍒濆鍖栫潃鑹插櫒鐨刬ntShader鏂规硶
     	initShader(vertexShader,fragmentShader);
     }
+
+    public void modifyVertexBuffer()
+	{
+		mVertexBuffer.clear();
+		int xx = 2;
+		int yy = xx;
+		mPosCount = xx * yy;
+		float val = 100; //(float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
+		float r =  100;// (float) Math.sqrt(50 * 50 * 3);
+		float []VertexBase = new float[4 * xx * yy];
+		float step = val * 2/(xx - 1);
+		float []mat44 = MatrixState.getMVMatrix();
+//		float []mat44 = {
+//				0.9944254f,   0.062393546f, 0.08500107f, 0.0f,
+//				-0.08382214f, 0.95683366f,  0.27828613f, 0.0f,
+//				-0.06396863f, -0.28385976f,  0.95672965f, 0.0f,
+//				-0.0062866607f, -0.0032374784f, 0.10087146f, 1.0f
+//		};
+		float []vec4 = new float[4];
+		for( int x = 0; x < xx; x++ ){
+			for(int y = 0; y < yy; y++){
+//				VertexBase[x* 4 * xx + y*4 + 0] = -val + x * step;
+//				VertexBase[x* 4 * xx + y*4 + 1] = -val + y * step;
+//				VertexBase[x* 4 * xx + y*4 + 2] = -r;
+//				VertexBase[x* 4 * xx + y*4 + 3] = 1;
+				vec4[0] = -val + x * step;
+				vec4[1] = -val + y * step;
+				vec4[2] = -r;
+				vec4[3] = 1;
+				float []re = Vector4.matMulVec(mat44, vec4);
+				VertexBase[x* 4 * xx + y*4 + 0] = re[0];
+				VertexBase[x* 4 * xx + y*4 + 1] = re[1];
+				VertexBase[x* 4 * xx + y*4 + 2] = re[2];
+				VertexBase[x* 4 * xx + y*4 + 3] = re[3];
+			}
+		}
+
+
+//		ByteBuffer vbb = ByteBuffer.allocateDirect(mPosCount * 4 *4);
+//		vbb.order(ByteOrder.nativeOrder());
+//		mVertexBuffer = vbb.asFloatBuffer();
+		mVertexBuffer.put(VertexBase);
+		mVertexBuffer.position(0);
+
+		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexbuffer[0]);
+		GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVertexBuffer.capacity() * 4, mVertexBuffer, GLES20.GL_STATIC_DRAW);
+	}
+
     
     public void creatSkyBox()
     {
-    	float fBoxHalfSize = 1.0f;
 //    	float []VertexBase ={
 //				-50 ,-50, -50,
 //				-50 , 50, -50,
 //				 50 ,-50, -50,
 //				 50 , 50, -50,
 //		};
-		int xx = 10;
+		int xx = 2;
 		int yy = xx;
 		mPosCount = xx * yy;
-		float val = (float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
-        float r = (float) Math.sqrt(50 * 50 * 3);
-		float []VertexBase = new float[3 * xx * yy];
+		float val = 100; //(float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
+        float r =  100;// (float) Math.sqrt(50 * 50 * 3);
+		float []VertexBase = new float[4 * xx * yy];
 		float step = val * 2/(xx - 1);
+//		float []mat44 = MatrixState.getMVMatrix();
+		float []mat44 = {
+				0.9944254f,   0.062393546f, 0.08500107f, 0.0f,
+				-0.08382214f, 0.95683366f,  0.27828613f, 0.0f,
+				-0.06396863f, -0.28385976f,  0.95672965f, 0.0f,
+				-0.0062866607f, -0.0032374784f, 0.10087146f, 1.0f
+		};
+        float []vec4 = new float[4];
 		for( int x = 0; x < xx; x++ ){
 			for(int y = 0; y < yy; y++){
-				VertexBase[x* 3 * xx + y*3 + 0] = -val + x * step;
-				VertexBase[x* 3 * xx + y*3 + 1] = -val + y * step;
-				VertexBase[x* 3 * xx + y*3 + 2] = -r;
+//				VertexBase[x* 4 * xx + y*4 + 0] = -val + x * step;
+//				VertexBase[x* 4 * xx + y*4 + 1] = -val + y * step;
+//				VertexBase[x* 4 * xx + y*4 + 2] = -r;
+//				VertexBase[x* 4 * xx + y*4 + 3] = 1;
+                vec4[0] = -val + x * step;
+				vec4[1] = -val + y * step;
+				vec4[2] = -r;
+				vec4[3] = 1;
+				float []re = Vector4.matMulVec(mat44, vec4);
+				VertexBase[x* 4 * xx + y*4 + 0] = re[0];
+				VertexBase[x* 4 * xx + y*4 + 1] = re[1];
+				VertexBase[x* 4 * xx + y*4 + 2] = re[2];
+				VertexBase[x* 4 * xx + y*4 + 3] = re[3];
 			}
 		}
+
 
 //		float []VertexBase ={
 //				-val ,-val, -r,
@@ -88,7 +160,7 @@ public class FovTestModel {
 //				val, val, -r,
 //		};
 
-    	ByteBuffer vbb = ByteBuffer.allocateDirect(mPosCount * 3 *4);
+    	ByteBuffer vbb = ByteBuffer.allocateDirect(mPosCount * 4 *4);
         vbb.order(ByteOrder.nativeOrder());
         mVertexBuffer = vbb.asFloatBuffer();
         mVertexBuffer.put(VertexBase);
@@ -161,11 +233,10 @@ public class FovTestModel {
          GLES20.glGenBuffers(1, indexbuffer,0);
          GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, indexbuffer[0]);
          GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.capacity() * 2, indexBuffer, GLES20.GL_STATIC_DRAW);
-         
 
  	    GLES20.glEnableVertexAttribArray( maPositionHandle );
  	     GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexbuffer[0]);
-         GLES20.glVertexAttribPointer(maPositionHandle, 3, GLES20.GL_FLOAT, false, 0, 0);
+         GLES20.glVertexAttribPointer(maPositionHandle, 4, GLES20.GL_FLOAT, false, 0, 0);
          GLES20.glEnableVertexAttribArray( maTexCoorHandle );
     
          GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, uvbuffer[0]);
@@ -197,12 +268,14 @@ public class FovTestModel {
 //         GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, MatrixState.getFinalMatrix(), 0);
 		GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, MatrixState.getMVMatrix(), 0);
 		GLES20.glUniformMatrix4fv(muPMatrixHandle, 1, false, MatrixState.getProjMatrix(), 0);
+
+		modifyVertexBuffer();
          
          GLES20.glUniform1i(GLES20.glGetUniformLocation(mProgram, "sTexture"), 0);
 
          GLES20.glEnableVertexAttribArray( maPositionHandle );
 	     GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexbuffer[0]);
-        GLES20.glVertexAttribPointer(maPositionHandle, 3, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glVertexAttribPointer(maPositionHandle, 4, GLES20.GL_FLOAT, false, 0, 0);
         GLES20.glEnableVertexAttribArray( maTexCoorHandle );
    
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, uvbuffer[0]);
