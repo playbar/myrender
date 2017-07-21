@@ -37,15 +37,16 @@ public class FovTestModel {
     			"attribute vec2 aTexCoor;" +
     			"varying vec2 vTextureCoord;" +
     			"void main()" +     
-    			"{" +  			                          	
-    			"   gl_Position = uPMatrix * aPosition;" +
-//				"   vec4 p1 = uMVPMatrix * vec4(aPosition,1);" +
-//				"   vec4 p2 = vec4(p1.x/p1.w, p1.y/p1.w, p1.z/p1.w, 1);" +
-//				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z));" +
-//				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z));" +
-//				"   p1.z = sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);" +
-//				"	 p1.w = 1;"+
-//				"   gl_Position = uPMatrix * p1;" +
+    			"{" +
+//				"   gl_Position = uPMatrix * uMVPMatrix * aPosition;" +
+//    			"   gl_Position = uPMatrix * aPosition;" +
+				"   vec4 p1 = uMVPMatrix * aPosition;" +
+				"   vec4 p2 = vec4(p1.x/p1.w, p1.y/p1.w, p1.z/p1.w, 1);" +
+				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z)) * 57.296f;" +
+				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z)) * 57.296f;" +
+				"   p1.z = -sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)/2.0f;" +
+				"	p1.w = 1.0f;"+
+				"   gl_Position = uPMatrix * p1;" +
     			"   vTextureCoord = aTexCoor;" +
     			"}";
     			
@@ -92,10 +93,13 @@ public class FovTestModel {
 				vec4[2] = -r;
 				vec4[3] = 1;
 				float []re = Vector4.matMulVec(mat44, vec4);
-				VertexBase[x* 4 * xx + y*4 + 0] = re[0];
-				VertexBase[x* 4 * xx + y*4 + 1] = re[1];
-				VertexBase[x* 4 * xx + y*4 + 2] = re[2];
-				VertexBase[x* 4 * xx + y*4 + 3] = re[3];
+				float x1 = (float) Math.atan2((double) re[0], (double)Math.sqrt((double) (re[1] * re[1] + re[2] * re[2])));
+				float y1 = (float) Math.atan2((double) re[1], (double)Math.sqrt((double) (re[0] * re[0] + re[2] * re[2])));
+				float z1 = (float) Math.sqrt(re[0] * re[0] + re[1] * re[1] + re[2] * re[2]);
+				VertexBase[x* 4 * xx + y*4 + 0] = x1 * (float) (180.0f / Math.PI); //re[0];
+				VertexBase[x* 4 * xx + y*4 + 1] = y1 * (float) (180.0f / Math.PI);//re[1];
+				VertexBase[x* 4 * xx + y*4 + 2] = -z1/2;//re[2];
+				VertexBase[x* 4 * xx + y*4 + 3] = 1.0f;//re[3];
 			}
 		}
 
@@ -136,19 +140,19 @@ public class FovTestModel {
         float []vec4 = new float[4];
 		for( int x = 0; x < xx; x++ ){
 			for(int y = 0; y < yy; y++){
-//				VertexBase[x* 4 * xx + y*4 + 0] = -val + x * step;
-//				VertexBase[x* 4 * xx + y*4 + 1] = -val + y * step;
-//				VertexBase[x* 4 * xx + y*4 + 2] = -r;
-//				VertexBase[x* 4 * xx + y*4 + 3] = 1;
-                vec4[0] = -val + x * step;
-				vec4[1] = -val + y * step;
-				vec4[2] = -r;
-				vec4[3] = 1;
-				float []re = Vector4.matMulVec(mat44, vec4);
-				VertexBase[x* 4 * xx + y*4 + 0] = re[0];
-				VertexBase[x* 4 * xx + y*4 + 1] = re[1];
-				VertexBase[x* 4 * xx + y*4 + 2] = re[2];
-				VertexBase[x* 4 * xx + y*4 + 3] = re[3];
+				VertexBase[x* 4 * xx + y*4 + 0] = -val + x * step;
+				VertexBase[x* 4 * xx + y*4 + 1] = -val + y * step;
+				VertexBase[x* 4 * xx + y*4 + 2] = -r;
+				VertexBase[x* 4 * xx + y*4 + 3] = 1;
+//                vec4[0] = -val + x * step;
+//				vec4[1] = -val + y * step;
+//				vec4[2] = -r;
+//				vec4[3] = 1;
+//				float []re = Vector4.matMulVec(mat44, vec4);
+//				VertexBase[x* 4 * xx + y*4 + 0] = re[0];
+//				VertexBase[x* 4 * xx + y*4 + 1] = re[1];
+//				VertexBase[x* 4 * xx + y*4 + 2] = re[2];
+//				VertexBase[x* 4 * xx + y*4 + 3] = re[3];
 			}
 		}
 
@@ -269,7 +273,7 @@ public class FovTestModel {
 		GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, MatrixState.getMVMatrix(), 0);
 		GLES20.glUniformMatrix4fv(muPMatrixHandle, 1, false, MatrixState.getProjMatrix(), 0);
 
-		modifyVertexBuffer();
+//		modifyVertexBuffer();
          
          GLES20.glUniform1i(GLES20.glGetUniformLocation(mProgram, "sTexture"), 0);
 
