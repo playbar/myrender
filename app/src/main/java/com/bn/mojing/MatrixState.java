@@ -13,6 +13,8 @@ public class MatrixState
     public static float[] lightLocation=new float[]{0,0,0};//定位光光源位置
     public static FloatBuffer cameraFB;    
     public static FloatBuffer lightPositionFB;
+    public static float mfar = 0.0f;
+    public static float mnear = 0.0f;
       
     //保护变换矩阵的栈  
     static float[][] mStack=new float[10][16];
@@ -129,6 +131,8 @@ public class MatrixState
     	float far       //far面距离
     )
     {
+        mnear = near;
+        mfar = far;
     	Matrix.frustumM(mProjMatrix, 0, left, right, bottom, top, near, far);
     }
     
@@ -147,25 +151,40 @@ public class MatrixState
     }   
     //获取具体物体的总变换矩阵
     static float[] mMVPMatrix=new float[16];
+    static float[] mMVMatrix = new float[16];
     public static float[] getFinalMatrix()
     {	
     	Matrix.multiplyMM(mMVPMatrix, 0, mVMatrix, 0, currMatrix, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mMVPMatrix, 0);        
         return mMVPMatrix;
     }   
-    
+
+    public static float[]getMVMatrix()
+    {
+        Matrix.multiplyMM(mMVMatrix, 0, mVMatrix, 0, currMatrix, 0);
+        return mMVMatrix;
+    }
+
+    //获取投影矩阵
+    public static float[] getProjMatrix()
+    {
+        float fFOV = com.baofeng.mojing.MojingSDK.GetMojingWorldFOV();
+        float[] prjm= {
+                2/fFOV, 0 ,0 , 0,
+                0, 2/fFOV, 0, 0,
+                0, 0, 1/(mfar - mnear), -mnear/(mfar - mnear),
+                0, 0, 1, 0
+        };
+        return prjm;
+//        return mProjMatrix;
+    }
+
     //获取具体物体的变换矩阵
     public static float[] getMMatrix()
     {       
         return currMatrix;
     }
-    
-    //获取投影矩阵
-    public static float[] getProjMatrix()
-    {
-		return mProjMatrix;
-    }
-    
+
     //获取摄像机朝向的矩阵
     public static float[] getCaMatrix()
     {

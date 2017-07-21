@@ -1770,6 +1770,7 @@ float MojingSDK_GetFOV()
 			MOJING_ERROR(g_APIlogger , "Can not get FOV , GlassName is EMPTY...");
 		}
 	}
+    fRet = 120;
 //	MOJING_TRACE(g_APIlogger, "FOV = " << fRet);
 	return fRet;
 }

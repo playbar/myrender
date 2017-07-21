@@ -77,7 +77,7 @@ public class HeadTracker implements SensorEventListener {
      */
     public void onSensorChanged(SensorEvent event) {
         Thread t = Thread.currentThread();
-        Log.e("headtracker", "onSensorChanged, id=" + t.getId());
+//        Log.e("headtracker", "onSensorChanged, id=" + t.getId());
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             this.latestAcc.set(event.values[0], event.values[1], event.values[2]);
             this.tracker.processAcc(this.latestAcc, event.timestamp);
