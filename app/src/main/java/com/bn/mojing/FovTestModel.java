@@ -7,6 +7,7 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 public class FovTestModel {
 	int mProgram;			//Shader的运行脚本ID
@@ -39,14 +40,15 @@ public class FovTestModel {
     			"void main()" +     
     			"{" +
 //				"   gl_Position = uPMatrix * uMVPMatrix * aPosition;" +
-//    			"   gl_Position = uPMatrix * aPosition;" +
-				"   vec4 p1 = uMVPMatrix * aPosition;" +
-				"   vec4 p2 = vec4(p1.x/p1.w, p1.y/p1.w, p1.z/p1.w, 1);" +
-				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z)) * 57.296f;" +
-				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z)) * 57.296f;" +
-				"   p1.z = -sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)/2.0f;" +
-				"	p1.w = 1.0f;"+
-				"   gl_Position = uPMatrix * p1;" +
+    			"   gl_Position = uPMatrix * aPosition;" +
+//				"   vec4 p1 = uMVPMatrix * aPosition;" +
+//				"   vec4 p2 = vec4(p1.x/p1.w, p1.y/p1.w, p1.z/p1.w, 1);" +
+//				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z)) * 57.296f;" +
+//				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z)) * 57.296f;" +
+//				"   p1.z = -sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)/2.0f;" +
+//				"	p1.w = 1.0f;"+
+//				"   gl_Position = uPMatrix * p1;" +
+//				"   gl_Position = aPosition;"+
     			"   vTextureCoord = aTexCoor;" +
     			"}";
     			
@@ -107,6 +109,49 @@ public class FovTestModel {
 //		ByteBuffer vbb = ByteBuffer.allocateDirect(mPosCount * 4 *4);
 //		vbb.order(ByteOrder.nativeOrder());
 //		mVertexBuffer = vbb.asFloatBuffer();
+		mVertexBuffer.put(VertexBase);
+		mVertexBuffer.position(0);
+
+		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexbuffer[0]);
+		GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mVertexBuffer.capacity() * 4, mVertexBuffer, GLES20.GL_STATIC_DRAW);
+	}
+
+	public void modifyFinalVertexBuffer()
+	{
+		mVertexBuffer.clear();
+		int xx = 2;
+		int yy = xx;
+		mPosCount = xx * yy;
+		float val = 50; //(float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
+		float r =  100;// (float) Math.sqrt(50 * 50 * 3);
+		float []VertexBase = new float[4 * xx * yy];
+		float step = val * 2/(xx - 1);
+		float []mat44 = MatrixState.getMVMatrix();
+		float []mat44Proj =  MatrixState.getProjMatrix();
+		float []vec4 = new float[4];
+		for( int x = 0; x < xx; x++ ){
+			for(int y = 0; y < yy; y++){
+				vec4[0] = -val + x * step;
+				vec4[1] = -val + y * step;
+				vec4[2] = -r;
+				vec4[3] = 1;
+				float []re = Vector4.matMulVec(mat44, vec4);
+				float []repro = Vector4.matMulVec(mat44Proj, re);
+				float lenth = (float) Math.sqrt(re[0] * re[0] + re[1] * re[1] + re[2] * re[2]);
+				repro[0] = re[0] / lenth;
+				repro[1] = re[1] / lenth;
+				repro[2] = re[2] / lenth;
+				repro[3] = re[3];
+				VertexBase[x* 4 * xx + y*4 + 0] = repro[0];
+				VertexBase[x* 4 * xx + y*4 + 1] = repro[1];
+				VertexBase[x* 4 * xx + y*4 + 2] = repro[2];
+				VertexBase[x* 4 * xx + y*4 + 3] = repro[3];
+				if( x == 0 && y == 0){
+					Log.e("modifyFinalVertexBuffer", "re   ->x:" + re[0] + ", y:" + re[1] + ", z:" + re[2] + ", w:" + re[3]);
+					Log.e("modifyFinalVertexBuffer", "repro->x:" + repro[0] + ", y:" + repro[1] + ", z:" + repro[2] + ", w:" + repro[3]);
+				}
+			}
+		}
 		mVertexBuffer.put(VertexBase);
 		mVertexBuffer.position(0);
 
@@ -273,7 +318,8 @@ public class FovTestModel {
 		GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, MatrixState.getMVMatrix(), 0);
 		GLES20.glUniformMatrix4fv(muPMatrixHandle, 1, false, MatrixState.getProjMatrix(), 0);
 
-//		modifyVertexBuffer();
+		modifyVertexBuffer();
+//		modifyFinalVertexBuffer();
          
          GLES20.glUniform1i(GLES20.glGetUniformLocation(mProgram, "sTexture"), 0);
 
