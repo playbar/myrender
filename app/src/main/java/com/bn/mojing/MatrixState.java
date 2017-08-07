@@ -169,12 +169,22 @@ public class MatrixState
     public static float[] getProjMatrix()
     {
         float fFOV = com.baofeng.mojing.MojingSDK.GetMojingWorldFOV();
-        float[] prjm= {
+        /*float[] prjm= {
                 2/fFOV, 0 ,0 , 0,
                 0, 2/fFOV, 0, 0,
-                0, 0, 1/(mfar - mnear), -mnear/(mfar - mnear),
+                0, 0, 2/(mfar - mnear),1 - 2*mnear/(mfar - mnear),
                 0, 0, 1, 0
+        };*/
+
+        float[] prjm= {
+                2*(float) (180.0f / Math.PI)/fFOV, 0 ,0 , 0,
+                0, 2*(float) (180.0f / Math.PI)/fFOV, 0, 0,
+                0, 0, -2/(mfar - mnear),-1 + 2*mnear/(mfar - mnear),
+                0, 0, 0, 1
         };
+
+//        0, 0, -2/(mfar - mnear),-1 + 2*mnear/(mfar - mnear),
+
         return prjm;
 //        return mProjMatrix;
     }

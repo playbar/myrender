@@ -20,13 +20,13 @@ public class FovTestModel {
     final int[] uvbuffer = new int[1];
 	final int[] indexbuffer = new int[1];
 
-
 	FloatBuffer   mVertexBuffer;
 	FloatBuffer   mTexCoorBuffer;
 	ShortBuffer indexBuffer;
 
     int miIndexCount = 6;
 	int mPosCount = 4;
+	int xx = 10;
     public FovTestModel()
     {
     	creatSkyBox( );
@@ -40,15 +40,17 @@ public class FovTestModel {
     			"void main()" +     
     			"{" +
 //				"   gl_Position = uPMatrix * uMVPMatrix * aPosition;" +
-    			"   gl_Position = uPMatrix * aPosition;" +
+//    			"   gl_Position = uPMatrix * aPosition;" +
+				"   gl_Position = aPosition;"+
 //				"   vec4 p1 = uMVPMatrix * aPosition;" +
 //				"   vec4 p2 = vec4(p1.x/p1.w, p1.y/p1.w, p1.z/p1.w, 1);" +
-//				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z)) * 57.296f;" +
-//				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z)) * 57.296f;" +
-//				"   p1.z = -sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)/2.0f;" +
+////				"   p1.x = atan(p2.x, sqrt(p2.y * p2.y + p2.z * p2.z)) * 57.296f;" +
+////				"   p1.y = atan(p2.y, sqrt(p2.x * p2.x + p2.z * p2.z)) * 57.296f;" +
+//				"   p1.x = atan(p2.y, p2.z) * 57.296f * 10.0f;" +
+//				"   p1.y = atan(p2.x, p2.z) * 57.296f * 10.0f;" +
+//				"   p1.z = -sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z);" +
 //				"	p1.w = 1.0f;"+
 //				"   gl_Position = uPMatrix * p1;" +
-//				"   gl_Position = aPosition;"+
     			"   vTextureCoord = aTexCoor;" +
     			"}";
     			
@@ -69,7 +71,6 @@ public class FovTestModel {
     public void modifyVertexBuffer()
 	{
 		mVertexBuffer.clear();
-		int xx = 2;
 		int yy = xx;
 		mPosCount = xx * yy;
 		float val = 100; //(float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
@@ -95,12 +96,16 @@ public class FovTestModel {
 				vec4[2] = -r;
 				vec4[3] = 1;
 				float []re = Vector4.matMulVec(mat44, vec4);
-				float x1 = (float) Math.atan2((double) re[0], (double)Math.sqrt((double) (re[1] * re[1] + re[2] * re[2])));
-				float y1 = (float) Math.atan2((double) re[1], (double)Math.sqrt((double) (re[0] * re[0] + re[2] * re[2])));
+//				float x1 = (float) Math.atan2((double) re[0], (double)Math.sqrt((double) (re[1] * re[1] + re[2] * re[2])));
+//				float y1 = (float) Math.atan2((double) re[1], (double)Math.sqrt((double) (re[0] * re[0] + re[2] * re[2])));
+				float x1 = (float) Math.atan2((double) re[1], (double)re[2]);
+				float y1 = (float) Math.atan2((double) re[0], (double)re[2]);
 				float z1 = (float) Math.sqrt(re[0] * re[0] + re[1] * re[1] + re[2] * re[2]);
-				VertexBase[x* 4 * xx + y*4 + 0] = x1 * (float) (180.0f / Math.PI); //re[0];
-				VertexBase[x* 4 * xx + y*4 + 1] = y1 * (float) (180.0f / Math.PI);//re[1];
-				VertexBase[x* 4 * xx + y*4 + 2] = -z1/2;//re[2];
+//				VertexBase[x* 4 * xx + y*4 + 0] = x1 * (float) (180.0f / Math.PI); //re[0];
+//				VertexBase[x* 4 * xx + y*4 + 1] = y1 * (float) (180.0f / Math.PI);//re[1];
+				VertexBase[x* 4 * xx + y*4 + 0] = x1 * 10; //re[0];
+				VertexBase[x* 4 * xx + y*4 + 1] = y1 * 10;//re[1];
+				VertexBase[x* 4 * xx + y*4 + 2] = -z1;//re[2];
 				VertexBase[x* 4 * xx + y*4 + 3] = 1.0f;//re[3];
 			}
 		}
@@ -119,7 +124,6 @@ public class FovTestModel {
 	public void modifyFinalVertexBuffer()
 	{
 		mVertexBuffer.clear();
-		int xx = 2;
 		int yy = xx;
 		mPosCount = xx * yy;
 		float val = 50; //(float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
@@ -138,10 +142,19 @@ public class FovTestModel {
 				float []re = Vector4.matMulVec(mat44, vec4);
 				float []repro = Vector4.matMulVec(mat44Proj, re);
 				float lenth = (float) Math.sqrt(re[0] * re[0] + re[1] * re[1] + re[2] * re[2]);
-				repro[0] = re[0] / lenth;
-				repro[1] = re[1] / lenth;
-				repro[2] = re[2] / lenth;
-				repro[3] = re[3];
+				float faa= (float)Math.atan2(1.0f, 1.0f);
+				repro[0] = (float) Math.atan2((double) Math.abs(re[0]), (double)Math.abs(re[2]));
+				repro[1] = (float) Math.atan2((double) Math.abs(re[1]), (double)Math.abs(re[2]));
+				if( re[0]<0.0f)
+					repro[0] = -repro[0];
+				if( re[1] < 0.0f)
+					repro[1] = -repro[1];
+
+				repro[2] = 0.5f;
+//				repro[0] = re[0] / lenth;
+//				repro[1] = re[1] / lenth;
+//				repro[2] = re[2] / lenth;
+				repro[3] = 1.0f;
 				VertexBase[x* 4 * xx + y*4 + 0] = repro[0];
 				VertexBase[x* 4 * xx + y*4 + 1] = repro[1];
 				VertexBase[x* 4 * xx + y*4 + 2] = repro[2];
@@ -168,7 +181,7 @@ public class FovTestModel {
 //				 50 ,-50, -50,
 //				 50 , 50, -50,
 //		};
-		int xx = 2;
+
 		int yy = xx;
 		mPosCount = xx * yy;
 		float val = 100; //(float) (Math.atan2(1, Math.sqrt(2.0)) * 180 / Math.PI);
@@ -318,8 +331,8 @@ public class FovTestModel {
 		GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, MatrixState.getMVMatrix(), 0);
 		GLES20.glUniformMatrix4fv(muPMatrixHandle, 1, false, MatrixState.getProjMatrix(), 0);
 
-		modifyVertexBuffer();
-//		modifyFinalVertexBuffer();
+//		modifyVertexBuffer();
+		modifyFinalVertexBuffer();
          
          GLES20.glUniform1i(GLES20.glGetUniformLocation(mProgram, "sTexture"), 0);
 

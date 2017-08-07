@@ -296,10 +296,10 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
 					//  fot test
 					//if (iFrameCount < 50)
 //					SkyBox.Draw(g_SkyboxId);
-					if(iEye == 0 )
-						fovModel.Draw(g_LeftTexLayout);
-					else
-						fovModel.Draw(g_RightTexLayout);
+//					if(iEye == 0 )
+//						fovModel.Draw(g_LeftTexLayout);
+//					else
+//						fovModel.Draw(g_RightTexLayout);
 //						else if (iFrameCount < 100)
 //							SkyBox.Draw(g_SkyboxId);
 //						else if (iFrameCount < 150)
@@ -308,7 +308,7 @@ public class VrPhotoRender implements GLSurfaceView.Renderer {
 //							SkyBox.Draw(g_TexId);
 
 					// end of test
-					//sphere.Draw(g_TexId);
+					sphere.Draw(g_TexId);
 					//SkyBox.Draw(g_SkyboxId);
 				}  // endi if (status == GLES20.GL_FRAMEBUFFER_COMPLETE)
 			}// endi if (EyeTex[iEye] != 0)

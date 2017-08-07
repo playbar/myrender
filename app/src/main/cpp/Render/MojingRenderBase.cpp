@@ -1418,6 +1418,7 @@ namespace Baofeng
 			//m_shaderIds.push_back(prog.fragmentShader);
 
 			prog.program = glCreateProgram();
+			int iporgram = prog.program;
 			// m_programIds.push_back(prog.program);
 			glAttachShader(prog.program, prog.vertexShader);
 			glAttachShader(prog.program, prog.fragmentShader);

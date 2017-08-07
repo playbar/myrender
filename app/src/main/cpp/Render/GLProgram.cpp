@@ -95,8 +95,12 @@ namespace Baofeng
 			"varying  vec2 oTexCoord1g;\n"
 			"varying  vec2 oTexCoord1b;\n"
 			"varying  float	intensity;\n"
+            "varying vec4 color;\n"
 			"void main()\n"
 			"{\n"
+            "   color = vec4(0.0f, 1.0f, 0.0f, 1.0f);\n"
+            "   if(Position.x<0.5f)"
+            "       color = vec4(1.0f, 0.0f, 0.0f, 1.0f);"
 			"   gl_Position = Mvpm * Position;\n"
 			"	vec3 proj;\n"
 			"	float projIZ;\n"
@@ -171,6 +175,7 @@ namespace Baofeng
 			"varying highp vec2 oTexCoord1r;\n"
 			"varying highp vec2 oTexCoord1g;\n"
 			"varying highp vec2 oTexCoord1b;\n"
+            "varying highp vec4 color;\n"
 			"uniform mediump vec2 TexClipX;\n"
 			"varying mediump float	intensity;\n"
 			"void main()\n"
@@ -180,7 +185,7 @@ namespace Baofeng
 			"	highp vec4 color1 = texture2D(Texture0, oTexCoord1g) * TestG;\n"//注意: 主图层的Alpha是1
 			//"	highp vec4 color1 = texture2D(Texture0, oTexCoord1g);\n"
 			"	color1.w = 1.0;\n"
-			"	gl_FragColor = intensity * color1;\n"
+			"	gl_FragColor = intensity * color;\n"
 			"}\n";
 
 		const char* FragmentShaderLayout = "uniform sampler2D Texture0;\n"
