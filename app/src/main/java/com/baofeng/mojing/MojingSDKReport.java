@@ -115,8 +115,8 @@ public class MojingSDKReport {
 		com.baofeng.mojing.MojingSDK.AppReportLog(iLogType, typeName, logContent);	
 	}	
 
-	public static void onReportUserAction(String strActionType, String strItemID)
+	public static void onReportUserAction(String strActionType, String strItemID, String strJsonValue)
 	{
-		com.baofeng.mojing.MojingSDK.AppReportUserAction(strActionType, strItemID);
+		com.baofeng.mojing.MojingSDK.AppReportUserAction(strActionType, strItemID, strJsonValue);
 	}
 }

@@ -161,6 +161,7 @@ namespace Baofeng
 				pStatus->SetTrackerStatus(TRACKER_START_NOW);
 				MOJING_TRACE(g_Sensorlogger, "Set sensor frequence as " << nSampleFrequence << " / " << GetMaxSensorsSampleRate() << "(Max)");
 				Manager* pManager = Manager::GetMojingManager();
+				SetDataFromExternal(false);
 				pManager->SetSensor(szGlassName);
 				Sensor* pSensor = pManager->GetSensor();
 				int nCheck = pSensor->CheckSensors();
@@ -177,6 +178,9 @@ namespace Baofeng
 				m_pSensorfusion->Initialize(pSensor, pParameters, lpszModel);
 				if (GetDataFromExternal() && szGlassName == NULL)
 				{
+#ifdef MJ_OS_ANDROID
+					pStatus->SetSensorOrigin(SENSOR_FROM_JAVA);
+#endif
 					MOJING_TRACE(g_Sensorlogger, "Use sensor data from SDK_Java.");
 					m_bSensorfusionInit = true;
 					m_nSkipSamples = 10;
@@ -187,14 +191,18 @@ namespace Baofeng
 				}
 				else
 				{
+#ifdef MJ_OS_ANDROID
 					if (szGlassName)
 					{
+						pStatus->SetSensorOrigin(SENSOR_FROM_SERVICE);
 						MOJING_TRACE(g_Sensorlogger, "Use sensor data from Service. Name: " << szGlassName );
 					}
 					else
 					{
+						pStatus->SetSensorOrigin(SENSOR_FROM_NATIVE);
 						MOJING_TRACE(g_Sensorlogger, "Use sensor data from SDK_Native.");
 					}
+#endif
 					if (!pSensor->StartSensor(nSampleFrequence/*, pRecordPath*/))
 					{
 						pStatus->SetTrackerStatus(TRACKER_STOP);
@@ -264,7 +272,16 @@ namespace Baofeng
 			MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 			if (pStatus->GetTrackerStatus() != TRACKER_START)
 			{
-				return;
+#ifdef MJ_OS_ANDROID
+				if (pStatus->GetTrackerStatus() == TRACKER_START_NOW && pStatus->GetSensorOrigin() == SENSOR_FROM_JAVA)
+				{
+					//陀螺仪来源是SDK_JAVA， 可能由于数据未收到而未将状态置为TRACKER_START或TRACKER_STOP， 此时仍因运行继续继续Stop操作
+				}
+				else
+#endif
+				{
+					return;
+				}
 			}
 			int count = AtomicOps<int>::ExchangeAdd_NoSync(&RefCount, -1);
 			if (count < 0)// ==0表示已经退出过了，不要在下面+1
@@ -280,7 +297,7 @@ namespace Baofeng
 				m_bSensorfusionInit = false;
 				pStatus->SetTrackerStatus(TRACKER_STOP_NOW);
 				if (m_pSensorfusion)
-				{
+				{ 
 					Manager* pManager = Manager::GetMojingManager();
 					Sensor* pSensor = pManager->GetSensor();
 					pSensor->StopSensor();
@@ -320,6 +337,7 @@ namespace Baofeng
 					m_pLastSensorState = sstate;
 				}
 			}
+
 			// Convert sensor.Recorded to view matrix
 			mHeadView = Matrix4f(m_pLastSensorState.Predicted.Transform.Orientation);
 		}
@@ -410,6 +428,11 @@ namespace Baofeng
 			if (m_pSensorfusion)
 				return m_pSensorfusion->GetCalibrationRate();
 			return 0;
+		}
+		void Tracker::SetCalibrationRate(float fRate)const
+		{
+			if (m_pSensorfusion)
+				m_pSensorfusion->SetCalibrationRate(fRate);
 		}
 // 		int Tracker::GetCalibrationResetCount()const
 // 		{

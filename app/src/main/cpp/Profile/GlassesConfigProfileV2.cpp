@@ -222,6 +222,9 @@ namespace Baofeng
 
 		bool GlassesConfigProfileV2::FromJson(JSON* pJson)
 		{
+			if (pJson == NULL)
+				return false;
+
 			if (ReleaseDateFromJson(pJson))
 			{
 				if (JSON *pSDKLimit = pJson->GetItemByName("SDKLimit"))
@@ -265,12 +268,15 @@ namespace Baofeng
 				strcat(filename, "/");
 			strcat(filename, "GlassesConfig.json");
 			JSON *pJsonFromPacket = JSON::Load(filename, g_EncKey, (char const**)&szError);
-
+			/*部分应用（如Daydream游戏）的cache中没有GlassesConfig文件，
+			若直接退出将无法从sdcard或网络更新GlassesConfig数据，导致MachineList也无法更新，故去掉该判断*/
+			/*
 			if (pJsonFromPacket == NULL)
 			{
-				MOJING_ERROR(g_APIlogger , "Can not load profile from : " << lpszProfilePath);
+				MOJING_ERROR(g_APIlogger, "Can not load profile from : " << filename);
 				return false;
 			}
+			*/
 			/*来自SD卡的节点*/
 			JSON * pJsonFromSDCard = NULL;
 			String LocalPath = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();

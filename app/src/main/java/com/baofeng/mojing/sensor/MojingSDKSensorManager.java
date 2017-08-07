@@ -48,15 +48,15 @@ public class MojingSDKSensorManager {
     //是否使用Java层取得的Sensor数据
 	//private boolean bUseJavaSensor = false;
 	//测试用
-    private StringBuilder stringBuilder = new StringBuilder();
+    //private StringBuilder stringBuilder = new StringBuilder();
 	
 	// 子线程操作的互斥保护对象
 	private final Object ThreadMutex = new Object();
 
-	private Method method = null;
-	private Object objVrService = null;
+	//private Method method = null;
+	//private Object objVrService = null;
     private MojingSDKSensorManager() {
-		initHandler();
+		//initHandler();
     }
 
     /**
@@ -68,7 +68,7 @@ public class MojingSDKSensorManager {
 		boolean bUseJavaSensor = false;
         try {
             String json = MojingSDK.GetUserSettings();
-			Log.i(TAG, "MojingSDK GetUserSettings = " + json);
+			//Log.i(TAG, "MojingSDK GetUserSettings = " + json);
             JSONObject jsonObject = new JSONObject(json);
             if (jsonObject.has("SensorDataFromJava")) {
                 if (jsonObject.getInt("SensorDataFromJava") == 1) {
@@ -88,7 +88,6 @@ public class MojingSDKSensorManager {
         return instance;
     }
 
-    
     public static void RegisterSensor(Context context)
     {
         //Log.i(TAG, "RegisterSensor");	
@@ -104,7 +103,6 @@ public class MojingSDKSensorManager {
     /**
      * 初始化子线程
      */
-	/*
     private void initHandler() {
         handlerThread = new HandlerThread("jerome");
         handlerThread.start();
@@ -122,7 +120,8 @@ public class MojingSDKSensorManager {
             }
         };
     }
-	*/   
+
+	/*
 	private void initHandler() {
         handlerThread = new HandlerThread("jerome");
         handlerThread.start();
@@ -176,6 +175,7 @@ public class MojingSDKSensorManager {
             }
         };
     }
+	*/
 
     private void register(Context context) {
         if (!useJavaSensor()) {
@@ -183,13 +183,14 @@ public class MojingSDKSensorManager {
             return;
         }
         Log.i(TAG, "useJavaSensor=true");
+		initHandler();
         hasMagneticField = false;
          if (sensorArr == null) {
          	sensorArr = new float[12];
         }
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         //list(sensorManager);
-//        unRegister(context);
+		//unRegister(context);
         register(sensorManager);
 		m_context = context;
     }
@@ -216,14 +217,16 @@ public class MojingSDKSensorManager {
                 sensorArr[3] = data[0];
                 sensorArr[4] = data[1];
                 sensorArr[5] = data[2];
-                /*Log.i(TAG, "------");
+				/*
+                Log.i(TAG, "------");
                 int i = 0;
                 for (float floats : sensorArr) {
                     stringBuilder.append(i++ + "=" + floats + ",");
                 }
                 Log.i(TAG, stringBuilder.toString());
-                Log.i(TAG, "second d=" + System.nanoTime() / 1000000000D);*/
-//                MojingSDK.SendSensorData(sensorArr, System.nanoTime() / 1000000000D);
+                Log.i(TAG, "second d=" + System.nanoTime() / 1000000000D);
+				*/
+                //MojingSDK.SendSensorData(sensorArr, System.nanoTime() / 1000000000D);
                 synchronized (ThreadMutex) {
                 	if (threadHandler != null && handlerThread.isAlive()) {
                     	threadHandler.obtainMessage(what++, sensorArr).sendToTarget();
@@ -280,30 +283,26 @@ public class MojingSDKSensorManager {
 
         if (accelerometerListrner != null) {
             sensorManager.unregisterListener(accelerometerListrner);
-            accelerometerListrner = null;
         }
 
         if (gyroscopeListrner != null) {
             sensorManager.unregisterListener(gyroscopeListrner);
-            gyroscopeListrner = null;
         }
 
         if (magneticFieldListrner != null) {
             sensorManager.unregisterListener(magneticFieldListrner);
-            magneticFieldListrner = null;
         }
 
         if (magneticFieldUncalibratedListrner != null) {
             sensorManager.unregisterListener(magneticFieldUncalibratedListrner);
-            magneticFieldUncalibratedListrner = null;
         }
-        synchronized (ThreadMutex) {
+		synchronized (ThreadMutex) {
 	         if (handlerThread != null) {
 	            handlerThread.quit();
 	            handlerThread = null;
 	            threadHandler = null;
 	        }
-        }// end of synchronized
+		}// end of synchronized
         // instance = null;
     }
 
@@ -342,6 +341,7 @@ public class MojingSDKSensorManager {
     private SensorEventListener accelerometerListrner = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
+			//Log.i("adjustSensor", "accelerometerListrner onSensorChanged");
             pushData(Sensor.TYPE_ACCELEROMETER, event.values);
         }
 
@@ -358,6 +358,7 @@ public class MojingSDKSensorManager {
     private SensorEventListener gyroscopeListrner = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
+			//Log.i("adjustSensor", "gyroscopeListrner onSensorChanged");
             pushData(Sensor.TYPE_GYROSCOPE, event.values);
         }
 

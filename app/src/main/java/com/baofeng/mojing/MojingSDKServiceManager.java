@@ -365,6 +365,7 @@ public class MojingSDKServiceManager {
 	}
 
 	public static void ClientReStart() {
+		Log.i(TAG, "VrService ClientReStart");
 		if(mService == null || isHMDWorking) return;
 		if (g_SocketHBTimer != null)
 		{

@@ -101,7 +101,7 @@ namespace Baofeng
 			JSON* pRet = JSON::CreateObject();
 			URLToJson(pRet);
 			IDToJson(pRet);
-			if ((Mojing::MojingSDKStatus::GetSDKStatus()->GetEngineStatus() & ENGINE_UNITY) == 0)
+			//if ((Mojing::MojingSDKStatus::GetSDKStatus()->GetEngineStatus() & ENGINE_UNITY) == 0)
 			{// 注意：因为现在Unity还不支持这个节点，所以暂时不要给Unity返回
 				if (m_szDURL.GetLength())
 				{	
@@ -245,12 +245,16 @@ namespace Baofeng
 #ifdef _DEBUG
 				MOJING_TRACE(g_APIlogger, "Check - 2 , fFixPPI = " << fFixPPI);
 #endif
+				// for test
+			//	fFixPPI *= 2.0f;
+				// test end				
 				if (fFixPPI > 1)
 				{
 					m_fDDScale = fFixPPI / pDisplayParameters->GetYdpi();
 #ifdef _DEBUG
 					MOJING_TRACE(g_APIlogger, "Check - 3 , fPPI_Scale = " << m_fDDScale);
 #endif
+
 					if (m_fDDScale > 1.02 || m_fDDScale < 0.98)
 					{
 #ifdef _DEBUG
@@ -269,7 +273,7 @@ namespace Baofeng
 						}
 						else
 						{
-
+							MOJING_ERROR(g_APIlogger, "UpdateDayDreamURL return : " << iRet);
 						}
 					}
 					else

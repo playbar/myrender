@@ -66,8 +66,8 @@ public class MojingActivity extends MojingVrActivity{
 	//极睿DreamVR	标准镜片	
 	static String Trd_JRDR = "Z3DWQ5-E2HF2B-93ADEC-WQ8PZ3-XNXGSQ-A2CHQ3";
 	
-	static boolean   bTimeWarp = false;
-	static boolean   bMultiThread = false;
+	static boolean   bTimeWarp = true;
+	static boolean   bMultiThread = true;
 	static String DefaultGlass = MJ4 ;// MJ2;//MJ_QB820;RK3288;
 	private VrPhotoRender renderer;
 	
@@ -202,7 +202,7 @@ public class MojingActivity extends MojingVrActivity{
 		if (event.getAction() == MotionEvent.ACTION_UP)
 		{
 			//jump2AdjustActivity();
-//			com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
+			//com.baofeng.mojing.MojingSDK.onSensorOriginChanged(this);
 			String MojingType = MojingKey[StartCount];
 			mView.setGlassesKey(MojingType);
 			//com.baofeng.mojing.MojingSDK.ChangeMojingWorld(MojingType);

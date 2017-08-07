@@ -230,9 +230,13 @@ namespace Baofeng
 
 		bool JoystickProfile::LoadFromJSON(JSON * pJSON)
 		{
+            if(pJSON == NULL) return false;
+            
 			JSON *pClass = pJSON->GetItemByName("Class");
 			JSON *pReleaseDate = pJSON->GetItemByName("ReleaseDate");
 			JSON *pOS = pJSON->GetItemByName("OS");
+            if(pOS == NULL || pClass == NULL || pReleaseDate == NULL)
+                return false;
             String szOSName = pOS->GetStringValue();
 			JSON *pJoystickConfig = pJSON->GetItemByName("JoystickConfig");
 			if (pJoystickConfig != NULL && pJoystickConfig->Type == JSON_Array)

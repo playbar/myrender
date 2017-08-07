@@ -2,6 +2,7 @@
 #include "../Base/MojingTypes.h"
 #include "../Base/MojingString.h"
 #include "ReporterTools.h"
+
 namespace Baofeng
 {
 	namespace Mojing

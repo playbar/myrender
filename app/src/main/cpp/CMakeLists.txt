@@ -93,7 +93,7 @@ add_library(mojing SHARED
 			Parameters/MojingJsonElement.cpp
 			Parameters/MojingParameters.cpp
 			Parameters/MojingSensorParameters.cpp
-			Platform/MojingPlatformAndroid.cpp Platform/MojingPlatformBase.cpp
+			Platform/MojingPlatformBase.cpp
 			Profile/FileProfile.cpp
 		   Profile/GlassesConfigProfile.cpp
 		   Profile/GlassesConfigProfileV2.cpp
@@ -140,14 +140,6 @@ add_library(mojing SHARED
     		Reporter/ReporterTools.cpp
     		Reporter/RunInfoReporter.cpp
     		Reporter/UserActionReporter.cpp
-    		Sensors/Matrix3x3d.cpp
-    		Sensors/Vector3d.cpp
-    		Sensors/So3Util.cpp
-    		Sensors/OrientationEKF.cpp
-    		Sensors/LowPassFilter.cpp
-    		Sensors/GyroscopeBiasEstimator.cpp
-    		Sensors/Matrix.cpp
-    		Tracker/HeadTracker.cpp
             Tracker/AndroidInternalSensorChecker.cpp
 			Tracker/MojingAndroidSensor.cpp
 			Tracker/MojingGyroTempCalibration.cpp

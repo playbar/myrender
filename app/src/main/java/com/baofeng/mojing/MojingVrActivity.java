@@ -1,10 +1,13 @@
 package com.baofeng.mojing;
 
+
 import com.baofeng.mojing.sensor.MojingSDKSensorManager;
 import com.baofeng.mojing.MojingSDKReport;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
+import java.lang.reflect.Method;
 
 public class MojingVrActivity extends Activity {
     MojingSurfaceView mMojingSurfaceView;
@@ -20,7 +23,21 @@ public class MojingVrActivity extends Activity {
 		mMojingSurfaceView.requestFocus();
 		mMojingSurfaceView.setFocusableInTouchMode(true);
         setContentView(mMojingSurfaceView);
-                
+             
+		try
+		{
+			Class<?> c = Class.forName("com.baofeng.mojing.check.MojingCheckService");     			    
+			Method method = c.getMethod("checkService", Activity.class);
+			Log.d("MojingVrActivity", "MojingCheckService checkService");		
+			method.invoke(c.newInstance(), this);
+		}
+   		catch(Exception e)
+   		{
+   			Log.d("MojingVrActivity", "MojingCheckService is not exist");
+   			e.printStackTrace();
+   		}  // end try 
+		//MojingCheckService.checkService(this);
+					    
 		com.baofeng.mojing.MojingSDK.Init(this);
 
 		com.baofeng.mojing.MojingSDK.SetEngineVersion("Android");

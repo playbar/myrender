@@ -1,0 +1,79 @@
+# Copyright (C) 2009 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Define macros for name of compiler
+CC = gcc
+
+LOCAL_SRC_FILES = 3rdPart/AES/AES.cpp 3rdPart/AES/AESPro.cpp 3rdPart/MD5/MD5.cpp 3rdPart/sqlite3/sqlite3.c LogTraker/LogInterface.cpp MojingAPI.cpp MojingManager.cpp MojingSDKStatus.cpp \
+									3rdPart/minizip/ioapi.c 3rdPart/minizip/miniunz.c 3rdPart/minizip/minizip.c 3rdPart/minizip/mztools.c 3rdPart/minizip/unzip.c 3rdPart/minizip/zip.c \
+									Base/Base32.cpp Base/CRC.cpp Base/MojingAlg.cpp Base/MojingAllocator.cpp Base/MojingAtomic.cpp Base/MojingCompress.cpp Base/MojingFile.cpp Base/MojingFileFILE.cpp \
+									Base/MojingJSON.cpp Base/MojingLog.cpp Base/MojingMath.cpp Base/MojingRefCount.cpp Base/MojingStd.cpp Base/MojingString.cpp Base/MojingString_FormatUtil.cpp Base/GlUtils.cpp\
+									Base/MojingSysFile.cpp Base/MojingSystem.cpp Base/MojingTimer.cpp Base/MojingUTF8Util.cpp Base/MojingThreadsPthread.cpp Distortion/MojingDistortion.cpp \
+									Parameters/MojingDeviceParameters.cpp Parameters/MojingDisplayParameters.cpp Parameters/MojingFactoryCalibrationParameters.cpp Parameters/MojingGyroOffsetReport.cpp \
+									Parameters/MojingGyroOffsetReportSet.cpp Parameters/MojingJsonElement.cpp Parameters/MojingParameters.cpp Parameters/MojingSensorParameters.cpp Platform/MojingPlatformBase.cpp \
+									Reporter/ActiveTimeInfoReporter.cpp Reporter/CrashReporter.cpp Reporter/DatabaseInfoReporter.cpp Reporter/EventInfoReporter.cpp Reporter/InfoReporter.cpp Reporter/RunInfoReporter.cpp \
+									Reporter/LogInfoReporter.cpp Reporter/MobileConfigUpdate.cpp Reporter/MojingMerchantVerify.cpp Reporter/PageInfoReporter.cpp Reporter/ReporterTools.cpp Profile/FileProfile.cpp \
+									Reporter/GyroTempCalibrationReporter.cpp Profile/GlassesConfigProfile.cpp Profile/GlassesConfigProfileV2.cpp Profile/InternetProfile.cpp Profile/MobileConfigProfile.cpp \
+									Profile/MojingProfileKey.cpp Profile/ProfileThreadMGR.cpp Profile/ProfileV2/GlassInfo.cpp Profile/ProfileV2/ManufacturerInfo.cpp Profile/ProfileV2/ProductInfo.cpp \
+									Tracker/MojingGyroTempCalibration.cpp Tracker/MojingSensor.cpp Tracker/MojingSensorCalibration.cpp Tracker/MojingSensorFilter.cpp Tracker/MojingSensorFusion.cpp \
+									Tracker/MojingTemperature.cpp Tracker/MojingTracker.cpp Render/EyeTextureParam.cpp Render/LineDraw.cpp Render/MojingRenderBase.cpp Render/MojingRenderMultithread.cpp \
+									Render/MojingRenderMultiThread_THREAD.cpp Render/RenderFrame.cpp Render/RenderFrameCirular.cpp Render/RenderFrameManager.cpp Render/Vsync.cpp Render/MultiThreadGLParam.cpp \
+									Tracker/MojingWinSensor.cpp Render/GlGeometry.cpp Render/GLProgram.cpp Profile/UserSettingProfile.cpp Profile/JoystickProfile.cpp \
+									Interface/Unreal/MojingUnrealAPI.cpp  Unity/GlStateSave.cpp Unity/UnityWinAPI.cpp
+									#Interface/Windows/MojingWinAPI.cpp										
+							
+LOCAL_OBJ_FILES = AES.o AESPro.o MD5.o ioapi.o miniunz.o minizip.o mztools.o unzip.o zip.o sqlite3.o Base32.o CRC.o GlUtils.o MojingAlg.o MojingAllocator.o MojingAtomic.o MojingCompress.o \
+									MojingFile.o MojingFileFILE.o MojingJSON.o MojingLog.o MojingMath.o MojingRefCount.o MojingStd.o MojingString.o MojingString_FormatUtil.o MojingSysFile.o MojingSystem.o \
+									MojingThreadsPthread.o MojingTimer.o MojingUTF8Util.o MojingDistortion.o MojingAPI.o MojingManager.o MojingSDKStatus.o MojingDeviceParameters.o MojingDisplayParameters.o \
+									MojingFactoryCalibrationParameters.o MojingGyroOffsetReport.o MojingGyroOffsetReportSet.o MojingJsonElement.o MojingParameters.o MojingSensorParameters.o LogInterface.o \
+									MojingPlatformBase.o FileProfile.o GlassesConfigProfile.o GlassesConfigProfileV2.o InternetProfile.o MobileConfigProfile.o MojingProfileKey.o ProfileThreadMGR.o GlassInfo.o \
+									ManufacturerInfo.o ProductInfo.o EyeTextureParam.o LineDraw.o MojingRenderBase.o MojingRenderMultithread.o MojingRenderMultiThread_THREAD.o MultiThreadGLParam.o RenderFrame.o \
+									RenderFrameCirular.o RenderFrameManager.o Vsync.o ActiveTimeInfoReporter.o CrashReporter.o DatabaseInfoReporter.o EventInfoReporter.o GyroTempCalibrationReporter.o \
+									InfoReporter.o MobileConfigUpdate.o MojingMerchantVerify.o PageInfoReporter.o ReporterTools.o RunInfoReporter.o LogInfoReporter.o MojingGyroTempCalibration.o MojingSensor.o \
+									MojingWinSensor.o MojingSensorCalibration.o MojingSensorFilter.o MojingSensorFusion.o MojingTemperature.o MojingTracker.o GlStateSave.o GlGeometry.o GLProgram.o \
+									UserSettingProfile.o JoystickProfile.o MojingUnrealAPI.o UnityWinAPI.o
+									#MojingWinAPI.o
+							 
+
+LOCAL_MODULE   = libmojing.dll
+LOCAL_CURL_PATH = 3rdPart/Curl/lib/win32/libcurl.lib
+LOCAL_ZLIB_PATH = 3rdPart/zlib/libz.a
+LOCAL_LOG4CPLUS_PATH = LogTraker/liblog4cplus.dll.a
+LOCAL_GL_LIBPATH = 3rdPart/GL/lib/win32/libEGL.lib
+LOCAL_GLES_LIBPATH = 3rdPart/GL/lib/win32/libGLES_CM.lib
+LOCAL_GLESV2_LIBPATH = 3rdPart/GL/lib/win32/libGLESv2.lib
+
+SYS_LIBS = -lpthread -lwinmm
+
+LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
+LOCAL_ARM_NEON  := true				# compile with neon support enabled
+
+#定义debug版本的预处理器  
+CCDEBUG    = -DWIN32 -D_DEBUG -D_WINDOWS  
+  
+#定义release版本的预处理器  
+CCNODBG    = -DWIN32 -D_NDEBUG -D_WINDOWS  
+
+LOCAL_CFLAGS  = -lstdc++ -shared
+
+TAGET:
+			$(CC) -c $(LOCAL_SRC_FILES)
+			cc -o $(LOCAL_MODULE) $(LOCAL_OBJ_FILES) $(LOCAL_CFLAGS) $(LOCAL_GL_LIBPATH) $(LOCAL_GLES_LIBPATH) $(LOCAL_GLESV2_LIBPATH) $(LOCAL_CURL_PATH) $(LOCAL_LOG4CPLUS_PATH) $(LOCAL_ZLIB_PATH) $(SYS_LIBS) 
+
+
+
+clean:
+		rm -f $(LOCAL_OBJ_FILES)
+

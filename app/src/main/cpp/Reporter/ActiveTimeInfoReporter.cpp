@@ -34,7 +34,15 @@ namespace Baofeng
 			}
 			else
 			{
-				joMsg->AddStringItem("myglasses", szGlasseeName);
+				const char* p = strstr(szGlasseeName, "M=");
+				if (p == NULL)
+				{
+					joMsg->AddStringItem("myglasses", szGlasseeName);
+				}
+				else
+				{
+					joMsg->AddStringItem("myglasses", p);
+				}
 			}
 			const char* szMojingSN = GyroTempCalibrationReporter::GetGyroTempCalibrationRepoter()->GetMojingSN();
 			if (szMojingSN == NULL || strlen(szMojingSN) == 0)

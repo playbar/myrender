@@ -53,6 +53,7 @@ bool HookBase::HookToFunctions(void * hDLL, HookParamet * pHookParamet, int iFun
 					bRet = false;
 					break;
 				}
+				usleep(10*1000);
 			}
 		}
 		if (bRet)

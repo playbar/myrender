@@ -71,6 +71,12 @@ typedef bool(*FP_CheckServiceIsAvaliable)();
 
 typedef void(*FP_SetTimewarp)(bool enable);
 
+/*************************************************************/
+typedef bool(*FP_InitializeQvrServiceOnly)();
+typedef void(*FP_ReleaseQvrServiceOnly)();
+typedef int32_t(*FP_SetCpuPerfLevel)(svrPerfLevel level);
+/*************************************************************/
+
 class CSVRApi
 {
 public:
@@ -81,6 +87,8 @@ public:
 
 	const char* GetVersion();
 	bool Initialize(const svrInitParams* pInitParams);
+	bool InitializeQvrServiceOnly();
+
 	void Shutdown();
 	svrDeviceInfo GetDeviceInfo();
 	void SetPerformanceLevels(svrPerfLevel cpuPerfLevel, svrPerfLevel gpuPerfLevel);
@@ -101,6 +109,7 @@ public:
 		);
 	bool CheckServiceIsAvaliable();
 	void SetTimewarp(bool);
+	void SetCpuPerfLevel(svrPerfLevel cpuPerfLevel);
 private:
 	void * m_hDLL;
 	bool m_bInit;
@@ -120,5 +129,9 @@ private:
 	FP_UpdateWarpmesh			m_fpUpdateWarpmesh;
 	FP_CheckServiceIsAvaliable  m_fpCheckServiceIsAvaliable;
 	FP_SetTimewarp				m_fpSetTimewarp;
+
+	FP_InitializeQvrServiceOnly	m_fpInitializeQvrServiceOnly;
+	FP_ReleaseQvrServiceOnly	m_fpReleaseQvrServiceOnly;
+	FP_SetCpuPerfLevel	m_fpSetCpuPerfLevel;
 };
 

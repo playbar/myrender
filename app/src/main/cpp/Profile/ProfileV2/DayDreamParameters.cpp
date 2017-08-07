@@ -79,19 +79,19 @@ int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szN
 		*/
 		memcpy(pDDParametersBuffer_New, pDDParametersBuffer, iLength);
 		unsigned char *pPos = pDDParametersBuffer_New;
-		if (*pPos++ == 0x0A)
+		if (*pPos++ == 0x0A)//  1 公司名
 		{
 			pPos += *pPos + 1;
-			if (*pPos++ == 0x12)
+			if (*pPos++ == 0x12)// 2 眼镜名
 			{
 				pPos += *pPos + 1;
-				if (*pPos++ == 0x1D)
+				if (*pPos++ == 0x1D)// 3 Screen to lens distance 镜片到手机的距离
 				{
 					float screen_to_lens_distance;
 					unsigned char *pScreen_to_lens_distance = pPos;
 					memcpy(&screen_to_lens_distance, pScreen_to_lens_distance, 4);
 					pPos += 4;
-					if (*pPos++ == 0x25)
+					if (*pPos++ == 0x25)// 4 Inter-lens distance 瞳距
 					{
 						float inter_lens_distance;
 						unsigned char *pinter_lens_distance = pPos;
@@ -100,27 +100,106 @@ int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szN
 						float fFixB = (int)(inter_lens_distance * fPPI_Scale * 10000 + 5);
 						fFixA /= 10000;
 						fFixB /= 10000;
+						pPos += sizeof(float);
+						if (*pPos++ == 0x2A)//5  Field-of-view angles
+						{
+							if (*pPos++ == 0x10)// Length of FOV
+							{
+								float fFOV[4];
+								unsigned char *pFOV = pPos;
+								memcpy(fFOV, pFOV, sizeof(float)* 4);
+								pPos += sizeof(float)* 4;
+								// 6 Screen vertical alignment
+								enum __enumScreenVerticalAlignment
+								{
+									SVA_BOTTOM  = 0,
+									SVA_CENTER = 1,
+									SVA_TOP = 2
+								}ScreenVerticalAlignment;
+								
+								if (*pPos++ == 0x58)
+								{
+									ScreenVerticalAlignment = (__enumScreenVerticalAlignment)*pPos++;
+									// 7 Tray to lens-center distance
+									if (*pPos++ == 0x35)
+									{
+										float TrayToLensCenterDistance;
+										unsigned char *pTrayToLensCenterDistance = pPos;
+										memcpy(&TrayToLensCenterDistance, pTrayToLensCenterDistance, 4);
+										float fFixC = (int)(TrayToLensCenterDistance * fPPI_Scale * 10000 + 5);
+										fFixC /= 10000;
 #ifdef _DEBUG
-						MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
-						MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << screen_to_lens_distance << " --> " << fFixA);
-						MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << inter_lens_distance << " --> " << fFixB);
+										char szScreenVerticalAlignment[3][8] = {
+											"BOTTOM",
+											"CENTER",
+											"TOP"
+										};
+										MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
+										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << screen_to_lens_distance << " --> " << fFixA);
+										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << inter_lens_distance << " --> " << fFixB);
+										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : ScreenVerticalAlignment = " << szScreenVerticalAlignment[(int)ScreenVerticalAlignment] );
+										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << TrayToLensCenterDistance << " --> " << fFixC);
 #endif
-						memcpy(pScreen_to_lens_distance, &fFixA, 4);
-						memcpy(pinter_lens_distance, &fFixB, 4);
+										memcpy(pScreen_to_lens_distance, &fFixA, 4);
+										memcpy(pinter_lens_distance, &fFixB, 4);
+										memcpy(pTrayToLensCenterDistance, &fFixC, 4);
+									}
+									else
+									{// // 7 Tray to lens-center distance
+										iRet = -9;
+									}
+								}
+								else
+								{//if (*pPos++ == 0x58) 
+									iRet = -8;
+								}
+							}
+							else
+							{//if (*pPos++ == 0x10)// Length of FOV 
+								iRet = -7;
+							}
+
+						}
+						else
+						{//if (*pPos++ == 0x2A)//5  Field-of-view angles 
+							iRet = -6;
+						}
+					}
+					else
+					{//if (*pPos++ == 0x25)// 4 Inter-lens distance 瞳距 
+						iRet = -5;
 					}
 				}
+				else
+				{//if (*pPos++ == 0x1D)// 3 Screen to lens distance 镜片到手机的距离 
+					iRet = -4;
+				}
 			}
+			else
+			{//if (*pPos++ == 0x12)// 2 眼镜名 
+				iRet = -3;
+			}
+		}
+		else
+		{//if (*pPos++ == 0x0A)//  1 公司名 
+			iRet = -2;
 		}
 #endif
 
-
-		iRet = BufferToBase64(pDDParametersBuffer_New, iLength, szNewDayDreamURL);
-		while (char * pPos = strchr(szNewDayDreamURL, '='))
+		if (iRet >= 0)
 		{
-			*pPos = 0;
+			iRet = BufferToBase64(pDDParametersBuffer_New, iLength, szNewDayDreamURL);
+			while (char * pPos = strchr(szNewDayDreamURL, '='))
+			{
+				*pPos = 0;
+			}
 		}
 		delete[] pDDParametersBuffer_New;
 		delete[] pDDParametersBuffer;
+	}
+	else
+	{//if (iBufferSize) 
+		iRet = - 1;
 	}
 	return iRet;
 }

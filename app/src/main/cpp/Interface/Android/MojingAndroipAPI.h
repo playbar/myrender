@@ -27,6 +27,8 @@ extern "C" {
 	
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetEngineVersion(JNIEnv *env, jclass, jstring jstrEngineVersion);
 	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseUnityForSVR(JNIEnv *env, jclass);
+    JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseForDayDream(JNIEnv *env, jclass);
+	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsInMachine(JNIEnv *env, jclass);
 
 	/*
 	* Class:     com_baofeng_mojing_App
@@ -51,7 +53,7 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportLog(JNIEnv *env, jclass, jint iLogType, jstring typeName, jstring logContent);
 
-	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID);
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID, jstring strJsonValue);
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetContinueInterval(JNIEnv *env, jclass, jint interval);
 

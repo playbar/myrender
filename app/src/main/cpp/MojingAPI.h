@@ -55,7 +55,7 @@ void MojingSDK_AppPageEnd(const char* szPageName);
 void MojingSDK_AppSetEvent(const char* szEventName, const char* szEventChannelID, const char* szEventInName, float eInData, const char* szEventOutName, float eOutData);
 void MojingSDK_ReportLog(int iLogType, const char* szTypeName, const char* szLogContent, bool pd);
 #ifdef MJ_OS_ANDROID
-void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID);
+void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID, const char* strJsonValue);
 #endif
 void MojingSDK_AppSetContinueInterval(int interval);
 void MojingSDK_AppSetReportInterval(int interval);
@@ -117,7 +117,9 @@ bool MojingSDK_StartTracker(int nSampleFrequence, const char* szGlassName = NULL
 int MojingSDK_CheckSensors();
 int MojingSDK_GetMaxSensorsSampleRate(); // 返回最大的采样率或者-1表示出错
 #ifdef MJ_OS_ANDROID
+bool MojingSDK_IsInMachine();
 bool MojingSDK_IsUseUnityForSVR();
+bool MojingSDK_IsUseForDayDream();
 int MojingSDK_GetSocketPort();// Socket向服务报告端口的
 int MojingSDK_StartTrackerChecker(int nSampleFrequence);
 int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);

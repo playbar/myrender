@@ -16,7 +16,7 @@ namespace Baofeng
 			
 			CLASS_MEMBER_STR(String, m_str, ClassName);
 
-			void Post(const char* strActionType, const char* strItemID);
+			void Post(const char* strActionType, const char* strItemID, const char* strJsonValue);
 		};
 	}
 }

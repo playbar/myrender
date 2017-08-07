@@ -169,35 +169,86 @@ static pid_t freeze( struct inlineHookItem *item, int action )
 
     pid = -1;
     count = getAllTids( getpid(), tids );
+#ifdef _DEBUG
+	MOJING_TRACE(g_APIlogger , "Count = " << count);
+#endif
     if ( count > 0 )
     {
-        pid = fork();
-        if ( pid == 0 )
+#ifdef _DEBUG
+		MOJING_TRACE(g_APIlogger, "fork begin ... ");
+#endif
+		
+		pid = fork();
+#ifdef _DEBUG
+		MOJING_TRACE(g_APIlogger, "fork end ... , pid = " << pid);
+#endif
+		if ( pid == 0 )
         {
             int i;
             for ( i = 0; i < count; ++i )
             {
-                if ( ptrace( PTRACE_ATTACH, tids[i], NULL, NULL ) == 0 )
+#ifdef _DEBUG
+				MOJING_TRACE(g_APIlogger, "loop :: " << i <<  " / " << count);
+#endif
+				if ( ptrace( PTRACE_ATTACH, tids[i], NULL, NULL ) == 0 )
                 {
-                    waitpid( tids[i], NULL, WUNTRACED );
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "waitpid :: " << tids[i]);
+#endif
+					
+					waitpid( tids[i], NULL, WUNTRACED );
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "waitpid :: Done" );
+#endif
                     processThreadPC( tids[i], item, action );
-                }
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "end of loop");
+#endif
+				
+				}
             }
-
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "raise SIGSTOP ... begin");
+#endif
             raise( SIGSTOP );
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "raise SIGSTOP ... end");
+#endif
 
             for ( i = 0; i < count; ++i )
             {
-                ptrace( PTRACE_DETACH, tids[i], NULL, NULL );
+#ifdef _DEBUG
+				MOJING_TRACE(g_APIlogger, "ptrace " << i << " / " << count);
+#endif
+				
+				ptrace( PTRACE_DETACH, tids[i], NULL, NULL );
             }
-
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "raise SIGKILL ... begin");
+#endif
             raise( SIGKILL );
-        }
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "raise SIGKILL ... begin");
+#endif
+		
+		}
 
         else if ( pid > 0 )
         {
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "waitpid , begin...");
+#endif
             waitpid( pid, NULL, WUNTRACED );
-        }
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "waitpid , end");
+#endif
+		}
+		else
+		{
+#ifdef _DEBUG
+			MOJING_WARN(g_APIlogger, "DO NOTHING");
+#endif
+		}
     }
 
     return pid;
@@ -498,6 +549,7 @@ void inlineHookAll()
 			MOJING_TRACE(g_APIlogger, "skip hook " << i << " / " << info.size);
 #endif // endif
 		}
+	    usleep(10 * 1000);
     }
 #ifdef _DEBUG
 	MOJING_TRACE(g_APIlogger, "unFreeze ..." );

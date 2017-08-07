@@ -68,7 +68,6 @@ namespace Baofeng
 			pearson.x = cov.M[0][1] / (sqrt(cov.M[0][0])*sqrt(cov.M[1][1]));
 			pearson.y = cov.M[1][2] / (sqrt(cov.M[1][1])*sqrt(cov.M[2][2]));
 			pearson.z = cov.M[2][0] / (sqrt(cov.M[2][2])*sqrt(cov.M[0][0]));
-
 			return pearson;
 		}
 	}

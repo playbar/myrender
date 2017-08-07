@@ -203,7 +203,6 @@ namespace Baofeng
 					pInitParameters->m_pParams = jniEnv->NewGlobalRef((jobject) pInitParameters->m_pParams);
 					m_iSurfaceValidWaitFramesCounter = 0;
 				}
-
 				return true;
 			}
 			else

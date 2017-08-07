@@ -106,15 +106,7 @@ namespace Baofeng
 		};
 
 
-		// This is the state needed by GetPredictionForTime()
-		class StateForPrediction
-		{
-		public:
-			// time the current state is correct for
-			PoseStatef        State;
-			float             Temperature;
-			StateForPrediction() : Temperature(0) { };
-		};
+
 
 		//-------------------------------------------------------------------------------------
 		// ***** SensorFusion
@@ -233,6 +225,7 @@ namespace Baofeng
 			virtual void OnSensorData(Quatf fOrientation, Vector3f fAngularAcceleration, Vector3f fLinearAcceleration, double dTimeInSeconds, float fTemperature);
 			//////////////////////////////////////////////////
 			float GetCalibrationRate()const;
+			void SetCalibrationRate(float fRate)const;
 			//int GetCalibrationResetCount()const;
 			//void ResetCalibrationResetCount();
 		private:
@@ -258,6 +251,17 @@ namespace Baofeng
 			//	virtual void OnMessage(const Message& msg);
 			//	virtual bool SupportsMessageType(MessageType type) const;
 			//};
+
+			// This is the state needed by GetPredictionForTime()
+			class StateForPrediction
+			{
+			public:
+				// time the current state is correct for
+				PoseStatef        State;
+				float             Temperature;
+
+				StateForPrediction() : Temperature(0) { };
+			};
 
 			struct MagReferencePoint
 			{

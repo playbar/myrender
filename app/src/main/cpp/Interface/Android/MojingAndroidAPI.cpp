@@ -163,7 +163,8 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, j
 #ifdef _DEBUG
 	sleep(2);
 #else
-	// usleep(500 * 1000);// 注意：这个地方如果不加sleep 500ms的话，在S7 edge上会卡死,或者五代无效
+	// 注意：这个地方如果不加sleep 500ms的话，在S7 edge上会卡死,或者五代无效
+	usleep(400 * 1000);
 #endif
 
 	MOJING_FUNC_TRACE(g_APIlogger);
@@ -216,6 +217,22 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseUnityForSVR(JN
 	MOJING_TRACE(g_APIlogger, "IsUseUnityForSVR: " << bRet);
 	
 	return bRet;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsInMachine(JNIEnv *env, jclass)
+{
+	bool bRet = MojingSDK_IsInMachine();
+	MOJING_TRACE(g_APIlogger, "IsInMachine: " << bRet);
+
+	return bRet;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseForDayDream(JNIEnv *env, jclass)
+{
+    bool bRet = MojingSDK_IsUseForDayDream();
+    MOJING_TRACE(g_APIlogger, "IsUseForDayDream: " << bRet);
+
+    return bRet;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_ReportReInit(JNIEnv *env, jclass)
@@ -290,15 +307,17 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportLog(JNIEnv *en
 	env->ReleaseStringUTFChars(logContent, szLogContent);
 }
 
-JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID)
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID, jstring strJsonValue)
 {
 	const char * szActionType = env->GetStringUTFChars(strActionType, 0);
 	const char * szItemID = env->GetStringUTFChars(strItemID, 0);
+	const char * szJsonValue = env->GetStringUTFChars(strJsonValue, 0);
 
-	MojingSDK_ReportUserAction(szActionType, szItemID);
+	MojingSDK_ReportUserAction(szActionType, szItemID, szJsonValue);
 
 	env->ReleaseStringUTFChars(strActionType, szActionType);
 	env->ReleaseStringUTFChars(strItemID, szItemID);
+	env->ReleaseStringUTFChars(strJsonValue, szJsonValue);
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetContinueInterval(JNIEnv *env, jclass, jint interval)
@@ -331,7 +350,13 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_StartGlassTracker(J
 
 	const char * szGlassName = jEnv->GetStringUTFChars(glassName, 0);
 	MOJING_TRACE(g_APIlogger, "StartGlassTracker GlassName: " << szGlassName);
-	bRet = MojingSDK_StartTracker(250, szGlassName);
+	int nSampleFrequence = 250; //for mojing5
+	if ( MJ_stricmp(szGlassName, "FromJAVA") == 0 || MJ_stricmp(szGlassName, "FromNative") == 0)
+	{
+		//for self-device
+		nSampleFrequence = 100;
+	}
+	bRet = MojingSDK_StartTracker(nSampleFrequence, szGlassName);
 	jEnv->ReleaseStringUTFChars(glassName, szGlassName);
 
 	return bRet;
@@ -387,7 +412,6 @@ JNIEXPORT jdouble JNICALL Java_com_baofeng_mojing_MojingSDK_getLastSensorState(J
 	return dRet;
 }
 
-extern   MessageBodyFrame gHeadTrackdata;
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv *jEnv, jclass, jfloatArray jViewMatrix)
 {
 	// USING_MINIDUMP;
@@ -404,16 +428,9 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_getLastHeadView(JNIEnv 
 	}
 	else
 	{
-//		MojingSDK_getLastHeadView(pMatrixArray);
-		gHeadTrackdata.getLastHeadView(pMatrixArray);
+		MojingSDK_getLastHeadView(pMatrixArray);
 	}
-//	char szTemp[256] = {0};
-    LOGE("matrix:%0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f, %0.6f",
-		   pMatrixArray[0],pMatrixArray[1],pMatrixArray[2],pMatrixArray[3],
-		   pMatrixArray[4],pMatrixArray[5],pMatrixArray[6],pMatrixArray[7],
-		   pMatrixArray[8],pMatrixArray[9],pMatrixArray[10],pMatrixArray[11],
-		   pMatrixArray[12],pMatrixArray[13],pMatrixArray[14],pMatrixArray[15]);
-//	LOGE(szTemp);
+	
 	jEnv->ReleaseFloatArrayElements(jViewMatrix, pMatrixArray, 0);
 }
 

@@ -1,6 +1,5 @@
 ﻿#include <dirent.h>
 #include <unistd.h>
-#include <android/input.h>
 #include "MojingAPI.h"
 #include "Base/MojingTypes.h"
 #include "MojingManager.h"
@@ -174,9 +173,15 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 	MojingPlatformBase::InitPlatform(nWidth, nHeight, xdpi, ydpi, Brand, Model, Serial, szMerchantID, szAppID,
 		szAppKey, szAppName, szPackageName, szUserID, szChannelID, ProfilePath);
 
+
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
+#ifdef MJ_OS_ANDROID
+		// 注意： 因为下面的代码会开辟很多的线程，有可能会导致下HOOK的时候卡死
+		HookGVRTools::Init();
+#endif // MJ_OS_ANDROID
+
 		pStatus->SetInitStatus(INIT_DONE);
 		pStatus->SetApp(szAppName);
 
@@ -241,11 +246,15 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 #endif
 
 #include <stdio.h>  
-
-
+	
 #if 0
-	MojingProfileKey Key;
-
+// 	MojingProfileKey Key;
+// 	float X, Y, Z;
+// 	Quatf F(0.1,0.2,0.3,0.4);
+// 	F.Normalize();
+// 	Matrix4f m4(F);
+// 	
+// 	F.GetEulerAngles(&X,&Y,&Z);
 	// Key.SetString("SWAFHF-AZZG4F-CBEYD9-9323ZT-XBXX9T-CGCTAC");
 	// 1-10-18
 	Key.SetString("2Q2XWR-9YWQSQ-WUHFH7-WWE2WW-8RW84W-XT2FEX");
@@ -369,9 +378,7 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 	int iSelect8 = MojingSDK_Math_SelectRectByDirectional(m4_8, 10, fpTopLeft, fpBottomRight);
 #endif
 
-#ifdef MJ_OS_ANDROID
-	HookGVRTools::Init();
-#endif // MJ_OS_ANDROID
+
 
 	return bRet;
 }
@@ -394,6 +401,7 @@ void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const cha
 		pPlatform->SetAppKey(szAppKey);
 		pPlatform->SetChannelID(szChannelID);
 	}
+
 	Manager* pManager = Manager::GetMojingManager();
 	if (pManager)
 	{
@@ -671,7 +679,7 @@ void MojingSDK_ReportLog(int iLogType, const char* szTypeName, const char* szLog
 }
 
 #ifdef MJ_OS_ANDROID
-void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID)
+void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID, const char* strJsonValue)
 {
 	mj_Initialize();
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
@@ -681,7 +689,7 @@ void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID)
 		return;
 	}
 	//MOJING_FUNC_TRACE(g_APIlogger);
-	UserActionReporter::GetUserActionReporter()->Post(szActionType, szItemID);
+	UserActionReporter::GetUserActionReporter()->Post(szActionType, szItemID, strJsonValue);
 }
 #endif
 
@@ -921,6 +929,7 @@ int MojingSDK_StartTrackerCalibration()
 	if (NULL == Manager::GetMojingManager()->GetParameters()->GetFactoryCalibrationParameters())
 		return -3;
 	/*Manager::GetMojingManager()->GetTracker()->ResetCalibrationResetCount();*/
+	//Manager::GetMojingManager()->GetTracker()->SetCalibrationRate(0);
 	Manager::GetMojingManager()->GetParameters()->GetFactoryCalibrationParameters()->SetCalibrated(false);
 	return 0;
 }
@@ -1090,7 +1099,6 @@ void MojingSDK_ResetTracker(void)
 double MojingSDK_getLastSensorState(float* fArray)
 {
 	double Ret = 0;
-
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled() || pStatus->GetTrackerStatus() != TRACKER_START)
 	{
@@ -1259,12 +1267,12 @@ void MojingSDK_StopTracker(void)
 		Tracker* pTracker = pManager->GetTracker();
 		if (pTracker)
 		{
-			if (!pTracker->GetDataFromExternal())
+			if (pStatus->GetSensorOrigin() != SENSOR_FROM_JAVA)
 			{
 				if (pStatus->GetEngineStatus() != ENGINE_UNREAL)
 				{	
 					int iCount = 0;
-					while (pStatus->GetTrackerStatus() != TRACKER_START && iCount++ < 1000)
+					while (pStatus->GetTrackerStatus() == TRACKER_START_NOW && iCount++ < 1000)
 					{// 5ms
 						usleep(5000);
 					}
@@ -1677,18 +1685,53 @@ int MojingSDK_GetTextureSize()
 #ifdef MJ_OS_ANDROID
 bool MojingSDK_IsUseUnityForSVR()
 {
-	MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
-	if (pDeviceParameters == NULL)
-	{
-		MOJING_TRACE(g_APIlogger, "MojingSDK_IsUseUnityForSVR: get DeviceParameters failed.");
-		return false;
+    MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
+    if (pDeviceParameters == NULL)
+    {
+        MOJING_TRACE(g_APIlogger, "MojingSDK_IsUseUnityForSVR: get DeviceParameters failed.");
+        return false;
 	}
 	if (pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR)
 	{
-		MOJING_TRACE(g_APIlogger, "Run in SVR device..." );
+	MOJING_TRACE(g_APIlogger, "Run in SVR device...");
+	return true;
+	}
+
+    return false;
+}
+
+bool MojingSDK_IsInMachine()
+{
+	MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
+	if (pDeviceParameters == NULL)
+	{
+		MOJING_TRACE(g_APIlogger, "MojingSDK_IsInMachine: get DeviceParameters failed.");
+		return false;
+	}
+
+	if (pDeviceParameters->GetIsMachine())
+	{
+		MOJING_TRACE(g_APIlogger, "Run in MATRIX...");
 		return true;
 	}
 	return false;
+}
+
+bool MojingSDK_IsUseForDayDream()
+{
+    MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+
+    if (pStatus == NULL)
+    {
+        MOJING_TRACE(g_APIlogger, "GetSDKStatus: get SDKStatus failed.");
+        return false;
+    }
+    if (pStatus->GetEngineStatus() & ENGINE_GVR)
+    {
+        MOJING_TRACE(g_APIlogger, "Run in GVR device...");
+        return true;
+    }
+    return false;
 }
 #endif
 
@@ -2551,6 +2594,9 @@ bool   MojingSDK_SetUserSettings(const char * sUserSettings)
 {
 	bool bRet = false;
 	MOJING_FUNC_TRACE(g_APIlogger);
+#ifdef _DEBUG
+	MOJING_TRACE(g_APIlogger , "MojingSDK_SetUserSettings : " << sUserSettings);
+#endif
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
 	if (!pStatus->IsMojingSDKEnbaled())
 	{
@@ -2564,16 +2610,41 @@ bool   MojingSDK_SetUserSettings(const char * sUserSettings)
 		if (pProfile)
 		{
 			UserSettingProfile TempProfile = *pProfile;
+// 			float fOldPPI = 0;
+// 			bool bOldEnableScreenSize = TempProfile.GetEnableScreenSize();
+// 			if (TempProfile.GetEnableScreenSize())
+// 			{
+// 				fOldPPI = TempProfile.GetScreenSize();
+// 			}
+
 			bRet = pProfile->FromJson(pJson);
 			if (bRet)
 			{
 				MojingRenderBase::SetModify();
-				pProfile->Save();
+				bRet = pProfile->Save();
+				if (!bRet)
+				{
+					MOJING_ERROR(g_APIlogger, "Can not save to file");
+				}
+				MojingDisplayParameters *pDisplayParameters = Manager::GetMojingManager()->GetParameters()->GetDisplayParameters();
+				pDisplayParameters->UpdatePPIFromUserSetting();
+
 			}
 			else
+			{
 				*pProfile = TempProfile;// 解析失败，恢复初始值
+				MOJING_ERROR(g_APIlogger, "Can not parse json");
+			}
+		}
+		else
+		{
+			MOJING_ERROR(g_APIlogger, "Can not get UserSettingProfile object");
 		}
 		pJson->Release();
+	}
+	else
+	{
+		MOJING_ERROR(g_APIlogger, "INVALID JSON STRING");
 	}
 	return bRet;
 }

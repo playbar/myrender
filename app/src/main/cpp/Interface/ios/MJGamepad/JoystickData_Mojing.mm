@@ -47,6 +47,8 @@ bool JoystickData_Mojing::BytesToData(uint8_t *pOriginData, STJoystickData* pJoy
     int32_t touchpadX = ReadInt(8, false);
     int32_t touchpadY = ReadInt(8, false);
     int32_t keyState = ReadInt(5, false);
+    int32_t keyStateEx = ReadInt(1, false);
+    keyState |= (keyStateEx << 5);
     //        NSLog(@"timestamp:%d idx:%d o1:%d o2:%d o3:%d a1:%d a2:%d a3:%d g1:%d g2:%d g3:%d touchY:%d touchY:%d key:%x",
     //                            timestamp, idx, orientation1, orientation2, orientation3, accel1, accel2, accel3, gyro1, gyro2, gyro3, touchpadX, touchpadY, keyState);
     

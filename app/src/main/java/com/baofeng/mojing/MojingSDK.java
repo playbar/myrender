@@ -40,6 +40,7 @@ public class MojingSDK
 	public static int 	SENSOR_ERROR_AccelTooSlow	=0x20;
 
 	public static int	SENSOR_ORIGIN_EXTERNAL_SDK = 0;
+	public static int	SENSOR_ORIGIN_DAYDREAM = 0;
 	public static int	SENSOR_ORIGIN_LOCAL_NATIVE = 1;
 	public static int	SENSOR_ORIGIN_LOCAL_JAVA = 2;
 	public static int	SENSOR_ORIGIN_EXTERNAL_DEVICE = 3;
@@ -302,16 +303,24 @@ public class MojingSDK
 			String version = packInfo.versionName;  
 			int versionCode = packInfo.versionCode;  
 			if (version != null)
-				applicationName = applicationName + " " + version + "("+versionCode + ")";
-			else
-				applicationName = applicationName + " (" + versionCode + ")";
+			{
+				applicationName += " " + version;
+			}
+			String channel = getCustomMetaData(context, "APP_CHANNEL_ID");
+			if(channel != "UNKNOWN")
+			{	
+				applicationName += "." + channel;
+			}
+			applicationName += "(" + versionCode + ")";
         } catch (PackageManager.NameNotFoundException e) {  
             applicationInfo = null;  
         }  
         return applicationName;   
     }  
 
+	public static native boolean IsInMachine();
 	public static native boolean IsUseUnityForSVR();
+	public static native boolean IsUseForDayDream();
 	public static native boolean ReportReInit();
 	public static native void AppExit();
 	public static native String AppGetRunID();
@@ -321,7 +330,7 @@ public class MojingSDK
 	public static native void AppPageEnd(String pageName);
 	public static native void AppSetEvent(String eventName, String eChannelID, String eInName, float eInData, String eOutName, float eOutData);
 	public static native void AppReportLog(int iLogType, String typeName, String logContent);
-	public static native void AppReportUserAction(String strActionType, String strItemID);
+	public static native void AppReportUserAction(String strActionType, String strItemID, String strJsonValue);
 	public static native void AppSetContinueInterval(int interval);
 	public static native void AppSetReportInterval(int interval);
 	public static native void AppSetReportImmediate(boolean bImmediate);
@@ -517,13 +526,20 @@ public class MojingSDK
 		}
 	}
 	*/
+
+
     public static void onSensorOriginChanged(Context context)
 	{
+		if(MojingSDKServiceManager.isHMDWorking())
+		{
+			LogTrace("Sensor origin isHMDWorking.");
+			return;
+		}
+
+		/*
+		boolean bChanged = false;
 		try
 		{
-			if(MojingSDKServiceManager.isHMDWorking()) return;
-
-			boolean bChanged = false;
 			String json = GetUserSettings();
 			JSONObject jsonObject = new JSONObject(json);
 			if (jsonObject.has("SensorDataFromJava")) 
@@ -541,25 +557,74 @@ public class MojingSDK
 					}
 				}
 			}
-			if(bChanged)
-			{
-				if(MojingSDKServiceManager.isServiceTracker())
-				{
-					MojingSDKServiceManager.ClientReStart();
-				}
-				else
-				{
-					StopTracker();
-					MojingSDKSensorManager.UnRegisterSensor(context);
-					MojingSDKSensorManager.RegisterSensor(context);
-					MojingSDKServiceManager.StartTracker();
-				}
-			}
 		} 
 		catch (JSONException e) {
 			e.printStackTrace();
 		}
+		*/
+		int iSensorOrigin = GetSensorOriginStatus();
+		SetSensorOriginStatus((iSensorOrigin+1)%3);
+		
+		//if(bChanged)
+		if(iSensorOrigin != GetSensorOriginStatus())
+		{
+			LogTrace("Sensor origin is set to " + GetSensorOriginStatus());
+			if(MojingSDKServiceManager.isServiceTracker())
+			{
+				MojingSDKServiceManager.ClientReStart();
+			}
+			else
+			{
+				StopTracker();
+				MojingSDKSensorManager.UnRegisterSensor(context);
+				MojingSDKSensorManager.RegisterSensor(context);
+				MojingSDKServiceManager.StartTracker();
+			}
+		}
+		else
+		{
+			LogWarning("Sensor origin is already " + iSensorOrigin);	
+		}
 	}
+
+	public static void onSensorOriginChanged(Context context, int iSensorOrigin)
+	{
+		if(MojingSDKServiceManager.isHMDWorking())
+		{
+			LogTrace("Sensor origin isHMDWorking.");
+			SetSensorOriginStatus(iSensorOrigin);
+			return;
+		 }
+
+		if(iSensorOrigin == GetSensorOriginStatus()) 
+		{
+			LogWarning("Sensor origin is already " + iSensorOrigin);
+			return;
+		}
+
+		SetSensorOriginStatus(iSensorOrigin);
+		
+		if(iSensorOrigin == GetSensorOriginStatus())
+		{
+			LogTrace("Sensor origin is set to " + iSensorOrigin);
+			if(MojingSDKServiceManager.isServiceTracker())
+			{
+				MojingSDKServiceManager.ClientReStart();
+			}
+			else
+			{
+				StopTracker();
+				MojingSDKSensorManager.UnRegisterSensor(context);
+				MojingSDKSensorManager.RegisterSensor(context);
+				MojingSDKServiceManager.StartTracker();
+			}
+		}
+		else
+		{
+			LogWarning("Sensor origin is not set to " + iSensorOrigin);
+		}
+	}
+
 
 	private static Object g_DeviceTimerSync = new Object();
 	public static void onNativeActiveResume()

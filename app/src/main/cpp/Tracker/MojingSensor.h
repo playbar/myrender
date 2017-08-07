@@ -1,9 +1,5 @@
 ﻿#pragma once
 
-#include <Sensors/Vector3d.h>
-#include <Sensors/OrientationEKF.h>
-#include <Sensors/GyroscopeBiasEstimator.h>
-#include <Sensors/Matrix.h>
 #include "../Base/MojingMath.h"
 #include "../Base/MojingThreads.h"
 #include "../Base/MojingString.h"
@@ -35,82 +31,8 @@ namespace Baofeng
 			double	 LastSampleTime;
 			double   lastTempTime;
 			double   AbsoluteTimeSeconds;
-
-            pthread_mutex_t m_lock;
-            MessageBodyFrame(){
-                Matrix::setIdentityM(neckModelTranslation, 0);
-                pthread_mutex_init(&m_lock,NULL);
-            };
-
-            void lock()
-            {
-                pthread_mutex_lock(&m_lock);
-            }
-
-            void unlock()
-            {
-                pthread_mutex_unlock(&m_lock);
-            }
-//		};
-//
-//		struct HeadTrackerData : public MessageBodyFrame
-//		{
-			Vector3dJ gyroBias;
-			Vector3dJ latestGyro;
-			Vector3dJ latestAcc;
-			GyroscopeBiasEstimator gyroBiasEstimator;
-			OrientationEKF tracker;
-            uint64_t latestGyroEventClockTimeNs = 0;
-			float initialSystemGyroBias[3];
-			float neckModelTranslation[16];
-
-            float sensorToDisplay[16];
-            float ekfToHeadTracker[16];
-            float tmpHeadView[16];
-            float tmpHeadView2[16];
-
-			float neckModelFactor = 1.0;
-            float displayRotation = 0x4000;
-            void setNeckModelFactor(float factor){
-                if( factor < 0.0 || factor > 1.0 )
-                    return;
-                neckModelFactor = factor;
-            }
-
-            void getLastHeadView(float *headView){
-                float rotation = 90.0f;
-
-                if( rotation != displayRotation ) {
-                    displayRotation = rotation;
-                    Matrix::setRotateEulerM(sensorToDisplay, 0, 0, 0, -rotation);
-                    Matrix::setRotateEulerM(ekfToHeadTracker, 0, -90, 0, rotation);
-                }
-
-
-                double secondsSinceLastGyroEvent = (GetTimeNano() - latestGyroEventClockTimeNs)/1000000000.0;
-                double secondsToPredictForward = secondsSinceLastGyroEvent + 0.057999998331069946;
-                lock();
-                if (!tracker.isReady())
-                {
-                    return;
-                }
-                double *mat = tracker.getPredictedGLMatrix(secondsToPredictForward);
-                for (int i = 0; i < 16; ++i) {
-                    tmpHeadView[i] = (float)mat[i];
-                }
-                unlock();
-
-
-                Matrix::multiplyMM(tmpHeadView2, sensorToDisplay, tmpHeadView);
-                Matrix::multiplyMM(headView, tmpHeadView2, ekfToHeadTracker);
-                Matrix::setIdentityM(neckModelTranslation,  0);
-                Matrix::translateM(neckModelTranslation,  0, (float) 0.0f,  ((-neckModelFactor) * 0.075f),  (neckModelFactor * 0.08f));
-                Matrix::multiplyMM(tmpHeadView, neckModelTranslation, headView);
-                Matrix::translateM(headView, 0, tmpHeadView,  0,  0.0f,  (neckModelFactor * 0.075f), (float) 0.0f);
-				return;
-            }
-
 		};
+
 
 		// SensorDataHandler is a base class from which users derive to receive Sensor Data
 		class Sensor;

@@ -118,8 +118,8 @@ namespace Baofeng
 		void SensorFusion::Reset()
 		{
 			//Lock::Locker lockScope(pHandler->GetHandlerLock());
-            StateForPrediction data;
-			UpdatedState.SetState(data);
+
+			UpdatedState.SetState(StateForPrediction());
 			State = PoseStatef();
 			Stage = 0;
 
@@ -209,7 +209,6 @@ namespace Baofeng
 		{
 			//if (msg.Type != Message_BodyFrame || !IsMotionTrackingEnabled())
 			//	return;
-//            LOGE("%s", __FUNCTION__ );
 			if (m_pSensorCalibration == NULL)
 			{
 				return;
@@ -286,7 +285,7 @@ namespace Baofeng
 
 #ifdef ENABLE_SENSOR_LOGGER
             Quatf orientation = State.Transform.Orientation;
-			MOJING_TRACE(g_Sensorlogger, "time = " << (int64_t)(msg.AbsoluteTimeSeconds * 1000) <<
+			MOJING_TRACE(g_Sensorlogger, "time = " << (int64_t)(state.State.TimeInSeconds * 1000) <<
 				", orientation (" << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << ")");
 #endif
 			UpdatedState.SetState(state);
@@ -687,43 +686,8 @@ namespace Baofeng
 		// after a high-speed motion.  Therefore, the prediction interval is dynamically
 		// adjusted based on speed.  Significant more research is needed to further improve
 		// this family of filters.
-		Posef  calcPredictedPose(const PoseStatef& poseState, float predictionDt, float *data)
+		Posef calcPredictedPose(const PoseStatef& poseState, float predictionDt)
 		{
-			Posef pose = poseState.Transform;
-			const float linearCoef = 1.0;
-			Vector3f angularVelocity = poseState.AngularVelocity;
-			float angularSpeed = angularVelocity.Length();
-
-			// This could be tuned so that linear and angular are combined with different coefficients
-			float speed = angularSpeed + linearCoef * poseState.LinearVelocity.Length();
-
-			const float slope = 0.2; // The rate at which the dynamic prediction interval varies
-			float candidateDt = slope * speed; // TODO: Replace with smoothstep function
-
-			float dynamicDt = predictionDt;
-
-			// Choose the candidate if it is shorter, to improve stability
-			if (candidateDt < predictionDt)
-				dynamicDt = candidateDt;
-
-			const float MAX_DELTA_TIME = 1.0f / 10.0f;
-			dynamicDt = Alg::Clamp(dynamicDt, 0.0f, MAX_DELTA_TIME);
-
-			if (angularSpeed > 0.001)
-				pose.Orientation = pose.Orientation * Quatf(angularVelocity, angularSpeed * dynamicDt);
-
-			if( data != NULL){
-				Matrix::QuatToMat(data, angularVelocity.x, angularVelocity.y, angularVelocity.z,angularSpeed * dynamicDt );
-			}
-
-			pose.Position += poseState.LinearVelocity * dynamicDt;
-
-			return pose;
-		}
-
-		Posef  calcPredictedPose(StateForPrediction& poseS, float predictionDt)
-		{
-            const PoseStatef& poseState = poseS.State;
 			Posef pose = poseState.Transform;
 			const float linearCoef = 1.0;
 			Vector3f angularVelocity = poseState.AngularVelocity;
@@ -768,9 +732,7 @@ namespace Baofeng
 			const float pdt = absoluteTimeSeconds - state.State.TimeInSeconds;
 			
 			const Posef recenter = RecenterTransform.GetState();
-
-            float data[16] = { 0 };
-            Matrix::setIdentityM(data, 0);
+			
 			if (absoluteTimeSeconds == 0)
 			{// 不要做预测 
 				sstate.Predicted.TimeInSeconds = state.State.TimeInSeconds;
@@ -783,7 +745,7 @@ namespace Baofeng
 					// Do prediction logic
 					//sstate.Predicted = sstate.Recorded;
 					sstate.Predicted.TimeInSeconds = absoluteTimeSeconds;
-					sstate.Predicted.Transform = recenter * calcPredictedPose(state.State, pdt, data);
+					sstate.Predicted.Transform = recenter * calcPredictedPose(state.State, pdt);
 				}
 				else
 				{
@@ -796,7 +758,7 @@ namespace Baofeng
 #ifdef ENABLE_SENSOR_LOGGER		
 					PoseStatef State = sstate.Recorded;
 					Quatf orientation = State.Transform.Orientation;
-//					MOJING_TRACE(g_Sensorlogger, "Get orientation (" << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << ")");
+					MOJING_TRACE(g_Sensorlogger, "Get orientation (" << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << ")");
 #endif		
 					sstate.Predicted.TimeInSeconds = state.State.TimeInSeconds;
 					sstate.Predicted.Transform = recenter * state.State.Transform;
@@ -804,8 +766,6 @@ namespace Baofeng
 			}
 			sstate.Predicted.AngularAcceleration = state.State.AngularAcceleration;
 			sstate.Predicted.LinearAcceleration = state.State.LinearAcceleration;
-
-
 //			dTime[1] = Timer::GetSeconds();
 //			MOJING_TRACE(g_APIlogger, "GetPredictionForTime Time All = " << Timer::FormatDoubleTime(dTime[1] - dTime[0]));
 			if (pdOutSensotTime)
@@ -818,6 +778,11 @@ namespace Baofeng
 			if (m_pSensorCalibration)
 				return m_pSensorCalibration->GetCalibrationRate();
 			return 0;
+		}
+		void SensorFusion::SetCalibrationRate(float fRate)const
+		{
+			if (m_pSensorCalibration)
+				m_pSensorCalibration->SetCalibrationRate(fRate);
 		}
 // 		int SensorFusion::GetCalibrationResetCount()const
 // 		{

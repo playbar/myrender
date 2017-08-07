@@ -27,6 +27,11 @@ extern MojingLogger g_APIlogger;
 #define FN_UpdateWarpmesh					"svrUpdateWarpmesh"
 #define FN_CheckServiceIsAvaliable			"svrCheckServiceIsAvaliable"
 #define FN_SetTimewarp						"svrSetTimewarp"
+#define FN_InitializeQvrServiceOnly			"svrInitializeQvrServiceOnly"
+#define FN_ReleaseQvrServiceOnly			"svrReleaseQvrServiceOnly"
+
+#define FN_SetCpuPerfLevel			"_Z18svrSetCpuPerfLevel12svrPerfLevel"
+
 
 #define GET_DLL_FUNCION(DLL , FUNC)  m_fp##FUNC = (FP_##FUNC)dlsym(DLL , FN_##FUNC)
 #define GET_DLL_FUNCION_ERR(FUNC) {if (m_fp##FUNC == NULL ) { MOJING_ERROR(g_APIlogger , "Can not get "#FUNC" function pointer");}}
@@ -82,6 +87,10 @@ bool CSVRApi::Init()
 			GET_DLL_FUNCION(m_hDLL, UpdateWarpmesh);
 			GET_DLL_FUNCION(m_hDLL, CheckServiceIsAvaliable);
 			GET_DLL_FUNCION(m_hDLL, SetTimewarp);
+			GET_DLL_FUNCION(m_hDLL, InitializeQvrServiceOnly);
+			GET_DLL_FUNCION(m_hDLL, ReleaseQvrServiceOnly);
+			GET_DLL_FUNCION(m_hDLL, SetCpuPerfLevel);
+
 			if (m_fpGetVersion != NULL
 				&& m_fpInitialize != NULL
 				&& m_fpShutdown != NULL
@@ -98,6 +107,9 @@ bool CSVRApi::Init()
 				&& m_fpUpdateWarpmesh != NULL
 				&& m_fpCheckServiceIsAvaliable != NULL
 				&& m_fpSetTimewarp != NULL
+				&& m_fpInitializeQvrServiceOnly != NULL
+				&& m_fpReleaseQvrServiceOnly != NULL
+				&& m_fpSetCpuPerfLevel != NULL
 				)
 			{
 				bRet = m_bInit = true;
@@ -121,18 +133,21 @@ bool CSVRApi::Init()
 				GET_DLL_FUNCION_ERR(UpdateWarpmesh);
 				GET_DLL_FUNCION_ERR(CheckServiceIsAvaliable);
 				GET_DLL_FUNCION_ERR(SetTimewarp);
+				GET_DLL_FUNCION_ERR(InitializeQvrServiceOnly);
+				GET_DLL_FUNCION_ERR(ReleaseQvrServiceOnly);
+				GET_DLL_FUNCION_ERR(SetCpuPerfLevel);
 				Release();
 			}
 		}
 		else// m_hDLL == NULL
 		{
 			const char* err = dlerror();
-			MOJING_ERROR(g_APIlogger, "Can not load libary \"libOverlay.so\"  Error = " << (err ? err : "Unknown"));
+			MOJING_ERROR(g_APIlogger, "Can not load libary \"libsvrapi.so\"  Error = " << (err ? err : "Unknown"));
 		}
 	}
 	catch (...)
 	{
-		MOJING_ERROR(g_APIlogger, "Can not load libary \"libOverlay.so\"  , ****CRASH***");
+		MOJING_ERROR(g_APIlogger, "Can not load libary \"libsvrapi.so\"  , ****CRASH***");
 	}
 	return	 bRet;
 }
@@ -171,7 +186,12 @@ bool CSVRApi::Initialize(const svrInitParams* pInitParams)
 	
 	return false;
 }
-
+bool CSVRApi::InitializeQvrServiceOnly()
+{
+	if (m_fpInitializeQvrServiceOnly)
+		return m_fpInitializeQvrServiceOnly();
+	return false;
+}
 void CSVRApi::Shutdown()
 {
 	if (m_fpShutdown)
@@ -192,7 +212,12 @@ void CSVRApi::SetPerformanceLevels(svrPerfLevel cpuPerfLevel, svrPerfLevel gpuPe
 	if (m_fpSetPerformanceLevels)
 		m_fpSetPerformanceLevels(cpuPerfLevel , gpuPerfLevel);
 }
+void CSVRApi::SetCpuPerfLevel(svrPerfLevel cpuPerfLevel)
+{
+	if (m_fpSetCpuPerfLevel)
+		m_fpSetCpuPerfLevel(cpuPerfLevel);
 
+}
 void CSVRApi::BeginVr(const svrBeginParams* pBeginParams)
 {
 	if (m_fpBeginVr)

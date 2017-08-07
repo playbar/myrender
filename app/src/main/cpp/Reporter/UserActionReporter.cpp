@@ -48,7 +48,7 @@ namespace Baofeng
 		}
 
 	
-		void UserActionReporter::Post(const char* strActionType, const char* strItemID)
+		void UserActionReporter::Post(const char* strActionType, const char* strItemID, const char* strJsonValue)
 		{
 			MojingPlatformBase* pPlatform = MojingPlatformBase::GetPlatform();
 			if (pPlatform == NULL)
@@ -69,6 +69,10 @@ namespace Baofeng
 			String ActionTypeStr = ConvertToUrlEncode(strActionType);
 			data += "&action_type=";
 			data += ActionTypeStr.ToCStr();
+
+			String JsonValueStr = ConvertToUrlEncode(strJsonValue);
+			data += "&jsonvalue=";
+			data += JsonValueStr.ToCStr();
 
 			char szTime[256];
 			sprintf(szTime, "%d", GetCurrentTime());

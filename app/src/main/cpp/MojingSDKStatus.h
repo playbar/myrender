@@ -41,6 +41,14 @@ namespace Baofeng
 			DRAW_NOW,
 		};
 
+		enum SENSOR_ORIGIN
+		{
+			SENSOR_FROM_DEFAULT = 0,
+			SENSOR_FROM_NATIVE,
+			SENSOR_FROM_JAVA,
+			SENSOR_FROM_SERVICE
+		};
+
 		class MojingSDKStatus
 		{
 			void ParseVersion();
@@ -60,6 +68,7 @@ namespace Baofeng
 			CLASS_MEMBER(TRACKER_STATUS, m_, TrackerStatus);
 			CLASS_MEMBER(DRAW_STATUS, m_, DrawStatus);
 			CLASS_MEMBER(SDK_VERIFY, m_, VerfiyStatus);
+			CLASS_MEMBER(SENSOR_ORIGIN, m_, SensorOrigin);
 
 			CLASS_MEMBER(bool , m_b , ShowTimeWarpRange);
 

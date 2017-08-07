@@ -3,6 +3,7 @@
 #include "../../MojingManager.h"
 #include "../../Distortion/MojingDistortion.h"
 #include "../../Profile/MojingProfileKey.h"
+#include "../../Profile/UserSettingProfile.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
@@ -18,7 +19,11 @@ bool   Gear_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char *  
 }
 bool   Gear_StartTracker(int nSampleFrequence, const char* szGlassName/* = NULL*/)
 {
-	return MojingSDK_StartTracker(nSampleFrequence, szGlassName);
+	int nSensorOriginStatus = MojingSDK_GetSensorOrigin();
+	MojingSDK_SetSensorOrigin(SENSOR_ORIGIN_LOCAL_NATIVE);
+	bool bRet = MojingSDK_StartTracker(nSampleFrequence, szGlassName);
+	MojingSDK_SetSensorOrigin(nSensorOriginStatus);
+	return bRet;
 }
 
 void   Gear_StopTracker(void)
