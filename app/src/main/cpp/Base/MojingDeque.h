@@ -184,7 +184,7 @@ namespace Baofeng
 		}
 
 		template <class Elem>
-		const Elem& Deque<Elem>::PeekBack(int count) const
+		const Elem& Deque<Elem>::PeekBack(int count) const // 返回倒数第N个元素，倒数第0个相当于最后一个
 		{
 			// Error Check: Make sure we aren't reading from an empty Deque
 			MJ_ASSERT(ElemCount > count);

@@ -120,8 +120,14 @@ namespace Baofeng
 					inTo = Quatf(0.0f, 0.0f, 0.0f, 1.0f); // just force identity
 				}
 			}
-
-			Quatf qFix = (inFrom * inTo.Inverted()).Inverted();
+			/************************************************************************
+			 注意：                                                               
+				下面的代码如果写成
+					(inFrom * inTo.Inverted()).Inverted(),那么预测的图像方向将与运动方
+					向一致,这就导致了运动时的卡顿。				
+			/************************************************************************/
+			// 20170731 
+			Quatf qFix = (inFrom * inTo.Inverted())/*.Inverted()*/;
 			// qFix.z *= -1;
 			return qFix;
 		}
@@ -161,7 +167,6 @@ namespace Baofeng
 				pStatus->SetTrackerStatus(TRACKER_START_NOW);
 				MOJING_TRACE(g_Sensorlogger, "Set sensor frequence as " << nSampleFrequence << " / " << GetMaxSensorsSampleRate() << "(Max)");
 				Manager* pManager = Manager::GetMojingManager();
-				SetDataFromExternal(false);
 				pManager->SetSensor(szGlassName);
 				Sensor* pSensor = pManager->GetSensor();
 				int nCheck = pSensor->CheckSensors();

@@ -40,7 +40,7 @@ namespace Baofeng
 			virtual ~GlGeometry();
 
 			bool IsAvailable();
-
+			static void SaveAttributesToFile(const char* lpszFile , unsigned int iWidth, unsigned int iHeight, const void * pAttributeBuffer);
 			virtual bool BuildGeometry(int iWidth = 0, int iHeight = 0, void *pBuffer = NULL);
 			//			void Clear();
 			virtual void BindVBO();
@@ -89,11 +89,6 @@ namespace Baofeng
 		class GlGeometryTriangles : public GlGeometry
 		{
 		public:
-			std::vector<float> m_VertexLeft_Qualcomm;
-			std::vector<unsigned int > m_IndexLeft_Qualcomm;
-			std::vector<float> m_VertexRight_Qualcomm;
-			std::vector<unsigned int > m_IndexRight_Qualcomm;
-
 			virtual bool BuildGeometry(int iWidth = 0, int iHeight = 0, void *pBuffer = NULL);
 			virtual void DrawElements(int eye);
 			virtual void DrawElementsRange(int eye);

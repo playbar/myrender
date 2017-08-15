@@ -162,7 +162,8 @@ MOJING_SRC_FILES += Base/Base32.cpp \
 # MOJING_SRC_FILES += Base/MojingMemoryCheck.cpp 
 
 # Distortion
-MOJING_SRC_FILES += Distortion/MojingDistortion.cpp 
+MOJING_SRC_FILES += Distortion/MojingDistortion.cpp \
+					Distortion/GVR/GvrProfile.cpp
 
 # Hook
 MOJING_SRC_FILES += Hook/Global/detour.cpp \

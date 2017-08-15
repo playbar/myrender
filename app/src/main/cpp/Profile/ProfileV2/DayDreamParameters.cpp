@@ -14,192 +14,375 @@
 #ifdef ENABLE_LOGGER
 extern MojingLogger g_APIlogger;
 #endif // ENABLE_LOGGER
-
-CDayDreamParameters::CDayDreamParameters()
+namespace Baofeng
 {
-}
-
-
-CDayDreamParameters::~CDayDreamParameters()
-{
-}
-
-int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szNewDayDreamURL, float fPPI_Scale)
-{
-	if (szNewDayDreamURL == NULL)
+	namespace Mojing
 	{
-		return (strlen(szDayDreamURL) + 3 )/ 4 * 4 + 1;
-	}
+		CDayDreamParameters::CDayDreamParameters()
+		{
+		}
 
-	int iRet = 0;
-	int iBufferSize = Base64ToBuffer(szDayDreamURL, NULL);
-	if (iBufferSize)
-	{
-		unsigned char * pDDParametersBuffer = new unsigned char[iBufferSize + 16];
-		memset(pDDParametersBuffer, 0, iBufferSize + 16);
-		int iLength = Base64ToBuffer(szDayDreamURL, pDDParametersBuffer);
-		// pDDParametersBuffer_New 是存放新的二进制格式参数的缓冲区
-		unsigned char * pDDParametersBuffer_New = new unsigned char[iBufferSize + 16];
-		memset(pDDParametersBuffer_New, 0, iBufferSize + 16);
-		*szNewDayDreamURL = 0;
+
+		CDayDreamParameters::~CDayDreamParameters()
+		{
+		}
+
+		int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szNewDayDreamURL, float fPPI_Scale)
+		{
+			if (szNewDayDreamURL == NULL)
+			{
+				return (strlen(szDayDreamURL) + 3) / 4 * 4 + 1;
+			}
+
+			int iRet = 0;
+			int iBufferSize = Base64ToBuffer(szDayDreamURL, NULL);
+			if (iBufferSize)
+			{
+				unsigned char * pDDParametersBuffer = new unsigned char[iBufferSize + 16];
+				memset(pDDParametersBuffer, 0, iBufferSize + 16);
+				int iLength = Base64ToBuffer(szDayDreamURL, pDDParametersBuffer);
+				// pDDParametersBuffer_New 是存放新的二进制格式参数的缓冲区
+				unsigned char * pDDParametersBuffer_New = new unsigned char[iBufferSize + 16];
+				memset(pDDParametersBuffer_New, 0, iBufferSize + 16);
+				*szNewDayDreamURL = 0;
 
 #if USE_PROTOBUF
-		DeviceParams D;
-		if (D.ParsePartialFromArray(pDDParametersBuffer , iLength))
-		{
-			if (D.has_screen_to_lens_distance() && D.has_inter_lens_distance())
-			{
-				float fFixA = (int)(D.screen_to_lens_distance() * fPPI_Scale * 10000 + 5);
-				float fFixB = (int)(D.inter_lens_distance() * fPPI_Scale * 10000 + 5);
-				fFixA /= 10000;
-				fFixB /= 10000;
-#ifdef _DEBUG
-				MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
-				MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << D.screen_to_lens_distance() << " --> " << fFixA);
-				MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << D.inter_lens_distance() << " --> " << fFixB);
-#endif
-				D.set_screen_to_lens_distance(fFixA);
-				D.set_inter_lens_distance(fFixB);
-				
-				if (D.SerializePartialToArray(pDDParametersBuffer_New, iBufferSize))
+				DeviceParams D;
+				if (D.ParsePartialFromArray(pDDParametersBuffer, iLength))
 				{
-					iRet = BufferToBase64(pDDParametersBuffer_New, iLength, szNewDayDreamURL);;
-				}
-			}
-		}
-		
-
-#else
-		/*
-		0x7AC68880  0a 0d 62 61 6f 66 65 6e 67 6d 6f 6a 69 6e 67 12  ..baofengmojing.
-		0x7AC68890  0e 6d 6f 6a 69 6e 67 20 50 6c 75 73 20 33 42 1d  .mojing Plus 3B.
-		0x7AC688A0  a1 67 33 3d 25 b6 f3 7d 3d 2a 10 00 00 30 42 00  ?g3=%??}=*...0B.
-		0x7AC688B0  00 30 42 00 00 30 42 00 00 30 42 58 01 35 29 5c  .0B..0B..0BX.5)\
-		0x7AC688C0  0f 3d 3a 08 cd cc 4c 3d 3d 0a 57 3e 50 00 60 00  .=:.??L==.W>P.`.
-		*/
-		memcpy(pDDParametersBuffer_New, pDDParametersBuffer, iLength);
-		unsigned char *pPos = pDDParametersBuffer_New;
-		if (*pPos++ == 0x0A)//  1 公司名
-		{
-			pPos += *pPos + 1;
-			if (*pPos++ == 0x12)// 2 眼镜名
-			{
-				pPos += *pPos + 1;
-				if (*pPos++ == 0x1D)// 3 Screen to lens distance 镜片到手机的距离
-				{
-					float screen_to_lens_distance;
-					unsigned char *pScreen_to_lens_distance = pPos;
-					memcpy(&screen_to_lens_distance, pScreen_to_lens_distance, 4);
-					pPos += 4;
-					if (*pPos++ == 0x25)// 4 Inter-lens distance 瞳距
+					if (D.has_screen_to_lens_distance() && D.has_inter_lens_distance())
 					{
-						float inter_lens_distance;
-						unsigned char *pinter_lens_distance = pPos;
-						memcpy(&inter_lens_distance, pinter_lens_distance, 4);
-						float fFixA = (int)(screen_to_lens_distance * fPPI_Scale * 10000 + 5);
-						float fFixB = (int)(inter_lens_distance * fPPI_Scale * 10000 + 5);
+						float fFixA = (int)(D.screen_to_lens_distance() * fPPI_Scale * 10000 + 5);
+						float fFixB = (int)(D.inter_lens_distance() * fPPI_Scale * 10000 + 5);
 						fFixA /= 10000;
 						fFixB /= 10000;
-						pPos += sizeof(float);
-						if (*pPos++ == 0x2A)//5  Field-of-view angles
-						{
-							if (*pPos++ == 0x10)// Length of FOV
-							{
-								float fFOV[4];
-								unsigned char *pFOV = pPos;
-								memcpy(fFOV, pFOV, sizeof(float)* 4);
-								pPos += sizeof(float)* 4;
-								// 6 Screen vertical alignment
-								enum __enumScreenVerticalAlignment
-								{
-									SVA_BOTTOM  = 0,
-									SVA_CENTER = 1,
-									SVA_TOP = 2
-								}ScreenVerticalAlignment;
-								
-								if (*pPos++ == 0x58)
-								{
-									ScreenVerticalAlignment = (__enumScreenVerticalAlignment)*pPos++;
-									// 7 Tray to lens-center distance
-									if (*pPos++ == 0x35)
-									{
-										float TrayToLensCenterDistance;
-										unsigned char *pTrayToLensCenterDistance = pPos;
-										memcpy(&TrayToLensCenterDistance, pTrayToLensCenterDistance, 4);
-										float fFixC = (int)(TrayToLensCenterDistance * fPPI_Scale * 10000 + 5);
-										fFixC /= 10000;
 #ifdef _DEBUG
-										char szScreenVerticalAlignment[3][8] = {
-											"BOTTOM",
-											"CENTER",
-											"TOP"
-										};
-										MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
-										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << screen_to_lens_distance << " --> " << fFixA);
-										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << inter_lens_distance << " --> " << fFixB);
-										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : ScreenVerticalAlignment = " << szScreenVerticalAlignment[(int)ScreenVerticalAlignment] );
-										MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << TrayToLensCenterDistance << " --> " << fFixC);
+						MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
+						MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << D.screen_to_lens_distance() << " --> " << fFixA);
+						MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << D.inter_lens_distance() << " --> " << fFixB);
 #endif
-										memcpy(pScreen_to_lens_distance, &fFixA, 4);
-										memcpy(pinter_lens_distance, &fFixB, 4);
-										memcpy(pTrayToLensCenterDistance, &fFixC, 4);
+						D.set_screen_to_lens_distance(fFixA);
+						D.set_inter_lens_distance(fFixB);
+
+						if (D.SerializePartialToArray(pDDParametersBuffer_New, iBufferSize))
+						{
+							iRet = BufferToBase64(pDDParametersBuffer_New, iLength, szNewDayDreamURL);;
+						}
+					}
+				}
+
+
+#else
+				/*
+				0x7AC68880  0a 0d 62 61 6f 66 65 6e 67 6d 6f 6a 69 6e 67 12  ..baofengmojing.
+				0x7AC68890  0e 6d 6f 6a 69 6e 67 20 50 6c 75 73 20 33 42 1d  .mojing Plus 3B.
+				0x7AC688A0  a1 67 33 3d 25 b6 f3 7d 3d 2a 10 00 00 30 42 00  ?g3=%??}=*...0B.
+				0x7AC688B0  00 30 42 00 00 30 42 00 00 30 42 58 01 35 29 5c  .0B..0B..0BX.5)\
+				0x7AC688C0  0f 3d 3a 08 cd cc 4c 3d 3d 0a 57 3e 50 00 60 00  .=:.??L==.W>P.`.
+				*/
+				memcpy(pDDParametersBuffer_New, pDDParametersBuffer, iLength);
+				unsigned char *pPos = pDDParametersBuffer_New;
+				if (*pPos++ == 0x0A)
+				{
+					pPos += *pPos + 1;
+					if (*pPos++ == 0x12)
+					{
+						pPos += *pPos + 1;
+						if (*pPos++ == 0x1D)
+						{
+							float screen_to_lens_distance;
+							unsigned char *pScreen_to_lens_distance = pPos;
+							memcpy(&screen_to_lens_distance, pScreen_to_lens_distance, 4);
+							pPos += 4;
+							if (*pPos++ == 0x25)
+							{
+								float inter_lens_distance;
+								unsigned char *pinter_lens_distance = pPos;
+								memcpy(&inter_lens_distance, pinter_lens_distance, 4);
+								float fFixA = (int)(screen_to_lens_distance * fPPI_Scale * 10000 + 5);
+								float fFixB = (int)(inter_lens_distance * fPPI_Scale * 10000 + 5);
+								fFixA /= 10000;
+								fFixB /= 10000;
+#ifdef _DEBUG
+								MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
+								MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << screen_to_lens_distance << " --> " << fFixA);
+								MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << inter_lens_distance << " --> " << fFixB);
+#endif
+								memcpy(pScreen_to_lens_distance, &fFixA, 4);
+								memcpy(pinter_lens_distance, &fFixB, 4);
+							}
+						}
+					}
+				}
+#endif
+
+
+				iRet = BufferToBase64(pDDParametersBuffer_New, iLength, szNewDayDreamURL);
+				while (char * pPos = strchr(szNewDayDreamURL, '='))
+				{
+					*pPos = 0;
+				}
+				delete[] pDDParametersBuffer_New;
+				delete[] pDDParametersBuffer;
+			}
+			return iRet;
+		}
+		CDayDreamParameters CDayDreamParameters::FromDayDreamURL(const char* szDayDreamURL)
+		{
+			CDayDreamParameters Ret;
+			int iRet = 0;
+			int iBufferSize = Base64ToBuffer(szDayDreamURL, NULL);
+			if (iBufferSize)
+			{
+				unsigned char * pDDParametersBuffer = new unsigned char[iBufferSize + 16];
+				memset(pDDParametersBuffer, 0, iBufferSize + 16);
+				char *pTempString = new char[iBufferSize + 16];
+				*pTempString = 0;
+
+				int iLength = Base64ToBuffer(szDayDreamURL, pDDParametersBuffer);
+				// pDDParametersBuffer_New 是存放新的二进制格式参数的缓冲区
+				unsigned char * pDDParametersBuffer_New = new unsigned char[iBufferSize + 16];
+				memset(pDDParametersBuffer_New, 0, iBufferSize + 16);
+				memcpy(pDDParametersBuffer_New, pDDParametersBuffer, iLength);
+				unsigned char *pPos = pDDParametersBuffer_New;
+				if (*pPos++ == 0x0A)//  1 公司名
+				{
+					int company_name_length = *pPos;
+					pPos++;// 越过公司名长度，公司名和眼镜名为utf-8，未完成
+					strncpy(pTempString, (const char *)pPos, company_name_length);
+					// memcpy(&company_name, pCompany_name, company_name_length);
+					Ret.SetCompanyName(pTempString);
+					pPos += company_name_length;
+
+					if (*pPos++ == 0x12)// 2 眼镜名，公司名和眼镜名为utf-8，未完成
+					{
+						int viewer_name_length = *pPos;
+						pPos++;
+
+						strncpy(pTempString, (const char *)pPos, viewer_name_length);
+						Ret.SetViewerName(pTempString);
+
+						pPos += viewer_name_length;
+						if (*pPos++ == 0x1D)// 3 Screen to lens distance 镜片到手机的距离
+						{
+							float screen_to_lens_distance;
+							unsigned char *pScreen_to_lens_distance = pPos;
+							memcpy(&screen_to_lens_distance, pScreen_to_lens_distance, 4);
+							Ret.SetScreenToLens(screen_to_lens_distance);//Set的值单位为mile
+							pPos += 4;
+							if (*pPos++ == 0x25)// 4 Inter-lens distance 瞳距
+							{
+								float inter_lens_distance;
+								unsigned char *pinter_lens_distance = pPos;
+								memcpy(&inter_lens_distance, pinter_lens_distance, 4);
+								Ret.SetInterLens(inter_lens_distance);
+								//float fFixA = (int)(screen_to_lens_distance * fPPI_Scale * 10000 + 5);
+								//float fFixB = (int)(inter_lens_distance * fPPI_Scale * 10000 + 5);
+								//fFixA /= 10000;
+								//fFixB /= 10000;
+								pPos += sizeof(float);
+								if (*pPos++ == 0x2A)//5  Field-of-view angles
+								{
+									if (*pPos++ == 0x10)// Length of FOV
+									{
+										float fFOV[4];
+										unsigned char *pFOV = pPos;
+										memcpy(fFOV, pFOV, sizeof(float)* 4);
+										pPos += sizeof(float)* 4;
+										Ret.SetOuterFOV(fFOV[0]);
+										Ret.SetInnerFOV(fFOV[1]);
+										Ret.SetTopFOV(fFOV[2]);
+										Ret.SetBottomFOV(fFOV[3]);
+										// 6 Screen vertical alignment
+										__enumScreenVerticalAlignment ScreenVerticalAlignment;
+										if (*pPos++ == 0x58)
+										{
+											ScreenVerticalAlignment = (__enumScreenVerticalAlignment)*pPos++;
+											Ret.SetScreenVerticalAlignmentType(ScreenVerticalAlignment);
+
+											// 7 Tray to lens-center distance
+											if (*pPos++ == 0x35)
+											{
+												float TrayToLensCenterDistance;
+												unsigned char *pTrayToLensCenterDistance = pPos;
+												memcpy(&TrayToLensCenterDistance, pTrayToLensCenterDistance, 4);
+												Ret.SetScreenVerticalAlignment(TrayToLensCenterDistance);
+												pPos += sizeof(float);
+												if (*pPos++ = 0x3a)
+												{
+													if (*pPos++ == 0x08)
+													{
+														float DistortionCoefficientsK1, DistortionCoefficientsK2;
+														unsigned char* pDistortionCoefficientsK1 = pPos;
+														memcpy(&DistortionCoefficientsK1, pDistortionCoefficientsK1, 4);
+														pPos += 4;
+														unsigned char* pDistortionCoefficientsK2 = pPos;
+														memcpy(&DistortionCoefficientsK2, pDistortionCoefficientsK2, 4);
+														Ret.SetK1(DistortionCoefficientsK1);
+														Ret.SetK2(DistortionCoefficientsK2);
+													}
+													else
+													{
+														iRet = -11;
+													}
+												}
+												else
+												{
+													iRet = -10;
+												}
+
+												/*float fFixC = (int)(TrayToLensCenterDistance * fPPI_Scale * 10000 + 5);
+												fFixC /= 10000;
+												#ifdef _DEBUG
+												char szScreenVerticalAlignment[3][8] = {
+												"BOTTOM",
+												"CENTER",
+												"TOP"
+												};
+
+												MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
+												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << screen_to_lens_distance << " --> " << fFixA);
+												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << inter_lens_distance << " --> " << fFixB);
+												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : ScreenVerticalAlignment = " << szScreenVerticalAlignment[(int)ScreenVerticalAlignment]);
+												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << TrayToLensCenterDistance << " --> " << fFixC);
+												#endif
+												memcpy(pScreen_to_lens_distance, &fFixA, 4);
+												memcpy(pinter_lens_distance, &fFixB, 4);
+												memcpy(pTrayToLensCenterDistance, &fFixC, 4);
+												*/
+											}
+											else
+											{// // 7 Tray to lens-center distance
+												iRet = -9;
+											}
+										}
+										else
+										{//if (*pPos++ == 0x58) 
+											iRet = -8;
+										}
 									}
 									else
-									{// // 7 Tray to lens-center distance
-										iRet = -9;
+									{//if (*pPos++ == 0x10)// Length of FOV 
+										iRet = -7;
 									}
+
 								}
 								else
-								{//if (*pPos++ == 0x58) 
-									iRet = -8;
+								{//if (*pPos++ == 0x2A)//5  Field-of-view angles 
+									iRet = -6;
 								}
 							}
 							else
-							{//if (*pPos++ == 0x10)// Length of FOV 
-								iRet = -7;
+							{//if (*pPos++ == 0x25)// 4 Inter-lens distance 瞳距 
+								iRet = -5;
 							}
-
 						}
 						else
-						{//if (*pPos++ == 0x2A)//5  Field-of-view angles 
-							iRet = -6;
+						{//if (*pPos++ == 0x1D)// 3 Screen to lens distance 镜片到手机的距离 
+							iRet = -4;
 						}
 					}
 					else
-					{//if (*pPos++ == 0x25)// 4 Inter-lens distance 瞳距 
-						iRet = -5;
+					{//if (*pPos++ == 0x12)// 2 眼镜名 
+						iRet = -3;
 					}
 				}
 				else
-				{//if (*pPos++ == 0x1D)// 3 Screen to lens distance 镜片到手机的距离 
-					iRet = -4;
+				{//if (*pPos++ == 0x0A)//  1 公司名 
+					iRet = -2;
 				}
+
+				delete pDDParametersBuffer;
+				delete pTempString;
+			}
+			else // if (iBufferSize)
+			{
+
+			}
+			if (iRet<0)
+			{
+				Ret.SetCompanyName("Wrong URL");
+				Ret.SetViewerName("Wrong URL");
+				Ret.SetK1(-1);
+				Ret.SetK2(-1);
 			}
 			else
-			{//if (*pPos++ == 0x12)// 2 眼镜名 
-				iRet = -3;
-			}
-		}
-		else
-		{//if (*pPos++ == 0x0A)//  1 公司名 
-			iRet = -2;
-		}
-#endif
-
-		if (iRet >= 0)
-		{
-			iRet = BufferToBase64(pDDParametersBuffer_New, iLength, szNewDayDreamURL);
-			while (char * pPos = strchr(szNewDayDreamURL, '='))
 			{
-				*pPos = 0;
 			}
+
+			return Ret;
 		}
-		delete[] pDDParametersBuffer_New;
-		delete[] pDDParametersBuffer;
+
+		String CDayDreamParameters::GetDayDreamURL()
+		{
+			String sRet;
+			unsigned char* pBufferToURL = new unsigned char[80];
+			unsigned char* pPos = pBufferToURL;
+
+			*pPos++ = 0x0A;//1 公司名,需要转utf 8
+			unsigned char company_name_length = strlen(GetCompanyName());
+			*pPos++ = company_name_length;
+			memcpy(pPos, GetCompanyName(), company_name_length);
+			pPos += company_name_length;
+
+			*pPos++ = 0x12;//2 镜片名，需要转utf 8
+			char view_name_length = strlen(GetViewerName());
+			*pPos++ = view_name_length;
+			memcpy(pPos, GetViewerName(), view_name_length);
+			pPos += view_name_length;
+
+			*pPos++ = 0x1D;//3 Screen to lens distance 镜片到手机的距离
+			float fScreenToLens = GetScreenToLens();
+			memcpy(pPos, &fScreenToLens, sizeof(float));
+			pPos += sizeof(float);
+
+			*pPos++ = 0x25;// 4 Inter-lens distance 瞳距
+			float fInterLens = GetInterLens();
+			memcpy(pPos, &fInterLens, sizeof(float));
+			pPos += sizeof(float);
+
+			*pPos++ = 0x2A;//5 Field-of-view angles
+			*pPos++ = 0x10;
+			float OuterFoV = GetOuterFOV();
+			memcpy(pPos, &OuterFoV, sizeof(float));
+			pPos += sizeof(float);
+			float InnerFoV = GetInnerFOV();
+			memcpy(pPos, &InnerFoV, sizeof(float));
+			pPos += sizeof(float);
+			float TopFov = GetTopFOV();
+			memcpy(pPos, &TopFov, sizeof(float));
+			pPos += sizeof(float);
+			float BottomFoV = GetBottomFOV();
+			memcpy(pPos, &BottomFoV, sizeof(float));
+			pPos += sizeof(float);
+
+			*pPos++ = 0x58;// 6 Screen vertical alignment
+			__enumScreenVerticalAlignment ScreenVerticalAlignment = GetScreenVerticalAlignmentType();
+			memcpy(pPos++, &ScreenVerticalAlignment, sizeof(__enumScreenVerticalAlignment));
+
+			*pPos++ = 0x35;// 7 Tray to lens-center distance
+			float fTrayToLensCenter = GetScreenVerticalAlignment();
+			memcpy(pPos, &fTrayToLensCenter, sizeof(float));
+			pPos += sizeof(float);
+
+			*pPos++ = 0x3A;
+			*pPos++ = 0x08;
+			float fDistortionCoefficientsK1 = GetK1();
+			float fDistortionCoefficientsK2 = GetK2();
+			memcpy(pPos, &fDistortionCoefficientsK1, sizeof(float));
+			pPos += 4;
+			memcpy(pPos, &fDistortionCoefficientsK2, sizeof(float));
+			pPos += 4;
+			*pPos++ = 0x50;
+			*pPos++ = 0x00;
+			*pPos++ = 0x60;
+			*pPos = 0x00;
+			int index = pPos - pBufferToURL + 1;
+			//cout << index << endl;
+			char* tempsRet = new char[index];
+			int Length = BufferToBase64(pBufferToURL, index, tempsRet);
+			sRet = tempsRet;
+			return sRet;
+		}
 	}
-	else
-	{//if (iBufferSize) 
-		iRet = - 1;
-	}
-	return iRet;
 }

@@ -712,7 +712,7 @@ namespace Baofeng
 				pose.Orientation = pose.Orientation * Quatf(angularVelocity, angularSpeed * dynamicDt);
 
 			pose.Position += poseState.LinearVelocity * dynamicDt;
-
+			
 			return pose;
 		}
 

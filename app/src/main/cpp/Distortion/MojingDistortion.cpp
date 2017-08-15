@@ -5,6 +5,10 @@
 #include "../Parameters/MojingParameters.h"
 #include "../Render/MojingRenderBase.h"
 #include "../MojingSDKStatus.h"
+
+
+#include "../Profile/ProfileV2/DayDreamParameters.h"
+#include "GVR/GvrProfile.h"
 #ifdef ENABLE_LOGGER
 extern MojingLogger g_APIlogger;
 #endif
@@ -65,8 +69,6 @@ namespace Baofeng
 				// 因为是反算，所以移动方向也要反过来
 				// theta[1] -= GetYOffset() / GetMetersPerTanAngleAtCenter();
 				// 处理Y轴高度调节数据,归一化到以屏幕高度为1，正数为向上调整，负数为向下调整
-				
-
 				float fHorizontalShiftView = eye ? horizontalShiftView : -horizontalShiftView;
 				for (int y = 0; y <= tesselationsY; y++)
 				{
@@ -79,7 +81,6 @@ namespace Baofeng
 							目标左眼颜色：X : [0 , 0.5] , Y : [0 : 1] , 输入[-1 ， 1]
 							目标右眼颜色：X : [0.5 , 1] , Y : [0 : 1] , 输入[-1 ， 1]		
 							处理Y轴高度调节数据
-
 						*/
 						const float *pColor = &(bufferVerts[(y*(tesselationsX + 1) * 2 + x + eye * (tesselationsX + 1)) * UNREAL_DISTORTION_PARAMETES_COUNT]);
 
@@ -171,10 +172,25 @@ namespace Baofeng
 
 		void * Distortion::BuildDistortionBuffer_V2(Mesh_820& mesh_820,int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/)
 		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+#endif
+			// 注意 ：如果无畸变的小FOV镜片使用DURL会导致画变小。
+			// 所以，如果是无畸变的时候，不要用DURL来弄
+			if (GetSegment() && m_KG[20] > 1.01)
+			{
+				void *pRet = BuildDistortionBufferFromDURL(mesh_820, eyeBlocksWide, eyeBlocksHigh);
+				if (pRet)
+				{
+					MOJING_TRACE(g_APIlogger, "Using Distortion Buffer From DURL");
+					return pRet;
+				}
+			}
+
 			/*全新流程，Mesh表只覆盖需要显示的区域*/
 			DistortionVertexBuffer* pUnrealVertex = BuildDistortionVertexBuffer(eyeBlocksWide, eyeBlocksHigh);
 			const int vertexCount = 2 * (eyeBlocksWide + 1) * (eyeBlocksHigh + 1);
-			const int iBufferSize = 12 + 4 * vertexCount * UNREAL_DISTORTION_PARAMETES_COUNT;
+			const int iBufferSize = 12 + sizeof(float) * vertexCount * UNREAL_DISTORTION_PARAMETES_COUNT;
 			void* buf = malloc(iBufferSize);
 			// 冲算垂直误差
 			Parameters* pParameters = Manager::GetMojingManager()->GetParameters();
@@ -210,14 +226,14 @@ namespace Baofeng
 						v[8] = pNode->m_fY + fYOffset * 2;
 						if (eye == 0)
 						{
-							mesh_820.vertices_left.push_back(v[7]);
-							mesh_820.vertices_left.push_back(v[8]);
-							mesh_820.vertices_left.push_back(v[0]);
-							mesh_820.vertices_left.push_back(v[1]);
-							mesh_820.vertices_left.push_back(v[2]);
-							mesh_820.vertices_left.push_back(v[3]);
-							mesh_820.vertices_left.push_back(v[4]);
-							mesh_820.vertices_left.push_back(v[5]);
+							mesh_820.vertices_left.push_back(v[7]); // X
+							mesh_820.vertices_left.push_back(v[8]); // Y
+							mesh_820.vertices_left.push_back(v[0]); // Rx
+							mesh_820.vertices_left.push_back(v[1]); // Ry
+							mesh_820.vertices_left.push_back(v[2]); // Gx
+							mesh_820.vertices_left.push_back(v[3]); // Gy
+							mesh_820.vertices_left.push_back(v[4]);	// Bx
+							mesh_820.vertices_left.push_back(v[5]); // By
 						}
 						else
 						{
@@ -359,7 +375,58 @@ namespace Baofeng
 			//////////////////////////////////////////////////////////////////////////////////
 			return BuildDistortionBuffer(HMDI , eyeBlocksWide, eyeBlocksHigh);
 		}
+		// 参考谷歌的畸变方程和畸变算法，制作Mesh表
+		void * Distortion::BuildDistortionBufferFromDURL(Mesh_820& mesh, const int eyeBlocksWide/* = 32*/, const int eyeBlocksHigh/* = 32*/)
+		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1angc9JfT9VD0qEAAAMEIAADBCAAAsQgAALEJYATUpXA89OgjarPo9mpn5PlAAYAA";
+			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1angc9JfT9VD0qEAAAMEIAADBCAAAsQgAANEJYATUpXA89OgjarPo9mpn5PlAAYAA";
+			// m_szDURL = "CgzmmrTpo47prZTplZwSDeaatOmjjumtlOmVnDIdrkdhPSUlBoE9KhAAALhBAAC4QQAAuEEAALhBWAE1KVwPPToIAAAAAAAAAABQAGAA";// MJ2
+			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB2WQws9Jc3MTD0qEAAALEIAADRCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1ABYAA";
+#endif
+			GvrProfile GP;
 
+			if (!GP.InitFromDURL(m_szDURL))
+			{
+				MOJING_ERROR(g_APIlogger , "Can not create Distortion Buffer From DURL");
+				return NULL;
+			}
+			
+			MOJING_TRACE(g_APIlogger , "Using DURL = " << m_szDURL);
+			Mesh_820 WarpMesh;
+			GP.ComputeDistortionBuffer(eyeBlocksWide + 1, eyeBlocksHigh + 1, true, &WarpMesh);
+			mesh = WarpMesh;
+
+			float *pVertices = GP.GetVertices();
+			float *pTexUV = GP.GetTexUV();
+			const int vertexCount = 2 * (eyeBlocksWide + 1) * (eyeBlocksHigh + 1);
+			const int iBufferSize = 12 + sizeof(float)* vertexCount * UNREAL_DISTORTION_PARAMETES_COUNT;
+			void* buf = malloc(iBufferSize);
+			((int *)buf)[0] = (*((long*)"MJDB"));//DISTORTION_BUFFER_MAGIC;
+			((int *)buf)[1] = eyeBlocksWide;
+			((int *)buf)[2] = eyeBlocksHigh;
+			for (int eye = 0; eye < 2; eye++)
+			{
+				for (int y = 0; y <= eyeBlocksHigh; y++)
+				{
+					for (int x = 0; x <= eyeBlocksWide; x++)
+					{
+						int	vertNum = y * (eyeBlocksWide + 1) * 2 + eye * (eyeBlocksWide + 1) + x;
+						float * v = &((float *)buf)[3 + vertNum * UNREAL_DISTORTION_PARAMETES_COUNT];
+						int iSrcIndex = eye * (eyeBlocksHigh + 1) * (eyeBlocksWide + 1) + (eyeBlocksWide + 1) * y + x;
+						float *pVer = pVertices + iSrcIndex * 3;
+						float *pUV = pTexUV + iSrcIndex * 2;
+						v[0] = v[2] = v[4] = pUV[0];
+						v[1] = v[3] = v[5] = pUV[1];
+						v[6] = 1;
+						v[7] = pVer[0];
+						v[8] = pVer[1];
+					}
+				}
+			}
+			return buf;
+		}
 		void * Distortion::BuildDistortionBufferOverlay(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/, unsigned int OverlayWidth, unsigned int OverlayHeight)
 		{
 			Parameters* pParameters = Manager::GetMojingManager()->GetParameters();
@@ -937,7 +1004,7 @@ namespace Baofeng
 						
 						float * v = &((float *)buf)[3 + vertNum * DISTORTION_PARAMETES_COUNT];
 						//输入坐标xf , yf 是在[0...1]闭区间，且统一换算为以高度为参考的倍率关系。
-						const float inTex[2] = { (eye ? -horizontalShiftView : horizontalShiftView) +
+						float inTex[2] = { (eye ? -horizontalShiftView : horizontalShiftView) +
 							xf *aspect + (1.0f - aspect) * 0.5f, yf };
 						WarpTexCoordChroma(HMDI, inTex, &v[0], &v[2], &v[4] , &v[6]);
 					}
@@ -946,7 +1013,7 @@ namespace Baofeng
 			return buf;
 		}
 
-		void Distortion::WarpTexCoordChroma(const hmdInfoInternal_t & hmdInfo, const float in[2],
+		void Distortion::WarpTexCoordChroma(const hmdInfoInternal_t & hmdInfo, float in[2],
 			float red[2], float green[2], float blue[2] , float light[1]) {
 			float theta[2];
 			for (int i = 0; i < 2; i++) {
@@ -958,7 +1025,7 @@ namespace Baofeng
 				theta[i] = tanAngle;
 			}
 #if 1
-			theta[1] -= GetYOffset() / GetMetersPerTanAngleAtCenter();
+			in[1] -= GetYOffset() / hmdInfo.heightMeters;//GetMetersPerTanAngleAtCenter();
 #endif
 			const float rsq = theta[0] * theta[0] + theta[1] * theta[1];
 			//卡特摩尔样条插值
@@ -1210,6 +1277,18 @@ namespace Baofeng
 
 				fKT[iKT] = 1 / fKG;
 			}
+
+#ifdef _DEBUG
+			char szKtBuffer[32 * m_iSegment];
+			
+			strcpy(szKtBuffer, "===>> KT[] = { 1 ");
+			for (int i = 1; i <= m_iSegment; i++)
+			{
+				sprintf(szKtBuffer + strlen(szKtBuffer), ", %1.6f ", 1 / fKT[i]);
+			}
+			strcat(szKtBuffer, " };");
+			MOJING_TRACE(g_APIlogger , szKtBuffer);
+#endif
 		}
 		int Distortion::GetDistortionParamet(float* fKR, float * fKG, float * fKB)
 		{
@@ -1231,7 +1310,59 @@ namespace Baofeng
 
 			return iRet;
 		}
+		void Mesh_820::SaveToFile(const char* szFileName)const
+		{
+			FILE* pFile = fopen(szFileName , "w+");
+			if (pFile)
+			{
+				int iVSize = vertices_left.size();
+				int iISize = indices.size();
+				fprintf(pFile, "/*Vertices_L = %d , Vertices_R = %d , indices = %d*/", vertices_left.size(), vertices_right.size(), indices.size());
+				fputs("float LeftEye[] = {\n" , pFile);				
+				for (int i = 0; i < iVSize; i += 8)
+				{
+					fprintf(pFile, "/*%4d*/\t%0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f %s" , 
+						i / 8,
+						vertices_left[i], vertices_left[i+1], vertices_left[i+2], vertices_left[i+3],
+						vertices_left[i+4], vertices_left[i+5], vertices_left[i+6], vertices_left[i+7],
+						(i + 8) < iVSize ? ",\n" : "\n"
+						);
+					if (9 == i% 10)
+						fflush(pFile);
+				}
+				fputs("};\n\n", pFile);
 
+				iVSize = vertices_right.size();
+				fputs("float RightEye[] = {\n" , pFile);
+				for (int i = 0; i < iVSize; i += 8)
+				{
+					fprintf(pFile, "/*%4d*/\t%0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f %s\n",
+						i / 8, 
+						vertices_right[i], vertices_right[i + 1], vertices_right[i + 2], vertices_right[i + 3],
+						vertices_right[i + 4], vertices_right[i + 5], vertices_right[i + 6], vertices_right[i + 7],
+						(i + 8) < iVSize ? "," : ""
+						);
+					if (9 == i % 10)
+						fflush(pFile);
+				}
+				fputs("};\n\n", pFile);
+
+				fputs("float *Index[] = {\n", pFile);
+				for (int i = 0; i < iISize; i += 3)
+				{
+					fprintf(pFile, "/*%4d*/\t%4d , %4d , %4d  %s\n",
+						i / 3, indices[i + 0], indices[i + 1], indices[i + 2],
+						(i + 3) < iISize ? "," : "");
+
+					if (9 == i % 10)
+						fflush(pFile);
+				}
+				fputs("};\n\n", pFile);
+				fflush(pFile);
+
+				fclose(pFile);
+			}
+		}
 		bool Distortion::SaveToFile(const char* szFilePathName)const
 		{
 			JSON *pJson = JSON::CreateObject();

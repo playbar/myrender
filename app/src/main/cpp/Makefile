@@ -39,7 +39,7 @@ LOCAL_SRC_FILES = 3rdPart/AES/AES.cpp 3rdPart/AES/AESPro.cpp 3rdPart/MD5/MD5.cpp
 									3rdPart/minizip/ioapi.c 3rdPart/minizip/miniunz.c 3rdPart/minizip/minizip.c 3rdPart/minizip/mztools.c 3rdPart/minizip/unzip.c 3rdPart/minizip/zip.c \
 									Base/Base32.cpp Base/CRC.cpp Base/MojingAlg.cpp Base/MojingAllocator.cpp Base/MojingAtomic.cpp Base/MojingCompress.cpp Base/MojingFile.cpp Base/MojingFileFILE.cpp \
 									Base/MojingJSON.cpp Base/MojingLog.cpp Base/MojingMath.cpp Base/MojingRefCount.cpp Base/MojingStd.cpp Base/MojingString.cpp Base/MojingString_FormatUtil.cpp Base/GlUtils.cpp\
-									Base/MojingSysFile.cpp Base/MojingSystem.cpp Base/MojingTimer.cpp Base/MojingUTF8Util.cpp Base/MojingThreadsPthread.cpp Distortion/MojingDistortion.cpp \
+									Base/MojingSysFile.cpp Base/MojingSystem.cpp Base/MojingTimer.cpp Base/MojingUTF8Util.cpp Base/MojingThreadsPthread.cpp Distortion/MojingDistortion.cpp Distortion/GVR/GvrProfile.cpp\
 									Parameters/MojingDeviceParameters.cpp Parameters/MojingDisplayParameters.cpp Parameters/MojingFactoryCalibrationParameters.cpp Parameters/MojingGyroOffsetReport.cpp \
 									Parameters/MojingGyroOffsetReportSet.cpp Parameters/MojingJsonElement.cpp Parameters/MojingParameters.cpp Parameters/MojingSensorParameters.cpp Platform/MojingPlatformBase.cpp \
 									Reporter/ActiveTimeInfoReporter.cpp Reporter/CrashReporter.cpp Reporter/DatabaseInfoReporter.cpp Reporter/EventInfoReporter.cpp Reporter/InfoReporter.cpp Reporter/RunInfoReporter.cpp \
@@ -54,11 +54,12 @@ LOCAL_SRC_FILES = 3rdPart/AES/AES.cpp 3rdPart/AES/AESPro.cpp 3rdPart/MD5/MD5.cpp
 									TextureBacker/FBO.cpp TextureBacker/Shader.cpp TextureBacker/TextBaker.cpp \
 									Interface/Unity/UnityPluginInterface/UnityPluginInterfaceBase.cpp Interface/Unity/UnityPluginInterface/UnityPluginInterfaceWin32.cpp Interface/Unity/UnityPluginInterface/UnityPluginStatus.cpp
 									#Interface/Windows/MojingWinAPI.cpp	Render/MultiThreadGLParam.cpp	Render/MojingRenderMultiThread_THREAD.cpp		Render/MojingRenderMultithread.cpp	Interface/Unity/UnityWinAPI.cpp 
+									
 													
 							
 LOCAL_OBJ_FILES = AES.o AESPro.o MD5.o ioapi.o miniunz.o minizip.o mztools.o unzip.o zip.o sqlite3.o Base32.o CRC.o GlUtils.o MojingAlg.o MojingAllocator.o MojingAtomic.o MojingCompress.o \
 									MojingFile.o MojingFileFILE.o MojingJSON.o MojingLog.o MojingMath.o MojingRefCount.o MojingStd.o MojingString.o MojingString_FormatUtil.o MojingSysFile.o MojingSystem.o \
-									MojingThreadsPthread.o MojingTimer.o MojingUTF8Util.o MojingDistortion.o MojingAPI.o MojingManager.o MojingSDKStatus.o MojingDeviceParameters.o MojingDisplayParameters.o \
+									MojingThreadsPthread.o MojingTimer.o MojingUTF8Util.o MojingDistortion.o GvrProfile.o MojingAPI.o MojingManager.o MojingSDKStatus.o MojingDeviceParameters.o MojingDisplayParameters.o \
 									MojingFactoryCalibrationParameters.o MojingGyroOffsetReport.o MojingGyroOffsetReportSet.o MojingJsonElement.o MojingParameters.o MojingSensorParameters.o LogInterface.o \
 									MojingPlatformBase.o FileProfile.o GlassesConfigProfile.o GlassesConfigProfileV2.o InternetProfile.o MobileConfigProfile.o MojingProfileKey.o ProfileThreadMGR.o GlassInfo.o \
 									ManufacturerInfo.o ProductInfo.o EyeTextureParam.o LineDraw.o MojingRenderBase.o  RenderFrame.o DayDreamParameters.o \

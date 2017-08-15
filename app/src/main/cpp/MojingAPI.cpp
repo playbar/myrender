@@ -65,6 +65,12 @@ TextureBacker* g_pTexBacker = NULL;
 extern char *g_pPacketName;
 #endif
 
+#ifdef _DEBUG
+#include "Profile/ProfileV2/DayDreamParameters.h"
+#include "Distortion/GVR/GvrProfile.h"
+#endif
+
+
 #ifdef USING_MINIDUMP
 USING_MINIDUMP;
 bool MojingSDK_MinidumpCallBack(google_breakpad::MinidumpDescriptor const&Descriptor, void*Context, bool bSucceed)
@@ -81,6 +87,8 @@ bool MojingSDK_MinidumpCallBack(google_breakpad::MinidumpDescriptor const&Descri
 	return bRet;
 }
 #endif
+
+
 
 // 1. Init/shutdown.
 bool mj_Initialize()
@@ -247,8 +255,43 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 
 #include <stdio.h>  
 	
-#if 0
-// 	MojingProfileKey Key;
+#ifdef _DEBUG
+	const char* MJ4 = "CgzmmrTpo47prZTplZwSDeaatOmjjumtlOmVnDQdSnsDPSW28309KhAAAEBCAABAQgAAQEIAAEBCWAA1UI0XPToIKVyPPXsULj5QAGAA";
+	CDayDreamParameters DDP = CDayDreamParameters::FromDayDreamURL(MJ4);
+
+	GvrProfile GP;
+	Screen S;
+	Viewer V;
+	V.lenses.separation = 0.060f;
+	V.lenses.offset = 0.035f;
+	V.lenses.screenDistance = 0.042f;
+	V.lenses.alignment = V.lenses.AlignBottom;
+	V.maxFOV.outer = 50.0f;
+	V.maxFOV.inner = 50.0f;
+	V.maxFOV.upper = 50.0f;
+	V.maxFOV.lower = 50.0f;
+	DoubleArray temparray;
+	//= { 0.441f, 0.156f };
+	temparray.push_back(0.3f);
+	temparray.push_back(0.0f);
+	V.SetCoef(temparray); 
+	S.width = 0.114f;
+	S.height = 0.0635f;
+	S.border = 0.0035f;
+
+	int size = V.inverse.GetCoef().size();
+	double cof0 = V.inverse.GetCoef()[0];
+	double cof1 = V.inverse.GetCoef()[1];
+	double cof2 = V.inverse.GetCoef()[2];
+	double cof3 = V.inverse.GetCoef()[3];
+	double cof4 = V.inverse.GetCoef()[4];
+	double cof5 = V.inverse.GetCoef()[5];
+
+	GP.SetScreen(S);
+	GP.SetViewer(V);
+	
+	
+ 	MojingProfileKey Key;
 // 	float X, Y, Z;
 // 	Quatf F(0.1,0.2,0.3,0.4);
 // 	F.Normalize();
@@ -286,7 +329,11 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 	MOJING_TRACE(g_APIlogger , "/*****************PRINT KEYS**********************/");
 	PRINT_KEY(1, 100, 100);
 	PRINT_KEY(1, 10, 18);
-	PRINT_KEY(235, 235, 235);
+	PRINT_KEY(1, 14, 22);
+	char szTTT[64];
+	strcpy( szTTT , MojingProfileKey::GetStringWithID(1, 14, 22));
+	strcpy(szTTT, MojingProfileKey::GetStringWithID(1, 10, 18));
+	// PRINT_KEY(235, 235, 235);
 	// From = (-0.074446 , 0.143870 ,0.259640 , 0.952022)  , 
 	Quatf qFrom (-0.074446 , 0.143870 ,0.259640 , 0.952022);
 	// To = (-0.090886 , 0.143829 ,0.262451 , 0.949828) ,
@@ -377,9 +424,6 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 	int iSelect7 = MojingSDK_Math_SelectRectByDirectional(m4_7, 10, fpTopLeft, fpBottomRight);
 	int iSelect8 = MojingSDK_Math_SelectRectByDirectional(m4_8, 10, fpTopLeft, fpBottomRight);
 #endif
-
-
-
 	return bRet;
 }
 

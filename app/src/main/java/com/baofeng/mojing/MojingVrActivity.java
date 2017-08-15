@@ -44,19 +44,39 @@ public class MojingVrActivity extends Activity {
     }
 
     @Override protected void onPause() {
-        mMojingSurfaceView.onPause();
-        super.onPause();
+	    super.onPause();
+
 		MojingSDKSensorManager.UnRegisterSensor(this);
-        MojingSDKServiceManager.onPause(this);
-        com.baofeng.mojing.MojingVrLib.stopVsync(this);
+		if(!MojingSDK.IsUseUnityForSVR())
+        {
+			if(MojingSDK.IsInMachine()) {
+				MojingSDK.StopTracker();
+			}
+			else 
+			{
+			   MojingSDKServiceManager.onPause(this);
+			}
+		}
 		MojingSDKReport.onPause(this);
+        mMojingSurfaceView.onPause();
+        com.baofeng.mojing.MojingVrLib.stopVsync(this);
     }
 
     @Override protected void onResume() {
         super.onResume();   
 
 		MojingSDKSensorManager.RegisterSensor(this);
-        MojingSDKServiceManager.onResume(this);
+        if(!MojingSDK.IsUseUnityForSVR())
+        {
+            if(MojingSDK.IsInMachine())
+            {
+                MojingSDK.StartTracker(200);
+            }
+            else 
+			{
+                MojingSDKServiceManager.onResume(this);
+            }
+      	}
 		com.baofeng.mojing.MojingVrLib.startVsync(this);
         mMojingSurfaceView.onResume();
 		MojingSDKReport.onResume(this);

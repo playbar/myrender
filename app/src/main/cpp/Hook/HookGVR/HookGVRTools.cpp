@@ -205,7 +205,8 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 	static int LastReportThreadID = 0;
 	static String LastReport;
 	if (CheckCount++ % 18000 == 0)
-	{// 每一帧调用3次，18000次是6000帧。6000 / 60(fps) = 100秒检查一下
+	{	// 每一帧调用3次，18000次是6000帧。6000 / 60(fps) = 100秒检查一下
+		// 在一体机Martix上，6000 / 90(fps) = 66.666秒检查一下，一分钟左右
 		CheckCount = 1;
 		int iThdID = gettid();
 		if (LastReportThreadID != iThdID)
@@ -273,7 +274,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 			if (bIsMJ5 || bSensorDataFromMJSDK)
 			{// 使用Mojing 陀螺仪
 				static float fTemp[16];
-				if (0 == MojingSDK_getPredictionHeadView(fTemp, time.monotonic_system_time_nanos * 1e-9))
+				if (0 == MojingSDK_getPredictionHeadView(fTemp, 0/*time.monotonic_system_time_nanos * 1e-9*/))
 				{
 					// 列矩阵转行矩阵
 					for (int iX = 0; iX < 4; iX++)

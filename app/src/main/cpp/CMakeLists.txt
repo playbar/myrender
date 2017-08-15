@@ -72,6 +72,7 @@ add_library(mojing SHARED
 			Base/MojingUTF8Util.cpp
 			Base/MojingLoadSo.cpp
             Distortion/MojingDistortion.cpp
+            Distortion/GVR/GvrProfile.cpp
             Hook/Global/detour.cpp
             Hook/Global/instruction.cpp
             Hook/Global/HookBase.cpp

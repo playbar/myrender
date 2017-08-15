@@ -12,7 +12,7 @@
 #include "../Parameters/MojingDisplayParameters.h"
 
 extern MojingLogger g_APIlogger;
-MojingLogger g_3288logger("3288FrameRate");
+// MojingLogger g_3288logger("3288FrameRate");
 namespace Baofeng
 {
 	namespace Mojing
