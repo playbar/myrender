@@ -29,9 +29,9 @@ bool MojingSDK_Init(int nWidth,
 	int nHeight,
 	float xdpi,
 	float ydpi,
-	char* Brand,
-	char* Model,
-	char* Serial,
+	const char* Brand,
+	const char* Model,
+	const char* Serial,
 	const char* szMerchantID,
 	const char* szAppID,
 	const char* szAppKey,
@@ -41,6 +41,7 @@ bool MojingSDK_Init(int nWidth,
 	const char* szChannelID,
 	const char* ProfilePath);
 
+void MojingSDK_SetGlassesSerialNumber(const char* lpszSN);
 bool MojingSDK_SetEngineVersion(const char* lpszEngine);
 void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const char* szAppKey, const char* szChannelID);
 
@@ -53,6 +54,9 @@ void MojingSDK_AppPageStart(const char* szPageName);
 void MojingSDK_AppPageEnd(const char* szPageName);
 void MojingSDK_AppSetEvent(const char* szEventName, const char* szEventChannelID, const char* szEventInName, float eInData, const char* szEventOutName, float eOutData);
 void MojingSDK_ReportLog(int iLogType, const char* szTypeName, const char* szLogContent, bool pd);
+#ifdef MJ_OS_ANDROID
+void MojingSDK_ReportUserAction(const char* szActionType, const char* szItemID, const char* strJsonValue);
+#endif
 void MojingSDK_AppSetContinueInterval(int interval);
 void MojingSDK_AppSetReportInterval(int interval);
 void MojingSDK_AppSetReportImmediate(bool bReportImmediate);
@@ -80,6 +84,14 @@ void MojingSDK_SetOverlayPosition3D(unsigned int eyeTextureType, /*float fLeft, 
 void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType, float fLeft, float fTop, float fWidth, float fHeight, float fDistanceInMetre);
 bool MojingSDK_ChangeMojingWorld(const char * szGlassesName);
 bool MojingSDK_LeaveMojingWorld();
+
+#define MOJING_WORLDKEY_DEFAULT "DefaultMojingWorld" 
+#define MOJING_WORLDKEY_LAST "LastMojingWorld" 
+// MojingSDK_GetMojingWorldKey函数仅供内部使用，不得公开！
+String MojingSDK_GetMojingWorldKey(const char* szKeyType);
+// MojingSDK_SetMojingWorldKey函数仅供内部使用，不得公开！
+bool MojingSDK_SetMojingWorldKey(const char* szKeyType, const char* szGlassesName);
+
 bool MojingSDK_SetDefaultMojingWorld(const char * szGlassesName);
 bool MojingSDK_OnSurfaceChanged(int newWidth, int newHeight);
 String MojingSDK_GetDefaultMojingWorld(const char* strLanguageCodeByISO639);
@@ -105,16 +117,31 @@ bool MojingSDK_StartTracker(int nSampleFrequence, const char* szGlassName = NULL
 int MojingSDK_CheckSensors();
 int MojingSDK_GetMaxSensorsSampleRate(); // 返回最大的采样率或者-1表示出错
 #ifdef MJ_OS_ANDROID
+bool MojingSDK_IsInMachine();
 bool MojingSDK_IsUseUnityForSVR();
-int MojingSDK_GetSocketPort();
+bool MojingSDK_IsUseForDayDream();
+int MojingSDK_GetSocketPort();// Socket向服务报告端口的
+int MojingSDK_StartTrackerChecker(int nSampleFrequence);
+int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
+/*以下接口用于控制DD的陀螺仪*/
+// 开启或关闭DD陀螺仪
+void MojingSDK_DD_SetEnableTracker(bool bEnable);
+
+// 获取DD陀螺仪状态
+bool MojingSDK_DD_GetEnableTracker();
+
+// 当DD陀螺仪关闭时，存放真实的陀螺仪数据
+bool MojingSDK_DD_GetLastHeadView(float* pfViewMatrix);
+/*以上接口用于控制DD的陀螺仪*/
+#endif
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 int MojingSDK_Device_GetKeymask(int iID, int *pKeyMask);
 float MojingSDK_Device_GetCurrentPoaseInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition, unsigned int *pKeystatus);
 float MojingSDK_Device_GetFixPoaseInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition);
 float MojingSDK_Device_GetControlFixCurrentInfo(int iID, float *pQuart, float *pAngularAccel, float *pLinearAccel, float *pPosition, unsigned int *pKeystatus);
 void MojingSDK_Device_GetFixScore(int* pStatus, int* pScore);
-int MojingSDK_StartTrackerChecker(int nSampleFrequence);
-int MojingSDK_GetTrackerCheckerResult(__tagSampleCheckeResult *pOutCheckeResult);
 #endif
+
 void MojingSDK_ResetSensorOrientation(void);
 void MojingSDK_ResetSensorOrientation2(void);
 void MojingSDK_ResetTracker(void);
@@ -217,6 +244,8 @@ const char* MojingSDK_GetGpuName();
 
 String MojingSDK_GetUserSettings();
 bool   MojingSDK_SetUserSettings(const char * sUserSettings);
+int    MojingSDK_GetSensorOrigin();
+bool   MojingSDK_SetSensorOrigin(int SensorOrigin);
 /************************************************************************/
 /* 辅助函数：帮助界面开发者做数学运算                                   */
 /************************************************************************/
@@ -234,6 +263,8 @@ Rectf MojingSDK_Math_OverlayPosition3D(unsigned int eyeTextureType, Rectf rcRect
  * @return Current light sensation value in [UNIT]
  */
 bool MojingSDK_IsLowPower();
+void MojingSDK_SetHDMWorking(bool bHDMWorking);
+bool MojingSDK_IsHDMWorking();
 
 #ifdef USING_MINIDUMP
 void MojingSDK_CheckCrashReport();

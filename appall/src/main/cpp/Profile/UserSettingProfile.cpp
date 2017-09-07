@@ -2,18 +2,32 @@
 #include "../MojingManager.h"
 #include "../Parameters/MojingParameters.h"
 
+#ifdef LOG4CPLUS_IMPORT
+#include "../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../LogTraker/LogInterface.h"
+#endif
+
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
+
 namespace Baofeng
 {
 	namespace Mojing
 	{
-#define MIN_SIZE 4.7
-#define MAX_SIZE 7
+#define MIN_SIZE 4.7 - 1e-4
+#define MAX_SIZE 7 +  1e-4
 		UserSettingProfile::UserSettingProfile()
 		{
 			SetClassName(__FUNCTION__);
 			m_bEnableScreenSize = false;
 			m_fScreenSize = 0;
+			m_bSensorDataFromMJSDK = true;
 			m_bSensorDataFromJava = false;
+			m_dCheckGlassConfig = 0;
+			m_dCheckMobileConfig = 0;
+			m_dCheckJoystickProfile = 0;
 		}
 
 
@@ -26,7 +40,11 @@ namespace Baofeng
 			ClassNameToJson(pRet);
 			EnableScreenSizeToJson(pRet);
 			ScreenSizeToJson(pRet);
+			SensorDataFromMJSDKToJson(pRet);
 			SensorDataFromJavaToJson(pRet);
+			CheckGlassConfigToJson(pRet);
+			CheckMobileConfigToJson(pRet);
+			CheckJoystickProfileToJson(pRet);
 			return pRet;
 		}
 
@@ -63,6 +81,31 @@ namespace Baofeng
 					{
 						bRet = SensorDataFromJavaFromJson(pJson) | bRet;
 					}
+
+					SensorDataFromMJSDKFromJson(pJson);
+
+					CheckMobileConfigFromJson(pJson);
+					CheckGlassConfigFromJson(pJson);
+					CheckJoystickProfileFromJson(pJson);
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "UserSettingProfile IsSensorDataFromMJSDK: " << GetSensorDataFromMJSDK());
+					MOJING_TRACE(g_APIlogger, "UserSettingProfile IsSensorDataFromJava: " << GetSensorDataFromJava());
+					MOJING_TRACE(g_APIlogger, "UserSettingProfile CheckMobileConfig: " << GetCheckGlassConfig());
+					MOJING_TRACE(g_APIlogger, "UserSettingProfile CheckGlassConfig: " << GetCheckGlassConfig());
+					MOJING_TRACE(g_APIlogger, "UserSettingProfile CheckJoystickProfile: " << GetCheckJoystickProfile());
+#endif
+
+					/*
+					JSON* pMobileCfgJson = pJson->GetItemByName("CheckMobileConfig");
+					if (pMobileCfgJson)
+						m_dCheckMobileConfig = pMobileCfgJson->GetDoubleValue();
+					JSON* pGlassCfgJson = pJson->GetItemByName("CheckGlassConfig");
+					if (pMobileCfgJson)
+						m_dCheckGlassConfig = pGlassCfgJson->GetDoubleValue();
+					JSON* pJoystickProfileJson = pJson->GetItemByName("CheckJoystickProfile");
+					if (pJoystickProfileJson)
+						m_dCheckJoystickProfile = pJoystickProfileJson->GetDoubleValue();
+					*/
 				}
 			}
 

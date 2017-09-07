@@ -1,4 +1,6 @@
 ﻿#include "InternetProfile.h"
+#include "../Base/MojingTypes.h"
+#include "../Base/MojingTimer.h"
 #if defined(MJ_OS_WIN32)
 #include "../3rdPart/Curl/include/windows/curl.h"
 #elif defined(MJ_OS_MAC)
@@ -7,7 +9,7 @@
 #else
 #include "../3rdPart/Curl/include/android/curl.h"
 #endif
-#include "../Base/MojingTypes.h"
+
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
 #else
@@ -22,6 +24,7 @@ namespace Baofeng
 {
 	namespace Mojing
 	{
+		static double g_dLastPeformFailedTime = 0;
 		struct InternetReturnBuffer
 		{
 			unsigned int m_uiBufferSize;
@@ -171,144 +174,156 @@ namespace Baofeng
                 curl = curl_easy_init();
                 if (curl)
                 {
-                    bool bSetOptSucc = true;
-                    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-                    if (strstr(GetURL(), "https"))
-                    {
-                        MOJING_TRACE(g_APIlogger, "Curl use openssl. url :" << GetURL());
-                        /*
-                         char pCaPath[260] = { "/sdcard/mojing.cn.crt" };
-                         if (pCaPath)
-                         {
-                         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
-                         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1);
-                         curl_easy_setopt(curl, CURLOPT_CAINFO, pCaPath);
-                         }
-                         else
-                         {
-                         */
-                        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-                        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
-                        //}
-                    }
-                    if (GetFunction() == IPF_POST)
-                    {
-                        curl_easy_setopt(curl, CURLOPT_URL, GetURL());
-                        
-                        const char* pFilePath = GetTransportFiles();
-                        if ((pFilePath == NULL) || (strlen(pFilePath) == 0))
-                        {       
-                            curl_easy_setopt(curl, CURLOPT_POST, 1L);
-                            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, GetParametData());
-                            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(GetParametData()));
-                            //MOJING_TRACE(g_APIlogger, "Post! url = " << GetParametData());
-                        }
-                        else
-                        {
-                            //MOJING_TRACE(g_APIlogger, "Curl post crash file...");
-                            const char* data = GetParametData();
-                            if (data == NULL || strlen(data) == 0)
-                            {
-                                MOJING_WARN(g_APIlogger, "Param data is empty, cancel to post crash file...");
-                                bSetOptSucc = false;
-                            }
-                            else
-                            {
-                                struct curl_httppost *formpost = NULL;
-                                struct curl_httppost *lastptr = NULL;
-                                char *p = strchr(data, '&');
-                                char *q = (char *)data;
-                                int nFieldCount = 0;
-                                while (p)
-                                {
-                                    int len = p - q;
-                                    char *buffer = new char[len + 1];
-                                    memcpy(buffer, q, len);
-                                    buffer[len] = 0;
-                                    if (FormAdd(&formpost, &lastptr, buffer))
-                                        nFieldCount++;
-                                    delete[] buffer;
-                                    q = p + 1;
-                                    p = strchr(q, '&');
-                                }
-                                if (FormAdd(&formpost, &lastptr, q))
-                                    nFieldCount++;
-                                if (nFieldCount != 11)
-                                {
-                                    MOJING_WARN(g_APIlogger, "Form is incomplete, cancel to post crash file...");
-                                    bSetOptSucc = false;
-                                }
-                                
-                                /* Fill in the file upload field */
-                                curl_formadd(&formpost,
-                                             &lastptr,
-                                             CURLFORM_COPYNAME, "userfile",
-                                             CURLFORM_FILE, pFilePath,
-                                             CURLFORM_END);
-                                
-                                /* Fill in the submit field too, even if this is rarely needed*/
-                                curl_formadd(&formpost,
-                                             &lastptr,
-                                             CURLFORM_COPYNAME, "submit",
-                                             CURLFORM_COPYCONTENTS, "Submit",
-                                             CURLFORM_END);
-                                
-                                //struct curl_slist * headerlist = curl_slist_append(headerlist, buf);
-                                curl_easy_setopt(curl, CURLOPT_HTTPHEADER, 0);
-                                curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
-                            }
-                        }
-                    }
-                    else if (GetFunction() == IPF_GET_UP)
-                    {
-                        sUrl = GetURL();
-                        sUrl += "?";
-                        sUrl += GetParametData();
+					if (Timer::GetSeconds() - g_dLastPeformFailedTime > 10) //距离上一次提交失败超过5s， 尝试提交
+					{
+						bool bSetOptSucc = true;
+						curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+						if (strstr(GetURL(), "https"))
+						{
+							MOJING_TRACE(g_APIlogger, "Curl use openssl. url :" << GetURL());
+							/*
+							 char pCaPath[260] = { "/sdcard/mojing.cn.crt" };
+							 if (pCaPath)
+							 {
+							 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+							 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1);
+							 curl_easy_setopt(curl, CURLOPT_CAINFO, pCaPath);
+							 }
+							 else
+							 {
+							 */
+							curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+							curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+							//}
+						}
+						if (GetFunction() == IPF_POST)
+						{
+							curl_easy_setopt(curl, CURLOPT_URL, GetURL());
+
+							const char* pFilePath = GetTransportFiles();
+							if ((pFilePath == NULL) || (strlen(pFilePath) == 0))
+							{
+								curl_easy_setopt(curl, CURLOPT_POST, 1L);
+								curl_easy_setopt(curl, CURLOPT_POSTFIELDS, GetParametData());
+								curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(GetParametData()));
+								//MOJING_TRACE(g_APIlogger, "Post! url = " << GetParametData());
+							}
+							else
+							{
+								//MOJING_TRACE(g_APIlogger, "Curl post crash file...");
+								const char* data = GetParametData();
+								if (data == NULL || strlen(data) == 0)
+								{
+									MOJING_WARN(g_APIlogger, "Param data is empty, cancel to post crash file...");
+									bSetOptSucc = false;
+								}
+								else
+								{
+									struct curl_httppost *formpost = NULL;
+									struct curl_httppost *lastptr = NULL;
+									char *p = strchr(data, '&');
+									char *q = (char *)data;
+									int nFieldCount = 0;
+									while (p)
+									{
+										int len = p - q;
+										char *buffer = new char[len + 1];
+										memcpy(buffer, q, len);
+										buffer[len] = 0;
+										if (FormAdd(&formpost, &lastptr, buffer))
+											nFieldCount++;
+										delete[] buffer;
+										q = p + 1;
+										p = strchr(q, '&');
+									}
+									if (FormAdd(&formpost, &lastptr, q))
+										nFieldCount++;
+									if (nFieldCount != 11)
+									{
+										MOJING_WARN(g_APIlogger, "Form is incomplete, cancel to post crash file...");
+										bSetOptSucc = false;
+									}
+
+									/* Fill in the file upload field */
+									curl_formadd(&formpost,
+										&lastptr,
+										CURLFORM_COPYNAME, "userfile",
+										CURLFORM_FILE, pFilePath,
+										CURLFORM_END);
+
+									/* Fill in the submit field too, even if this is rarely needed*/
+									curl_formadd(&formpost,
+										&lastptr,
+										CURLFORM_COPYNAME, "submit",
+										CURLFORM_COPYCONTENTS, "Submit",
+										CURLFORM_END);
+
+									//struct curl_slist * headerlist = curl_slist_append(headerlist, buf);
+									curl_easy_setopt(curl, CURLOPT_HTTPHEADER, 0);
+									curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+								}
+							}
+						}
+						else if (GetFunction() == IPF_GET_UP)
+						{
+							sUrl = GetURL();
+							sUrl += "?";
+							sUrl += GetParametData();
 #ifdef _DEBUG
-                        MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr());
+							MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr());
 #endif
-                        curl_easy_setopt(curl, CURLOPT_URL, sUrl.ToCStr());
-                        pID = (char *)GetTransportFiles();
-                    }
-                    else if (GetFunction() == IPF_GET_QUERY)
-                    {
-                        sUrl = GetURL();
-                        if (strchr(sUrl.ToCStr(), '?') == NULL && GetParametData() && *GetParametData())
-                        {
-                            sUrl += "?";
-                            sUrl += GetParametData();
-                        }
-                        curl_easy_setopt(curl, CURLOPT_URL, sUrl.ToCStr());
-                        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackString);
-                        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &pRespString);
-                        //MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr()/*GetParametData()*/);
-                    }
-                    //MOJING_TRACE(g_APIlogger, "Curl perform start...");
-                    if (bSetOptSucc)
-                    {
-                        CURLcode res = curl_easy_perform(curl);
-                        if (0 == res) {
-                            //char * url;  //url to verify the connection worked
-                            // long respcode; //response code of the http transaction
-                            //long redirect; //number of redirects after we connect
-                            //curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url); //grabbing it from curl
-                            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);// grabbing it from curl
-                            //curl_easy_getinfo(curl, CURLINFO_REDIRECT_COUNT, &redirect); //grabbing it from curl
-                            
-                            if (respcode == 200)
-                            {// 成功发送了该报告
-                                MOJING_TRACE(g_APIlogger, "Curl perform succeed.");
-                            }
-                            else
-                            {
-                                MOJING_WARN(g_APIlogger, "Curl perform failed." << respcode);
-                            }
-                        }
-                        else
-                        {
-                            MOJING_ERROR(g_APIlogger, "Send/Get Profile Failed! res = " << res);
-                        }
-                    }
+							curl_easy_setopt(curl, CURLOPT_URL, sUrl.ToCStr());
+							pID = (char *)GetTransportFiles();
+						}
+						else if (GetFunction() == IPF_GET_QUERY)
+						{
+							sUrl = GetURL();
+							if (strchr(sUrl.ToCStr(), '?') == NULL && GetParametData() && *GetParametData())
+							{
+								sUrl += "?";
+								sUrl += GetParametData();
+							}
+							curl_easy_setopt(curl, CURLOPT_URL, sUrl.ToCStr());
+							curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackString);
+							curl_easy_setopt(curl, CURLOPT_WRITEDATA, &pRespString);
+							//MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr()/*GetParametData()*/);
+						}
+						//MOJING_TRACE(g_APIlogger, "Curl perform start...");
+						if (bSetOptSucc)
+						{
+							CURLcode res = curl_easy_perform(curl);
+							if (0 == res) {
+								//char * url;  //url to verify the connection worked
+								// long respcode; //response code of the http transaction
+								//long redirect; //number of redirects after we connect
+								//curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url); //grabbing it from curl
+								curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);// grabbing it from curl
+								//curl_easy_getinfo(curl, CURLINFO_REDIRECT_COUNT, &redirect); //grabbing it from curl
+
+								if (respcode == 200)
+								{// 成功发送了该报告
+									MOJING_TRACE(g_APIlogger, "Curl perform succeed. mode:" << GetFunction());
+								}
+								else
+								{
+									MOJING_WARN(g_APIlogger, "Curl perform failed." << respcode);
+								}
+							}
+							else
+							{
+								MOJING_ERROR(g_APIlogger, "Send/Get Profile Failed! res = " << res);
+								g_dLastPeformFailedTime = Timer::GetSeconds();
+							}
+						}
+					}
+					else  //距离上次提交失败少于5s， 放弃此次提交， 直接返回错误码-1
+					{
+						respcode = -1;
+#ifdef _DEBUG
+						MOJING_WARN(g_APIlogger, "Network is abnormal, abandon this request." );
+#endif
+					}
+
                     curl_easy_cleanup(curl);
                 }
                 

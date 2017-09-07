@@ -29,6 +29,7 @@ namespace Baofeng
             SetVerfiyStatus(VERIFY_OK);
 			SetTrackerStatus(TRACKER_STOP);
 			SetEngineStatus(ENGINE_NONE);
+			SetSensorOrigin(SENSOR_FROM_DEFAULT);
 			SetEngine("");
 			ParseVersion();
 		}

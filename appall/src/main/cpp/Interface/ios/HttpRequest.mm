@@ -79,7 +79,9 @@ struct InternetReturnBuffer
         NSLog(@"response : %@", response);
 #endif
         NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+#ifdef _DEBUG
         NSLog(@" http response status code: %ld, length = %ld", (long)httpResponse.statusCode, (long)httpResponse.expectedContentLength);
+#endif
         /*
         NSString* dataStr;
         if (data) {

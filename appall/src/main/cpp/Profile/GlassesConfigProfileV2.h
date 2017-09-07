@@ -13,6 +13,7 @@ namespace Baofeng
 			public MojingJsonElement
 		{
 
+
 			bool UpdateManufacturer(JSON *pManufacturerArray);
 			bool UpdateProduct(JSON *pProductArray);
 			bool UpdateMachineList(JSON *pMachineListArray);
@@ -47,7 +48,7 @@ namespace Baofeng
 			String GetGlassJson(const char * lpszKey, const char*lpszLanguageName);
 			String GetGlassInfoJson(const char * lpszKey, const char*lpszLanguageName);
 			String GetMojingWorldJson(const char * lpszKey, const char*lpszLanguageName);
-
+			
 			///////////////////////////////////////////////////////////////////////////////////
 			// 如果APPID和PlatformID缺失的话，补充上这两个信息
 			void MakeFinalKey(MojingProfileKey& Key);
@@ -67,10 +68,12 @@ namespace Baofeng
 			CLASS_INTERFACE_J(unsigned int ,m_ui , ReleaseDate);
 			CLASS_INTERFACE_J(unsigned int, m_ui, AppID);
 			CLASS_INTERFACE(MojingProfileKey , m_ , CurrentKey);
-			Mutex m_Lock;
+			// Mutex m_Lock;
 			map<unsigned int, ManufacturerInfo* > m_ManufacturerMap;
 			map<unsigned int, ProductInfo*> m_ProductMap;
 			map<unsigned int, GlassInfo*> m_GlassMap;
+
+			//void UpdateDURL();
 			
 		};
 

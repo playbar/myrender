@@ -5,6 +5,10 @@
 #include "../Parameters/MojingParameters.h"
 #include "../Render/MojingRenderBase.h"
 #include "../MojingSDKStatus.h"
+
+
+#include "../Profile/ProfileV2/DayDreamParameters.h"
+#include "GVR/GvrProfile.h"
 #ifdef ENABLE_LOGGER
 extern MojingLogger g_APIlogger;
 #endif
@@ -65,8 +69,6 @@ namespace Baofeng
 				// 因为是反算，所以移动方向也要反过来
 				// theta[1] -= GetYOffset() / GetMetersPerTanAngleAtCenter();
 				// 处理Y轴高度调节数据,归一化到以屏幕高度为1，正数为向上调整，负数为向下调整
-				
-
 				float fHorizontalShiftView = eye ? horizontalShiftView : -horizontalShiftView;
 				for (int y = 0; y <= tesselationsY; y++)
 				{
@@ -79,7 +81,6 @@ namespace Baofeng
 							目标左眼颜色：X : [0 , 0.5] , Y : [0 : 1] , 输入[-1 ， 1]
 							目标右眼颜色：X : [0.5 , 1] , Y : [0 : 1] , 输入[-1 ， 1]		
 							处理Y轴高度调节数据
-
 						*/
 						const float *pColor = &(bufferVerts[(y*(tesselationsX + 1) * 2 + x + eye * (tesselationsX + 1)) * UNREAL_DISTORTION_PARAMETES_COUNT]);
 
@@ -171,10 +172,25 @@ namespace Baofeng
 
 		void * Distortion::BuildDistortionBuffer_V2(Mesh_820& mesh_820,int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/)
 		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+#endif
+			// 注意 ：如果无畸变的小FOV镜片使用DURL会导致画变小。
+			// 所以，如果是无畸变的时候，不要用DURL来弄
+			if (GetSegment() && m_KG[20] > 1.01)
+			{
+				void *pRet = BuildDistortionBufferFromDURL(mesh_820, eyeBlocksWide, eyeBlocksHigh);
+				if (pRet)
+				{
+					MOJING_TRACE(g_APIlogger, "Using Distortion Buffer From DURL");
+					return pRet;
+				}
+			}
+
 			/*全新流程，Mesh表只覆盖需要显示的区域*/
 			DistortionVertexBuffer* pUnrealVertex = BuildDistortionVertexBuffer(eyeBlocksWide, eyeBlocksHigh);
 			const int vertexCount = 2 * (eyeBlocksWide + 1) * (eyeBlocksHigh + 1);
-			const int iBufferSize = 12 + 4 * vertexCount * UNREAL_DISTORTION_PARAMETES_COUNT;
+			const int iBufferSize = 12 + sizeof(float) * vertexCount * UNREAL_DISTORTION_PARAMETES_COUNT;
 			void* buf = malloc(iBufferSize);
 			// 冲算垂直误差
 			Parameters* pParameters = Manager::GetMojingManager()->GetParameters();
@@ -210,14 +226,14 @@ namespace Baofeng
 						v[8] = pNode->m_fY + fYOffset * 2;
 						if (eye == 0)
 						{
-							mesh_820.vertices_left.push_back(v[7]);
-							mesh_820.vertices_left.push_back(v[8]);
-							mesh_820.vertices_left.push_back(v[0]);
-							mesh_820.vertices_left.push_back(v[1]);
-							mesh_820.vertices_left.push_back(v[2]);
-							mesh_820.vertices_left.push_back(v[3]);
-							mesh_820.vertices_left.push_back(v[4]);
-							mesh_820.vertices_left.push_back(v[5]);
+							mesh_820.vertices_left.push_back(v[7]); // X
+							mesh_820.vertices_left.push_back(v[8]); // Y
+							mesh_820.vertices_left.push_back(v[0]); // Rx
+							mesh_820.vertices_left.push_back(v[1]); // Ry
+							mesh_820.vertices_left.push_back(v[2]); // Gx
+							mesh_820.vertices_left.push_back(v[3]); // Gy
+							mesh_820.vertices_left.push_back(v[4]);	// Bx
+							mesh_820.vertices_left.push_back(v[5]); // By
 						}
 						else
 						{
@@ -318,13 +334,27 @@ namespace Baofeng
 			// end of Indices
 
 			delete pUnrealVertex;
+// 以下代码用于生成给ROM用的畸变文件
+#if 0
+			static int iFileIndex = 0;
+			char szFileName[256];
+			String szKey = GetGlassKey();
+			MojingProfileKey Key;
+			if (Key.SetString(szKey))
+			{
+				sprintf(szFileName, "/sdcard/MojingSDK/DDD%d_%d.%d.%d.dat", iFileIndex++, Key.GetManufacturerID(), Key.GetProductID(), Key.GetGlassID());
+			}
+			else
+			{
+				sprintf(szFileName, "/sdcard/MojingSDK/DDD%d.dat", iFileIndex++);
+			}
 
-// #ifdef _DEBUG
-// 			FILE* pFile = fopen("/sdcard/MojingSDK/DDD.dat" , "wb");
-// 			fwrite(buf, 1, iBufferSize, pFile);
-// 			fflush(pFile);
-// 			fclose(pFile);
-// #endif
+			MOJING_TRACE(g_APIlogger , "Write distortion buffer to :" << szFileName);
+			FILE* pFile = fopen(szFileName, "wb");
+			fwrite(buf, 1, iBufferSize, pFile);
+			fflush(pFile);
+			fclose(pFile);
+#endif
 			return buf;
 		}
 		void * Distortion::BuildDistortionBuffer(int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/)
@@ -345,7 +375,58 @@ namespace Baofeng
 			//////////////////////////////////////////////////////////////////////////////////
 			return BuildDistortionBuffer(HMDI , eyeBlocksWide, eyeBlocksHigh);
 		}
+		// 参考谷歌的畸变方程和畸变算法，制作Mesh表
+		void * Distortion::BuildDistortionBufferFromDURL(Mesh_820& mesh, const int eyeBlocksWide/* = 32*/, const int eyeBlocksHigh/* = 32*/)
+		{
+#ifdef _DEBUG
+			MOJING_FUNC_TRACE(g_APIlogger);
+			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1angc9JfT9VD0qEAAAMEIAADBCAAAsQgAALEJYATUpXA89OgjarPo9mpn5PlAAYAA";
+			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1angc9JfT9VD0qEAAAMEIAADBCAAAsQgAANEJYATUpXA89OgjarPo9mpn5PlAAYAA";
+			// m_szDURL = "CgzmmrTpo47prZTplZwSDeaatOmjjumtlOmVnDIdrkdhPSUlBoE9KhAAALhBAAC4QQAAuEEAALhBWAE1KVwPPToIAAAAAAAAAABQAGAA";// MJ2
+			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB2WQws9Jc3MTD0qEAAALEIAADRCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1ABYAA";
+#endif
+			GvrProfile GP;
 
+			if (!GP.InitFromDURL(m_szDURL))
+			{
+				MOJING_ERROR(g_APIlogger , "Can not create Distortion Buffer From DURL");
+				return NULL;
+			}
+			
+			MOJING_TRACE(g_APIlogger , "Using DURL = " << m_szDURL);
+			Mesh_820 WarpMesh;
+			GP.ComputeDistortionBuffer(eyeBlocksWide + 1, eyeBlocksHigh + 1, true, &WarpMesh);
+			mesh = WarpMesh;
+
+			float *pVertices = GP.GetVertices();
+			float *pTexUV = GP.GetTexUV();
+			const int vertexCount = 2 * (eyeBlocksWide + 1) * (eyeBlocksHigh + 1);
+			const int iBufferSize = 12 + sizeof(float)* vertexCount * UNREAL_DISTORTION_PARAMETES_COUNT;
+			void* buf = malloc(iBufferSize);
+			((int *)buf)[0] = (*((long*)"MJDB"));//DISTORTION_BUFFER_MAGIC;
+			((int *)buf)[1] = eyeBlocksWide;
+			((int *)buf)[2] = eyeBlocksHigh;
+			for (int eye = 0; eye < 2; eye++)
+			{
+				for (int y = 0; y <= eyeBlocksHigh; y++)
+				{
+					for (int x = 0; x <= eyeBlocksWide; x++)
+					{
+						int	vertNum = y * (eyeBlocksWide + 1) * 2 + eye * (eyeBlocksWide + 1) + x;
+						float * v = &((float *)buf)[3 + vertNum * UNREAL_DISTORTION_PARAMETES_COUNT];
+						int iSrcIndex = eye * (eyeBlocksHigh + 1) * (eyeBlocksWide + 1) + (eyeBlocksWide + 1) * y + x;
+						float *pVer = pVertices + iSrcIndex * 3;
+						float *pUV = pTexUV + iSrcIndex * 2;
+						v[0] = v[2] = v[4] = pUV[0];
+						v[1] = v[3] = v[5] = pUV[1];
+						v[6] = 1;
+						v[7] = pVer[0];
+						v[8] = pVer[1];
+					}
+				}
+			}
+			return buf;
+		}
 		void * Distortion::BuildDistortionBufferOverlay(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/, unsigned int OverlayWidth, unsigned int OverlayHeight)
 		{
 			Parameters* pParameters = Manager::GetMojingManager()->GetParameters();
@@ -707,18 +788,19 @@ namespace Baofeng
 
 			const float ImageInScreenWidth = HMDI.MetersPerTanAngleAtCenter / (HMDI.widthMeters / 4);
 			
-#if 1
 			Vector3f scaleOne = DistortionFnScaleRadiusSquared_Unreal(1);
-			float fModifyOffset = 1.0f / eyeBlocksWide / 25;
+			/************************************************************************/
+			/* 为了反球形畸变统计的参数                                             */
+			/************************************************************************/
+			float fDistortionRect[2][4];// [LEFT or RIGHT][LEFT , RIGHE , BOTTOM, TOP ]
+			memset(fDistortionRect, 0, sizeof(float)* 8);
+
 			for (int eye = 0; eye < 2; eye++)
 			{
+				float *fpDistortionRect = fDistortionRect[eye];
 				// 因为是反算，所以移动方向也要反过来
 				float fHorizontalShiftView = eye ? horizontalShiftView : -horizontalShiftView;
-//				float fMinTextureX = eye == 0 ? 0 : 0.5;
-//				float fMaxTextureX = eye == 0 ? 0.5 : 1;
-//				float fMinTextureY = 0;
-//				float fMaxTextureY = 1;
-
+				float fNear = 1 / tanf(GetFOV() * PI / 180);
 				for (int y = 0; y <= eyeBlocksHigh; y++)
 				{
 					const float	yf = (float)y / (float)eyeBlocksHigh;
@@ -730,238 +812,158 @@ namespace Baofeng
 						float * v = &((float *)buf)[3 + vertNum * UNREAL_DISTORTION_PARAMETES_COUNT];
 
 						float xf = (float)x / (float)eyeBlocksWide;
-						float fModifyStepX = 0;
-						float fModifyStepY = 0;
 						bool bCheckOK = true;
 						do
 						{
 							bCheckOK = true;
-							float fTargetX = 2 * xf - 1 + fModifyStepX * fModifyOffset;
-							float fTargetY = 2 * yf - 1 + fModifyStepY * fModifyOffset;
+							float fTargetX = 2 * xf - 1;// [-1 ... +1]
+							float fTargetY = 2 * yf - 1;// [-1 ... +1]
 
+							float fTanX = abs(fTargetX / fNear);
+							float fTanY = abs(fTargetY / fNear);
+							// 矩形测算法
 							float R = (fTargetX*fTargetX + fTargetY*fTargetY);
 							Vector3f scale = DistortionFnScaleRadiusSquared_Unreal(R);
 							// 对 XY进行不超出屏幕的边界剪裁
+							
+
+
 							float fX = fTargetX;
 							BuildUnrealDistortionBuffer_ClipX(fX , eye, scaleOne.x, ImageInScreenWidth, fHorizontalShiftView, scale);
 							float fY = fTargetY;
+
+							
 //							BuildUnrealDistortionBuffer_ClipY(fY, scaleOne.x, ImageInScreenWidth, aspect ,scale);
+							// ONLY USING G
 							fX *= scale.y;
 							fY *= scale.y;
 
 							// 对XY进行不超过纹理可视范围的剪裁
 							Vector4f chromaScale = DistortionFnScaleRadiusSquared_V4(fX*fX + fY*fY);
-//							float fRX = 0.25 + 0.25*(fX*chromaScale.z) + eye * 0.5;
-//							float fRY = 0.5 - 0.5 *(fY*chromaScale.z);
-// 							if (fRX < fMinTextureX)
-// 							{
-// 								bCheckOK = false;
-// 								fModifyStepX++;
-// 							}
-// 							else if (fRX > fMaxTextureX)
-// 							{
-// 								bCheckOK = false;
-// 								fModifyStepX--;
-// 							}
-// 							else if (fRY < fMinTextureY)
-// 							{
-// 								bCheckOK = false;
-// 								fModifyStepY++;
-// 							}
-// 							else if (fRY > fMaxTextureY)
-// 							{
-// 								bCheckOK = false;
-// 								fModifyStepY--;
-// 							}
-// 							else
 							{
-								v[0] = fX * chromaScale.x;
-								v[1] = fY * chromaScale.x;
-								v[2] = fX * chromaScale.y;
-								v[3] = fY * chromaScale.y;
-								v[4] = fX * chromaScale.z;
-								v[5] = fY * chromaScale.z;
-								v[6] = 1;
+
+								// 目标位置
 								v[7] = fX / scaleOne.y * ImageInScreenWidth /*+ fHorizontalShiftView*/;// 瞳距平移
 								v[8] = fY / scaleOne.y * ImageInScreenWidth * aspect; // 长宽比缩放
 
+								// 目标位置对应的Tan
+								float theta[2];
+								for (int i = 0; i < 2; i++) {
+									const float unit = v[7 + i];
+									const float ndc = unit;// 2.0f * (unit - 0.5f);
+									const float pixels = ndc * HMDI.heightPixels * 0.5f;
+									const float meters = pixels * HMDI.widthMeters / HMDI.widthPixels;
+									const float tanAngle = meters / HMDI.MetersPerTanAngleAtCenter;
+									theta[i] = abs(tanAngle);// 注意：因为后面fX/fY提供了符号，所以这里取绝对值
+
+								}
+
+								v[0] = fX * chromaScale.x ;
+								v[1] = fY * chromaScale.x ;
+
+								v[2] = fX * chromaScale.y ;
+								v[3] = fY * chromaScale.y ;
+								
+								v[4] = fX * chromaScale.z ;
+								v[5] = fY * chromaScale.z ;
+								v[6] = 1;
+								
+								
+
+								// 下面是球形畸变的映射统计的参数
+								fpDistortionRect[0] = fmin(v[7], fpDistortionRect[0]);
+								fpDistortionRect[1] = fmax(v[7], fpDistortionRect[1]);
+								fpDistortionRect[2] = fmin(v[8], fpDistortionRect[2]);
+								fpDistortionRect[3] = fmax(v[3], fpDistortionRect[3]);
 								//<---------检查--------->//
-//								float FX = v[2] * 2 - 1;
-//								float FY = v[3] * 2 - 1;
-//								float R2 = (FX * FX + FY * FY);
-//								float R_Offset = R2 - R;
+								//	float FX = v[2] * 2 - 1;
+								//	float FY = v[3] * 2 - 1;
+								//	float R2 = (FX * FX + FY * FY);
+								//	float R_Offset = R2 - R;
+								
+
+
 							}
 						} while (0);
 						
-						/*
-						// 程序执行到这里，算出来了G的屏幕坐标，是以纹理坐标为参考的,下面把他归一化到屏幕坐标
-						float fX = (fTargetX * scale.y);// / scaleOne.y * ImageInScreenWidth;
-						float fY = (fTargetY * scale.y);// / scaleOne.y * ImageInScreenWidth;
-						// 因为畸变跑的最远的是R，所以使用R来测算边界。
-						float fXR = fTargetX * scale.x;
-						float fYR = fTargetY * scale.x;
-
-						///////////////////////////////////////////////////////////////////////
-						// 防溢出处理，以下的代码保证制作出来的网格图不会跑到图像文理外面去。
-
-
-
-						float fTXR = fXR / scaleOne.x * ImageInScreenWidth/ * + fHorizontalShiftView* /;
-// 
-// 						if (fTX > SCREEN_EDGE_X)
-// 							fX = (SCREEN_EDGE_X/ * - fHorizontalShiftView* /)* scaleOne.y / ImageInScreenWidth;
-// 						else if (fTX < -SCREEN_EDGE_X)
-// 							fX = (-SCREEN_EDGE_X/ * - fHorizontalShiftView* /)* scaleOne.y / ImageInScreenWidth;
-						float fScreenXR = fTXR *0.5 - 0.5 + eye + fHorizontalShiftView;
-						
-						
-						bool bRebuildY = false;
-						float fTYR = fYR / scaleOne.y * ImageInScreenWidth * aspect;
-						float fTextureYR = 0.5 - 0.5*fTYR;
-						float fScreenYR = fTYR;
-						if (fTYR > SCREEN_TOP)
-						{
-							fScreenYR = SCREEN_RIGHT_EYE_RIGHT_EDGE;
-							bRebuildY = true;
-						}
-						else if (fTYR < SCREEN_BOTTOM)
-						{
-							fScreenYR = SCREEN_BOTTOM;
-							bRebuildY = true;
-						}
-						if (bRebuildY)
-						{
-							fYR = fScreenYR * scaleOne.y / ImageInScreenWidth / aspect;
-							fY = fYR / scaleOne.x * scaleOne.y;
-						}
-						///////////////////////////////////////////////////////////////////////
-						// 还需要转换成物理位置后再转化成屏幕坐标
-						// 接下来用G的屏幕坐标重新算R,G,B
-						Vector4f chromaScale = DistortionFnScaleRadiusSquared_V4(fX*fX + fY*fY);
-						v[0] = fX * chromaScale.x;
-						v[1] = fY * chromaScale.x;
-						v[2] = fX * chromaScale.y;
-						v[3] = fY * chromaScale.y;
-						v[4] = fX * chromaScale.z;
-						v[5] = fY * chromaScale.z;
-						v[6] = 1;
-						v[7] = fX / scaleOne.y * ImageInScreenWidth / *+ fHorizontalShiftView* /;// 瞳距平移
-						v[8] = fY / scaleOne.y * ImageInScreenWidth * aspect ; // 长宽比缩放
-						//<---------检查--------->//
-						float FX = v[2] * 2 - 1;
-						float FY = v[3] * 2 - 1;
-						float R2 = (FX * FX + FY * FY);
-						float R_Offset = R2 - R;*/
-					}
-				}
-			}
-#else
-
-			/*
-			着色坐标系以图像中心为原点，标准笛卡尔坐标系
-			左眼坐标 X[-1 , 0] , Y[-1 , 1]
-			右眼坐标 X[ 0 , 1] , Y[-1 , 1]
-			颜色坐标系以左上角为原点（0，0），X轴向右增长，Y轴向下增长
-			目标左眼颜色：X : [0 , 0.5] , Y : [0 : 1]
-			目标右眼颜色：X : [0.5 , 1] , Y : [0 : 1]
-			*/
-			float fOffset = 1;
-			bool bResetOffset = false;
-			do
+					}// end of eyeBlocksWide
+				}// end of eyeBlocksHigh
+			}// end of eye
+#if 0
+			/************************************************************************/
+			/* TODO : 处理反球变
+			/* 原理 ：
+			/* 根据FOV我们可以知道图像上一点在FOV范围内的夹角。
+			/* 据此对成像做补偿，中心区域需要压缩，边缘部分需要拉伸。
+			/* 1、单位FOV的成像尺寸。
+			/* 2、
+			/************************************************************************/
+			/************************************************************************/
+			/* 以下代码进行反球形畸变，所有单位均为逻辑单位                         */
+			/************************************************************************/
+			for (int eye = 0; eye < 2; eye++)
 			{
-				fOffset -= 0.005;
-				bResetOffset = false;
-				for (int eye = 0; eye < 2 && !bResetOffset; eye++)
+				float *fpDistortionRect = fDistortionRect[eye];
+				
+				float fWidth = fpDistortionRect[1] - fpDistortionRect[0];
+				float fHeight = fpDistortionRect[3] - fpDistortionRect[2];
+
+				float fCenterX = (fpDistortionRect[1] + fpDistortionRect[0]) / 2;
+				float fCenterY = (fpDistortionRect[3] + fpDistortionRect[2]) / 2;
+
+				float fZoomX = fWidth / 2;
+				float fZoomY = fHeight / 2;
+				char szLog[128];
+				sprintf(szLog, "Rect of %s = {L = %2.2f , R = %2.2f , B = %2.2f , T = %2.2f }",
+					(eye == 0 ? "Left " : "Right"),
+					fDistortionRect[eye][0], fDistortionRect[eye][1], fDistortionRect[eye][2], fDistortionRect[eye][3]
+					);
+				MOJING_TRACE(g_APIlogger, szLog);
+
+				// 我们知道整个弦的长度是Right - Left，通过FOV算出来球形畸变时的NEAR的值
+				const float fFov = GetFOV() * PI / 180;
+				const float fHalf_Fov = fFov / 2;
+				const float fQuarte_Fov = fFov / 4;
+				const float fReProjectionFOV = fHalf_Fov;
+				const float fNear = (fmin(fWidth, fHeight) / 2) / tanf(fReProjectionFOV);
+				for (int y = 0; y <= eyeBlocksHigh; y++)
 				{
-					for (int y = 0; y <= eyeBlocksHigh && !bResetOffset; y++)
+					for (int x = 0; x <= eyeBlocksWide; x++)
 					{
-						const float	yf = (float)y / (float)eyeBlocksHigh;
-						float fTargetY = 2 * yf - 1;
-						fTargetY *= fOffset;// 误差空间 
-						for (int x = 0; x <= eyeBlocksWide && !bResetOffset ; x++)
-						{
-							//序数，数组中的位置，为了将来从数组中取数据
-							int	vertNum = y * (eyeBlocksWide + 1) * 2 + eye * (eyeBlocksWide + 1) + x;
-							const float	xf = (float)x / (float)eyeBlocksWide;
-							float fTargetX = 2 * xf - 1;
-							fTargetX *= fOffset;// 5%误差空间 
-	
-							float * v = &((float *)buf)[3 + vertNum * UNREAL_DISTORTION_PARAMETES_COUNT];
-							//输入坐标xf , yf 是在[0...1]闭区间，且统一换算为以高度为参考的倍率关系。
-							
-							if (fTargetX != 0 && fTargetY != 0)
-							{
-								bool bXBigger = 1;// abs(fTargetX) > abs(fTargetY);
-								float fTheta = fabs(bXBigger ? fTargetY / fTargetX : fTargetX / fTargetY);
-								float fTarget = fabs(bXBigger ? fTargetX : fTargetY);
-								
-	
-								/*利用折半逼近算法计算当颜色Y位于特定位置的时候Y的取值*/
-								float fCheckValue = 1;
-								// QSR' ^2
-								float fQSR_T = fTargetY * fTargetY + fTargetX*fTargetX;
-								//fQSR_T *= KG_MAX / fTheta;
-								// RSQ' -> K'
-								Vector3f K_T = DistortionFnScaleRadiusSquared_Unreal(fQSR_T);
-								// RSQ' * K' -> RSQ
-								float fRSQ = K_T.y * fQSR_T;
-								// QSR - >RealX , RealY
-								// QSR = RealV^2 * (1+fTheta*fTheta)
-								float fRealValue = sqrt(fRSQ / (1 + fTheta*fTheta));
-								float fRealX = bXBigger ? fRealValue : fRealValue * fTheta;
-								float fRealY = bXBigger ? fRealValue * fTheta : fRealValue;
-									
-								// fRealY += GetYOffset() / GetMetersPerTanAngleAtCenter();
-								/////////////////////////////////////////////////////////
-								if (xf < 0.5)
-									fRealX = -fRealX;
-								if (yf < 0.5)
-									fRealY = -fRealY;
-								/*
-								const float unit = in[i];
-								const float ndc = (unit - 0.5f);
-								const float pixels = ndc * hmdInfo.heightPixels;
-								const float meters = pixels * hmdInfo.widthMeters / hmdInfo.widthPixels;
-								const float tanAngle = meters / hmdInfo.MetersPerTanAngleAtCenter;
-								theta[i] = tanAngle;
-								*/
-								fRealX /= (HMDI.heightPixels * HMDI.widthMeters / HMDI.widthPixels / HMDI.MetersPerTanAngleAtCenter);
-								fRealY /= (HMDI.heightPixels * HMDI.widthMeters / HMDI.widthPixels / HMDI.MetersPerTanAngleAtCenter);
-								
-	
-								fRealX += 0.5;
-								fRealY += 0.5;
-								// (eye ? -horizontalShiftView : horizontalShiftView) + xf *aspect + (1.0f - aspect) * 0.5f
-								float fShift = (eye ? -horizontalShiftView : horizontalShiftView) + (1.0f - aspect) * 0.5f;
-	
-								// in[0] = fShift + xf * aspect;
-								fRealX = (fRealX - fShift) / aspect;
-								v[7] = fRealX; // fmin(fmax(eye * 0.5, fRealX), 1);
-								v[8] = fRealY; // fmin(fmax(0, fRealY), 1);
-								const float inTex[2] = { (eye ? -horizontalShiftView : horizontalShiftView) +
-									fRealX *aspect + (1.0f - aspect) * 0.5f, fRealY };
-								WarpTexCoordChroma(HMDI, inTex, &v[0], &v[2], &v[4], &v[6]);
-								
-								// 测算畸变参数是不是会超出纹理范围。因为ES2.0没有纹理剪裁的能力，所以这里要自行测算
+						//序数，数组中的位置，为了将来从数组中取数据
+						int	vertNum = y * (eyeBlocksWide + 1) * 2 + eye * (eyeBlocksWide + 1) + x;
+						float * v = &((float *)buf)[3 + vertNum * UNREAL_DISTORTION_PARAMETES_COUNT];
+						float fX =  v[7] - fCenterX;
+						float fY = v[8] - fCenterY;
+						// 计算偏转角
+						
+// 						float fTgX = fX / fNear;
+// 						float fTgY = fY / fNear;		
+						float fTgX = fX / fNear;
+						float fTgY = fY / fNear;		
 
-								for (int i = 0 ; i < 6 ; i++)
-								{
-									if (v[i] < -0.999 || v[i] >= 0.999)
-									{
-										bResetOffset = true;
-										break;
-									}
-								}
+						float fAX = atanf(fX / fNear);
+						float fAY = atanf(fY / fNear);
+						
+// 						v[0] /= fabs(fTgX);
+// 						v[1] /= fabs(fTgY);
+// 
+// 						v[2] /= fabs(fTgX);
+// 						v[3] /= fabs(fTgY);
+// 
+// 						v[4] /= fabs(fTgX);
+// 						v[5] /= fabs(fTgY);
 
-							}
-							else// 这里应该不会走到
-							{
-	
-							}
-						}// end of x
-					}//end of y
-				}// end of Eye
-			}while (bResetOffset);
+// 						v[7] = fCenterX + fX * abs(fTgX);
+// 						v[8] = fCenterY + fY * abs(fTgY);
+
+
+						v[7] = fCenterX + fAX / fReProjectionFOV * fZoomX;
+						v[8] = fCenterY + fAY / fReProjectionFOV * fZoomY;
+					}// 反球变 x
+				}// 反球变 y
+
+			} // 反球变 eye
 #endif
 			return buf;
 		}
@@ -1002,7 +1004,7 @@ namespace Baofeng
 						
 						float * v = &((float *)buf)[3 + vertNum * DISTORTION_PARAMETES_COUNT];
 						//输入坐标xf , yf 是在[0...1]闭区间，且统一换算为以高度为参考的倍率关系。
-						const float inTex[2] = { (eye ? -horizontalShiftView : horizontalShiftView) +
+						float inTex[2] = { (eye ? -horizontalShiftView : horizontalShiftView) +
 							xf *aspect + (1.0f - aspect) * 0.5f, yf };
 						WarpTexCoordChroma(HMDI, inTex, &v[0], &v[2], &v[4] , &v[6]);
 					}
@@ -1011,7 +1013,7 @@ namespace Baofeng
 			return buf;
 		}
 
-		void Distortion::WarpTexCoordChroma(const hmdInfoInternal_t & hmdInfo, const float in[2],
+		void Distortion::WarpTexCoordChroma(const hmdInfoInternal_t & hmdInfo, float in[2],
 			float red[2], float green[2], float blue[2] , float light[1]) {
 			float theta[2];
 			for (int i = 0; i < 2; i++) {
@@ -1023,7 +1025,7 @@ namespace Baofeng
 				theta[i] = tanAngle;
 			}
 #if 1
-			theta[1] -= GetYOffset() / GetMetersPerTanAngleAtCenter();
+			in[1] -= GetYOffset() / hmdInfo.heightMeters;//GetMetersPerTanAngleAtCenter();
 #endif
 			const float rsq = theta[0] * theta[0] + theta[1] * theta[1];
 			//卡特摩尔样条插值
@@ -1110,7 +1112,6 @@ namespace Baofeng
 			const int NumSegments = GetSegment() + 1;
 			const float MaxR = 2.0;// 反向运算的半径值为1^2 + 1^2 = 2 ; 所以R^2 = 2;下面的分母不用再除MaxR * MaxR，直接除MaxR了
 			float scaledRsq = (float)(NumSegments - 1) * rsq / (MaxR);
-
 			scale.x = EvalCatmullRomSpline(m_KRT, scaledRsq, NumSegments);
 			scale.y = EvalCatmullRomSpline(m_KGT, scaledRsq, NumSegments);
 			scale.z = EvalCatmullRomSpline(m_KBT, scaledRsq, NumSegments);
@@ -1276,6 +1277,18 @@ namespace Baofeng
 
 				fKT[iKT] = 1 / fKG;
 			}
+
+#ifdef _DEBUG
+			char szKtBuffer[32 * m_iSegment];
+			
+			strcpy(szKtBuffer, "===>> KT[] = { 1 ");
+			for (int i = 1; i <= m_iSegment; i++)
+			{
+				sprintf(szKtBuffer + strlen(szKtBuffer), ", %1.6f ", 1 / fKT[i]);
+			}
+			strcat(szKtBuffer, " };");
+			MOJING_TRACE(g_APIlogger , szKtBuffer);
+#endif
 		}
 		int Distortion::GetDistortionParamet(float* fKR, float * fKG, float * fKB)
 		{
@@ -1297,7 +1310,59 @@ namespace Baofeng
 
 			return iRet;
 		}
+		void Mesh_820::SaveToFile(const char* szFileName)const
+		{
+			FILE* pFile = fopen(szFileName , "w+");
+			if (pFile)
+			{
+				int iVSize = vertices_left.size();
+				int iISize = indices.size();
+				fprintf(pFile, "/*Vertices_L = %d , Vertices_R = %d , indices = %d*/", vertices_left.size(), vertices_right.size(), indices.size());
+				fputs("float LeftEye[] = {\n" , pFile);				
+				for (int i = 0; i < iVSize; i += 8)
+				{
+					fprintf(pFile, "/*%4d*/\t%0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f %s" , 
+						i / 8,
+						vertices_left[i], vertices_left[i+1], vertices_left[i+2], vertices_left[i+3],
+						vertices_left[i+4], vertices_left[i+5], vertices_left[i+6], vertices_left[i+7],
+						(i + 8) < iVSize ? ",\n" : "\n"
+						);
+					if (9 == i% 10)
+						fflush(pFile);
+				}
+				fputs("};\n\n", pFile);
 
+				iVSize = vertices_right.size();
+				fputs("float RightEye[] = {\n" , pFile);
+				for (int i = 0; i < iVSize; i += 8)
+				{
+					fprintf(pFile, "/*%4d*/\t%0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f , %0.4f %s\n",
+						i / 8, 
+						vertices_right[i], vertices_right[i + 1], vertices_right[i + 2], vertices_right[i + 3],
+						vertices_right[i + 4], vertices_right[i + 5], vertices_right[i + 6], vertices_right[i + 7],
+						(i + 8) < iVSize ? "," : ""
+						);
+					if (9 == i % 10)
+						fflush(pFile);
+				}
+				fputs("};\n\n", pFile);
+
+				fputs("float *Index[] = {\n", pFile);
+				for (int i = 0; i < iISize; i += 3)
+				{
+					fprintf(pFile, "/*%4d*/\t%4d , %4d , %4d  %s\n",
+						i / 3, indices[i + 0], indices[i + 1], indices[i + 2],
+						(i + 3) < iISize ? "," : "");
+
+					if (9 == i % 10)
+						fflush(pFile);
+				}
+				fputs("};\n\n", pFile);
+				fflush(pFile);
+
+				fclose(pFile);
+			}
+		}
 		bool Distortion::SaveToFile(const char* szFilePathName)const
 		{
 			JSON *pJson = JSON::CreateObject();

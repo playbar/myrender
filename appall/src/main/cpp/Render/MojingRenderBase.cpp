@@ -106,7 +106,7 @@ namespace Baofeng
 
 		MojingRenderBase::~MojingRenderBase()
 		{
-			MOJING_FUNC_TRACE(g_APIlogger);
+			//MOJING_FUNC_TRACE(g_APIlogger);
 			MOJING_TRACE(g_APIlogger, "Delete MojingRenderBase , RenderThreadID = " << GetRenderThreadID());
 			if (GetRenderThreadID() == gettid())
 			{
@@ -147,6 +147,7 @@ namespace Baofeng
 
 			LoadMeshFromMemory();
 			m_warpLayer->BuildGeometry();
+			
 			InstallShader();
 			g_bIsModifyed = false;
 		}
@@ -286,7 +287,9 @@ namespace Baofeng
 				g_pmtMojingRenderBaseMap->DoLock();
 				std::map<int, MojingRenderBase *>::iterator it = g_MojingRenderBaseMap.find(iID);
 				if (it != g_MojingRenderBaseMap.end())
+				{				
 					delete it->second;
+				}
 				g_MojingRenderBaseMap.erase(it);
 				g_pmtMojingRenderBaseMap->Unlock();
 			}
@@ -478,13 +481,36 @@ namespace Baofeng
 			注意：	以下M44矩阵将在Shader中与表示[-1,1]区间的色散畸变颜色分量系数V4(x,y,-1,1)相乘
 			即M44 * V4 ，得到原始图的颜色采样坐标
 			*/
-			const Matrix4f SingleEye(
-				0.5, 0.0, 0.0, 0,				// 这是第一列
+			
+			float fFOV = MojingSDK_GetFOV();
+			float fT = 1 / tanf(fFOV / 2 / 180 * PI);
+			Matrix4f SingleEye(
+				0.5 , 0.0, 0.0, 0,				// 这是第一列
 				0.0, 0.5, 0.0, 0,
 				-0.5, -0.5, -1.0, 1,
 				0.0, 0.0, 0.0, 0					// 这是第四列
 				);
 
+			const Matrix4f TimeWarpProjection(
+				0.25, 0, 0, 0,
+				0, 0.5, 0, 0,
+				-0.25, -0.5, -1, -1,
+				0, 0, 0, 0
+				);
+// 			/*glm::mat4 CalculateProjectionMatrix(float fovRad)
+// 				//-----------------------------------------------------------------------------
+// 			{
+// 				//Project the UVs in NDC onto the far plane and convert from NDC to viewport space
+// 				glm::mat4 retMtx;
+// 				float tanHalfFov = tanf(0.5* fovRad);
+// 
+// 				retMtx[0] = glm::vec4(1.0f / tanHalfFov, 0.0f, 0.0f, 0.0f);
+// 				retMtx[1] = glm::vec4(0.0f, 1.0f / tanHalfFov, 0.0f, 0.0f);
+// 				retMtx[2] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+// 				retMtx[3] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+// 
+// 				return glm::transpose(retMtx);
+// 			}*/
 			const Matrix4f LeftEye(
 				0.25, 0, 0, 0,
 				0, 0.5, 0, 0,
@@ -585,7 +611,7 @@ namespace Baofeng
 			SetWarpState(TRUE);
 			// SetWarpState(FALSE);
 #endif // !MJ_OS_WIN32			
-			
+			glViewport(0, 0, m_iScreenWidth, m_iScreenHeight);
 			// Warp each eye to the display surface
 			if (DrawEyes & TEXTURE_LEFT_EYE)
 			{
@@ -1184,14 +1210,15 @@ namespace Baofeng
 
 						int iTestR = iTestX *iTestX + iTestY * iTestY;
 						int iTest = iTestR;
-						int iT = 1024;
-						if (iTest > iRt)
-							iTest %= iRt;
-						iTest = abs(iTest - iRt);
+// 						int iT = 1024;
+// 						if (iTest > iRt)
+// 							iTest %= iRt;
+//						iTest = abs(iTest - iRt);
 						if ((iLineWidth > (abs((iY + iLineWidth / 2) - (iImageHeight / 2)) % iCellWidth)) || // 1 Y轴判定横线
-							(iLineWidth > (abs((iX + iLineWidth / 2) - (iImageWidth / 2)) % iCellWidth)) ||// 2 X轴判定纵线 
-							iLineWidth / 2 > abs(abs(iX - iImageWidth / 2) - abs(iY - iImageHeight / 2)) // 3 对角线
-							|| iTest < iT)
+							(iLineWidth > (abs((iX + iLineWidth / 2) - (iImageWidth / 2)) % iCellWidth))// 2 X轴判定纵线 
+//							iLineWidth / 2 > abs(abs(iX - iImageWidth / 2) - abs(iY - iImageHeight / 2)) // 3 对角线
+/*							|| iTest < iT*/
+							)
 						{
 							lpLenBuffer[iX] = iLineCol | 0xFF000000;
 						}
@@ -1227,6 +1254,7 @@ namespace Baofeng
 		bool MojingRenderBase::LoadMeshFromMemory()
 		{
 			return m_warpMesh->BuildGeometry();
+			// return m_warpMesh->BuildGeometry_GVR();
 		}
 
 		void MojingRenderBase::SetWarpState(bool bEnableAlpha)

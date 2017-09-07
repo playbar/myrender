@@ -1,7 +1,7 @@
-﻿/**
+/*
  
 @~English
-@page licensing Licensing
+@page license License
  
 @section etcdec etcdec.cxx License
  
@@ -288,9 +288,11 @@ void read_big_endian_2byte_word(unsigned short *blockadr, FILE *f)
 {
 	uint8 bytes[2];
 	unsigned short block;
+	// This is to silence -Wunused-result from GCC 4.8+.
+	size_t numitems; 
 
-	fread(&bytes[0], 1, 1, f);
-	fread(&bytes[1], 1, 1, f);
+	numitems = fread(&bytes[0], 1, 1, f);
+	numitems = fread(&bytes[1], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
@@ -306,11 +308,13 @@ void read_big_endian_4byte_word(unsigned int *blockadr, FILE *f)
 {
 	uint8 bytes[4];
 	unsigned int block;
+	// This is to silence -Wunused-result from GCC 4.8+.
+	size_t numitems; 
 
-	fread(&bytes[0], 1, 1, f);
-	fread(&bytes[1], 1, 1, f);
-	fread(&bytes[2], 1, 1, f);
-	fread(&bytes[3], 1, 1, f);
+	numitems = fread(&bytes[0], 1, 1, f);
+	numitems = fread(&bytes[1], 1, 1, f);
+	numitems = fread(&bytes[2], 1, 1, f);
+	numitems = fread(&bytes[3], 1, 1, f);
 
 	block = 0;
 	block |= bytes[0];
@@ -1627,7 +1631,6 @@ void decompressBlockETC21BitAlpha(unsigned int block_part1, unsigned int block_p
 // NO WARRANTY --- SEE STATEMENT IN TOP OF FILE (C) Ericsson AB 2013. All Rights Reserved.
 uint8 getbit(uint8 input, int frompos, int topos) 
 {
-	uint8 output=0;
 	if(frompos>topos)
 		return ((1<<frompos)&input)>>(frompos-topos);
 	return ((1<<frompos)&input)<<(topos-frompos);

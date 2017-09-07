@@ -225,6 +225,7 @@ namespace Baofeng
 			virtual void OnSensorData(Quatf fOrientation, Vector3f fAngularAcceleration, Vector3f fLinearAcceleration, double dTimeInSeconds, float fTemperature);
 			//////////////////////////////////////////////////
 			float GetCalibrationRate()const;
+			void SetCalibrationRate(float fRate)const;
 			//int GetCalibrationResetCount()const;
 			//void ResetCalibrationResetCount();
 		private:

@@ -45,6 +45,12 @@ namespace Baofeng
 					absLimit = 2 * 0.349066f;
 					noiseLimit = 2.5 * 0.0175f;
 				}
+				else if (0 == strcmp(lpszModel, "KE-01"))
+				{
+#define KE_01_SENSOR_FILTER 0.2f
+					absLimit *= KE_01_SENSOR_FILTER;
+					noiseLimit *= KE_01_SENSOR_FILTER;
+				}
 			}
 			this->pSensor = pSensor;
 		};
@@ -173,12 +179,38 @@ namespace Baofeng
 			// Make sure it is close enough to the current average that it is probably noise and not motion
 			float fAvg = avg.Length();
 			float fFilterOffset = (avg - GyroFilter.Mean()).Length();
+#ifdef _DEBUG
+			static enum{
+				CALIBRATION_NONE,
+				CALIBRATION_START,
+				CALIBRATION_CANCEL,
+				CALIBRATION_HALF,
+				CALIBRATION_DONE,
+				CALIBRATION_UNKNOWN
+			} sCalibration = CALIBRATION_UNKNOWN;
+
+#endif
 			if (fAvg >= absLimit || fFilterOffset >= noiseLimit)
 			{
 				//SetCalibrationResetCount(m_iCalibrationResetCount + 1);
+#ifdef _DEBUG
+				if (sCalibration != CALIBRATION_CANCEL)
+				{
+					sCalibration = CALIBRATION_CANCEL;
+					MOJING_TRACE(g_Sensorlogger , "CALIBRATION_CANCEL");
+				}
+#endif
 				GyroFilter.Clear();
 				m_nAutoSaveGap = 0;
 			}
+#ifdef _DEBUG
+			else if (sCalibration != CALIBRATION_START && sCalibration != CALIBRATION_HALF && sCalibration != CALIBRATION_DONE)
+			{
+				sCalibration = CALIBRATION_START;
+				MOJING_TRACE(g_Sensorlogger, "CALIBRATION_START");
+			}
+#endif	
+
 			GyroFilter.PushBack(avg);
 
 			if (GyroFilter.GetCapacity() > 2)
@@ -195,7 +227,14 @@ namespace Baofeng
 			if (GyroFilter.GetSize() > GyroFilter.GetCapacity() / 2)
 			{
 				// MOJING_TRACE(g_APIlogger, "GyroFilter.GetSize = " << GyroFilter.GetSize() << " / " << GyroFilter.GetCapacity());
-				
+#ifdef _DEBUG
+				if (sCalibration != CALIBRATION_HALF && sCalibration != CALIBRATION_DONE)
+				{
+					sCalibration = CALIBRATION_HALF;
+					MOJING_TRACE(g_Sensorlogger, "CALIBRATION_HALF");
+				}
+#endif
+
 				GyroAutoOffset = GyroFilter.Mean();
 				GyroAutoTemperature = msg.Temperature;
 
@@ -210,7 +249,13 @@ namespace Baofeng
 				if (GyroFilter.IsFull())
 				{
 					// 增加发送时间间隔保护，超过10分钟才会发下一次
-					
+#ifdef _DEBUG
+					if (sCalibration != CALIBRATION_DONE)
+					{
+						sCalibration = CALIBRATION_DONE;
+						MOJING_TRACE(g_Sensorlogger, "CALIBRATION_DONE");
+					}
+#endif					
 					static unsigned int uiLastSendTime = 0;
 					if (m_nAutoSaveGap == 0 &&
 						(unsigned int)Baofeng::Mojing::Timer::GetSeconds() - uiLastSendTime >= 60 * 15)

@@ -5,6 +5,7 @@
 #include "../../../MojingAPI.h"
 //#include "../../../Render/GlGeometry.h"
 #include "../../../Distortion/MojingDistortion.h"
+#include "../../../Distortion/GVR/GvrProfile.h"
 #include "../../../MojingManager.h"
 #include "../../../Parameters/MojingParameters.h"
 #include "../../../Parameters/MojingDeviceParameters.h"
@@ -123,10 +124,37 @@ namespace Baofeng
 #endif
 			// create WarpMesh
 			Mesh_820 warpMesh;
-			void* vbuffer = Manager::GetMojingManager()->GetDistortion()->BuildDistortionBuffer_V2(warpMesh, 32, 32);
-
-			//GlGeometryTriangles warpMesh;
-			//warpMesh.BuildGeometry();
+			Distortion* pDistortion = Manager::GetMojingManager()->GetDistortion();
+#ifdef _DEBUG
+			FILE *pDURL = fopen("/sdcard/DURL.txt" , "r");
+			if (pDURL)
+			{
+				char szTemp[128];
+				*szTemp = 0;
+				fgets(szTemp ,128 , pDURL);
+				fclose(pDURL);
+				MOJING_TRACE(g_APIlogger , "Find DURL FILE ， DURL = " << szTemp);
+				CDayDreamParameters DD = DD.FromDayDreamURL(szTemp);
+				if (DD.GetK1() >= 0 && DD.GetK2() >= 0)
+				{
+					MOJING_TRACE(g_APIlogger, "Set DURL to Distortion");
+					pDistortion->SetDURL(szTemp);
+				}
+				else
+				{
+					MOJING_ERROR(g_APIlogger, "INVALID DURL");
+				}
+			}
+			else
+			{
+				MOJING_TRACE(g_APIlogger, "Can not Find DURL FILE ");
+			}
+#endif
+			/******************************************************************************/
+			/* 注意：因为我们的畸变效果与DayDream游戏还有差异，所以这里使用特殊的参数设置*/
+			/******************************************************************************/
+			pDistortion->SetDURL("CgzmmrTpo47prZTplZwSBk1hdHJpeB2WQws9Jc3MTD0qEAAALEIAADRCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1ABYAA");
+			void* vbuffer = pDistortion->BuildDistortionBuffer_V2(warpMesh, 32, 32);
 			float* pVertexLeft = &(warpMesh.vertices_left[0]);
 			float* pVertexRight = &(warpMesh.vertices_right[0]);
 
@@ -134,7 +162,7 @@ namespace Baofeng
 
 			size_t numVertex = warpMesh.vertices_left.size();
 			size_t numIndex = warpMesh.indices.size();
-
+			MOJING_TRACE(g_APIlogger, "VertexCount = " << numVertex << " , IndexCount = " << numIndex);
 			m_SVRApi.UpdateWarpmesh(pVertexLeft, pVertexRight, numVertex, pIndexLeft, numIndex);
 		}
 
@@ -184,7 +212,7 @@ namespace Baofeng
 			}
 			else
 			{
-				MOJING_TRACE(g_APIlogger, "OnEvent_Initialize  E");
+				MOJING_TRACE(g_APIlogger, "OnEvent_Initialize  F");
 				MOJING_TRACE(g_APIlogger, "JavaVm = " << gJavaVM << " , m_bInitialized = " << m_bInitialized);
 			}
 			return m_bInitialized;
@@ -203,7 +231,6 @@ namespace Baofeng
 					pInitParameters->m_pParams = jniEnv->NewGlobalRef((jobject) pInitParameters->m_pParams);
 					m_iSurfaceValidWaitFramesCounter = 0;
 				}
-
 				return true;
 			}
 			else
@@ -376,7 +403,14 @@ namespace Baofeng
 				/*TODO：这里要向SVR提交Mesh表*/
 				if (!m_bSvrBegin)
 					m_bSvrBegin = OnEvent_BeginVR();
-				OnEvent_UpdateWarpmesh_Q820();
+				if (m_bSvrBegin)
+				{
+					OnEvent_UpdateWarpmesh_Q820();
+				}
+				else
+				{
+					MOJING_ERROR(g_APIlogger , "Call Svr Begin FAILD");
+				}
 			}
 			else
 			{
@@ -446,7 +480,6 @@ namespace Baofeng
 #endif
 		void UnityPluginInterfaceQ820::OnEvent_DistortFrame()
 		{
-			//LOGI("UnityPluginInterfaceQ820::OnEvent_DistortFrame");
 			/*
 			struct svrFrameParams
 			{
@@ -494,7 +527,6 @@ namespace Baofeng
 				L_CreateLayout(rcOverlay.x + rcOverlay.w / 2.0f, rcOverlay.y - rcOverlay.h / 2.0f, rcOverlay.w, rcOverlay.h, &params.overlayLayout[1]);
 #endif
 				params.overlayRect[1] = { rcOverlay.x, rcOverlay.y, rcOverlay.w, rcOverlay.h };
-
 #else
 
 #endif
@@ -550,6 +582,23 @@ namespace Baofeng
 						-m_HeadPoseState.pose.rotation.y,
 						-m_HeadPoseState.pose.rotation.z,
 						m_HeadPoseState.pose.rotation.w);
+#if 0 //def _DEBUG
+				{	
+					float x = Pos.x;
+					float y = Pos.y;
+					float z = Pos.z;
+					float w = Pos.w;
+#define CLAMP(x , min , max) ((x) > (max) ? (max) : ((x) < (min) ? (min) : x))
+					float roll = atan2(2 * (w * z + x * y), 1 - 2 * (z * z + x * x));
+					float pitch = asin(CLAMP(2 * (w * x - y * z), -1.0f, 1.0f));
+					float yaw = atan2(2 * (w * y + z * x), 1 - 2 * (x * x + y * y));
+					char szLog[512];
+					sprintf(szLog, "Rotation = ( %1.4f , %1.4f , %1.4f , %1.4f) , EulerAngles = (%3.4f , %3.4f , %3.4f )", 
+						x,y,z,w,roll, pitch, yaw);
+					MOJING_TRACE(g_APIlogger, szLog);
+				}
+#endif
+
 				}
 			}
 			else

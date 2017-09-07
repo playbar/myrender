@@ -1,5 +1,7 @@
-﻿/* -*- tab-width: 4; -*- */
+/* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
+
+/* $Id: d555f6fdc46c28e4db334b44fdb8ac5b4bcef91a $ */
 
 /* @internal
  * @~English
@@ -8,9 +10,6 @@
  * Unpack a texture compressed with ETC1
  *
  * @author Mark Callow, HI Corporation.
- *
- * $Revision: 21679 $
- * $Date:: 2013-05-22 19:03:13 +0900 #$
  */
 
 /*

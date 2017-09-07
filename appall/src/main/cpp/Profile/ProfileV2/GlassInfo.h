@@ -17,6 +17,8 @@ namespace Baofeng
 		class GlassInfo :
 			public MojingJsonElement
 		{
+			// 注意：对于DayDreamURL来说，需要根据PPI修正值重新调整各项尺寸。
+			void UpdateDURL();
 		public:
 			GlassInfo();
 			virtual ~GlassInfo();
@@ -32,6 +34,9 @@ namespace Baofeng
 			CLASS_INTERFACE_J(unsigned int, m_ui, ID);
 			CLASS_INTERFACE_STR_J(String, m_sz, GlassesName);
 			CLASS_INTERFACE_STR_J(String, m_sz, URL);
+			CLASS_INTERFACE_STR_J(String, m_sz, DURL);
+			CLASS_INTERFACE_J(float, m_f, DDScale);
+			CLASS_INTERFACE_STR_J(String, m_sz, DURL_Original);
 			CLASS_INTERFACE(bool, m_b, ReCalculationKT);
 			
 			DisplayInfo m_Display;

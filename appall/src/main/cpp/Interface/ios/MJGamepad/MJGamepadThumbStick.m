@@ -67,6 +67,23 @@
     }
 }
 
+- (void)setTouchPoint:(CGPoint)point
+{
+    //if (point.x != _buffer->x || point.y != _buffer->y)
+    {
+        _buffer->x = point.x;
+        _buffer->y = point.y;
+        _xAxis = point.x;
+        _yAxis = point.y;
+        
+        if (_valueChangedHandler)
+        {
+            _valueChangedHandler(self, _xAxis, _yAxis);
+        }
+        
+    }
+}
+
 //- (void)setXAxis:(float)xAxis
 //{
 //    

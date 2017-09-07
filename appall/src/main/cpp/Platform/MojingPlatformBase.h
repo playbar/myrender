@@ -51,7 +51,7 @@ namespace Baofeng
 			void ReadCPUName();
 
 		public:
-			static void InitPlatform(int nWidth, int nHeight, float xdpi, float ydpi, char* Brand, char* Model, char* Serial, const char* szMerchantID, const char* szAppID,
+			static void InitPlatform(int nWidth, int nHeight, float xdpi, float ydpi, const char* Brand, const  char* Model, const  char* Serial, const char* szMerchantID, const char* szAppID,
 				const char* szAppKey, const char* szAppName, const char* szPackageName, const char* szUserID, const char* szChannelID, const char* PacketProfilePath);
 
 // #ifdef MJ_OS_ANDROID

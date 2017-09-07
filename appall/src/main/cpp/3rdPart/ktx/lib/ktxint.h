@@ -1,7 +1,7 @@
-﻿/* -*- tab-width: 4; -*- */
+/* -*- tab-width: 4; -*- */
 /* vi: set sw=2 ts=4: */
 
-/* $Revision: 21679 $ on $Date:: 2013-05-22 19:03:13 +0900 #$ */
+/* $Id: 7f8f35be3acc819647c85c65682529b18a792866 $ */
 
 /*
 Copyright (c) 2010 The Khronos Group Inc.
@@ -36,8 +36,8 @@ MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  * Author: Mark Callow from original code by Georg Kolling
  */
 
-#ifndef _KTXINT_H_
-#define _KTXINT_H_
+#ifndef KTXINT_H
+#define KTXINT_H
 
 /* Define this to include the ETC unpack software in the library. */
 #ifndef SUPPORT_SOFTWARE_ETC_UNPACK
@@ -120,10 +120,10 @@ extern GLboolean _ktxSupportsSRGB;
 
 
 /*
- * These defines are needed to compile the KTX library.
- * When these things are not available in the GL version in
- * use at runtime, the library either provides its own support
- * or handles the expected errors.
+ * These defines are needed to compile the KTX library. When
+ * these things are not available in the GL header in use at
+ * compile time, the library provides its own support, handles
+ * the expected run-time errors or just needs the token value.
  */
 #ifndef GL_LUMINANCE
 #define GL_ALPHA						0x1906
@@ -174,6 +174,9 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_TEXTURE_CUBE_MAP             0x8513
 #define GL_TEXTURE_CUBE_MAP_POSITIVE_X  0x8515
 #endif
+#ifndef GL_TEXTURE_CUBE_MAP_ARRAY
+#define GL_TEXTURE_CUBE_MAP_ARRAY       0x9009
+#endif
 /* from GL_EXT_texture_array */
 #ifndef GL_TEXTURE_1D_ARRAY_EXT
 #define GL_TEXTURE_1D_ARRAY_EXT         0x8C18
@@ -183,14 +186,61 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_GENERATE_MIPMAP              0x8191
 #endif
 
-#ifndef GL_UNSIGNED_SHORT_5_6_5
-#define GL_UNSIGNED_SHORT_5_6_5         0x8363
+/* For writer.c */
+#if !defined(GL_BGR)
+#define GL_BGR							0x80E0
+#define GL_BGRA							0x80E1
 #endif
-#ifndef GL_UNSIGNED_SHORT_4_4_4_4
-#define GL_UNSIGNED_SHORT_4_4_4_4       0x8033
+#if !defined(GL_RED_INTEGER)
+#define GL_RED_INTEGER					0x8D94
+#define GL_RGB_INTEGER					0x8D98
+#define GL_RGBA_INTEGER					0x8D99
 #endif
-#ifndef GL_UNSIGNED_SHORT_5_5_5_1
-#define GL_UNSIGNED_SHORT_5_5_5_1       0x8034
+#if !defined(GL_GREEN_INTEGER)
+#define GL_GREEN_INTEGER				0x8D95
+#define GL_BLUE_INTEGER					0x8D96
+#endif
+#if !defined(GL_ALPHA_INTEGER)
+#define GL_ALPHA_INTEGER				0x8D97
+#endif
+#if !defined (GL_BGR_INTEGER)
+#define GL_BGR_INTEGER					0x8D9A
+#define GL_BGRA_INTEGER					0x8D9B
+#endif
+#if !defined(GL_INT)
+#define GL_INT 0x1404
+#define GL_UNSIGNED_INT 0x1405
+#endif
+#if !defined(GL_HALF_FLOAT)
+typedef unsigned short GLhalf;
+#define GL_HALF_FLOAT					0x140B
+#endif
+#if !defined(GL_UNSIGNED_BYTE_3_3_2)
+#define GL_UNSIGNED_BYTE_3_3_2			0x8032
+#define GL_UNSIGNED_INT_8_8_8_8			0x8035
+#define GL_UNSIGNED_INT_10_10_10_2		0x8036
+#endif
+#if !defined(GL_UNSIGNED_BYTE_2_3_3_REV)
+#define GL_UNSIGNED_BYTE_2_3_3_REV		0x8362
+#define GL_UNSIGNED_SHORT_5_6_5			0x8363
+#define GL_UNSIGNED_SHORT_5_6_5_REV		0x8364
+#define GL_UNSIGNED_SHORT_4_4_4_4_REV	0x8365
+#define GL_UNSIGNED_SHORT_1_5_5_5_REV	0x8366
+#define GL_UNSIGNED_INT_8_8_8_8_REV		0x8367
+#define GL_UNSIGNED_INT_2_10_10_10_REV	0x8368
+#endif
+#if !defined(GL_UNSIGNED_INT_24_8)
+#define GL_DEPTH_STENCIL				0x84F9
+#define GL_UNSIGNED_INT_24_8			0x84FA
+#endif
+#if !defined(GL_UNSIGNED_INT_5_9_9_9_REV)
+#define GL_UNSIGNED_INT_5_9_9_9_REV		0x8C3E
+#endif
+#if !defined(GL_UNSIGNED_INT_10F_11F_11F_REV)
+#define GL_UNSIGNED_INT_10F_11F_11F_REV 0x8C3B
+#endif
+#if !defined (GL_FLOAT_32_UNSIGNED_INT_24_8_REV)
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV	0x8DAD
 #endif
 
 #ifndef GL_ETC1_RGB8_OES
@@ -219,6 +269,7 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_GREEN						0x1904
 #define GL_BLUE							0x1905
 #define GL_RG							0x8227
+#define GL_RG_INTEGER					0x8228
 #endif
 #ifndef GL_R16
 #define GL_R16							0x822A
@@ -243,6 +294,10 @@ extern GLboolean _ktxSupportsSRGB;
 #define GL_CONTEXT_PROFILE_MASK				 0x9126
 #define GL_CONTEXT_CORE_PROFILE_BIT			 0x00000001
 #define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT 0x00000002
+#endif
+
+#ifndef GL_NUM_EXTENSIONS
+#define GL_NUM_EXTENSIONS 0x821D
 #endif
 
 #ifndef MAX
@@ -278,4 +333,4 @@ KTX_error_code _ktxUnpackETC(const GLubyte* srcETC, const GLenum srcFormat,
 }
 #endif
 
-#endif /* _KTXINT_H_ */
+#endif /* KTXINT_H */

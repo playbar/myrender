@@ -42,6 +42,7 @@ namespace Baofeng
 			virtual ~Parameters();
 			bool Init();
 			CLASS_MEMBER_STR(String, m_str, OSVersion);
+			CLASS_MEMBER(bool, m_b, HDMWorking);
 			CLASS_INTERFACE(MojingDisplayParameters*, m_p, DisplayParameters);
 			CLASS_INTERFACE(MojingDeviceParameters*, m_p, DeviceParameters);
 			CLASS_INTERFACE(MojingFactoryCalibrationParameters*, m_p, FactoryCalibrationParameters);

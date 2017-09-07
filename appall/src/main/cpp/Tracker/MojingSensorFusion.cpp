@@ -213,6 +213,7 @@ namespace Baofeng
 			{
 				return;
 			}
+			// IN-out
 			m_pSensorCalibration->Apply(msg);
 
 			if (msg.Acceleration == Vector3f::ZERO)
@@ -272,7 +273,7 @@ namespace Baofeng
 				State.LinearVelocity.x = State.LinearVelocity.y = State.LinearVelocity.z = 0.0f;
 				State.Transform.Position.x = State.Transform.Position.y = State.Transform.Position.z = 0.0f;
 			}
-
+			
 			// Compute the angular acceleration
 			State.AngularAcceleration = (FAngV.GetSize() >= 12 && DeltaT > 0) ?
 				(FAngV.SavitzkyGolayDerivative12() / DeltaT) : Vector3f();
@@ -284,7 +285,7 @@ namespace Baofeng
 
 #ifdef ENABLE_SENSOR_LOGGER
             Quatf orientation = State.Transform.Orientation;
-			MOJING_TRACE(g_Sensorlogger, "time = " << (int64_t)(msg.AbsoluteTimeSeconds * 1000) <<
+			MOJING_TRACE(g_Sensorlogger, "time = " << (int64_t)(state.State.TimeInSeconds * 1000) <<
 				", orientation (" << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << ")");
 #endif
 			UpdatedState.SetState(state);
@@ -711,7 +712,7 @@ namespace Baofeng
 				pose.Orientation = pose.Orientation * Quatf(angularVelocity, angularSpeed * dynamicDt);
 
 			pose.Position += poseState.LinearVelocity * dynamicDt;
-
+			
 			return pose;
 		}
 
@@ -777,6 +778,11 @@ namespace Baofeng
 			if (m_pSensorCalibration)
 				return m_pSensorCalibration->GetCalibrationRate();
 			return 0;
+		}
+		void SensorFusion::SetCalibrationRate(float fRate)const
+		{
+			if (m_pSensorCalibration)
+				m_pSensorCalibration->SetCalibrationRate(fRate);
 		}
 // 		int SensorFusion::GetCalibrationResetCount()const
 // 		{

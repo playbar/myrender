@@ -99,6 +99,84 @@ namespace Baofeng
 			return m_VertexBuffer != 0 && glIsBuffer(m_VertexBuffer);
 		}
 
+		void GlGeometry::SaveAttributesToFile(const char* lpszFile, unsigned int iWidth, unsigned int iHeight, const void * pAttributeBuffer)
+		{
+			FILE *pFile = fopen(lpszFile , "wb");
+			if (pFile)
+			{
+				
+				unsigned int Tag = (*((long*)"MJDB"));
+				fwrite(&Tag , 1 , 4 , pFile);
+				fwrite(&iWidth, 1, 4, pFile);
+				fwrite(&iHeight, 1, 4, pFile);
+
+				int iSize = 2 * (iWidth + 1) * (iHeight + 1)* UNREAL_DISTORTION_PARAMETES_COUNT * sizeof(float);
+				
+				fwrite(pAttributeBuffer, 1, iSize, pFile);
+				fflush(pFile);
+				fclose(pFile);
+			}
+
+#ifdef _DEBUG
+			int iSrcLen = strlen(lpszFile);
+			char *pFileName2 = new char[strlen(lpszFile) + 64];
+			*pFileName2 = 0;
+			strcpy(pFileName2, lpszFile);
+			char *pDotPos = strrchr(pFileName2 , '.');
+			if (pDotPos && (pDotPos - pFileName2 + 5 >= iSrcLen))
+			{
+				strcpy(pDotPos , ".txt");
+			}
+			else
+			{
+				strcat(pDotPos, ".txt");
+			}
+			FILE *pTextFile = fopen(pFileName2, "w");
+			if (pTextFile)
+			{
+				fprintf(pTextFile, "/*---------- Destprtion %d x %d ----------*/\n", iWidth, iHeight);
+
+
+				for (int Eye = 0; Eye < 2; Eye++)
+				{
+					fprintf(pTextFile, "float %s[] = [\n", Eye == 0 ? "LeftEye" : "RightEye");
+					for (int i = 0; i <= iHeight; i++)
+					{
+						for (int j = 0; j <= iWidth; j++)
+						{
+							fprintf(pTextFile, "/*%02d , %02d*/ ", i, j);
+							int iOffset = Eye * (iHeight + 1) * (iWidth + 1)+ i * (iWidth + 1)+ j;
+							float *pTemp = ((float *)pAttributeBuffer) + iOffset * 9;
+							for (int iIndex = 0; iIndex < 9; iIndex++)
+							{
+								if (iIndex < 8)
+									fprintf(pTextFile, "%.4f ,", pTemp[iIndex]);
+								else
+									fprintf(pTextFile, "%.4f ", pTemp[iIndex]);
+							}
+
+							if (i == iHeight && j == iWidth )
+							{
+								fprintf(pTextFile, "\n];\n\n");
+							}
+							else
+							{
+								fprintf(pTextFile, ",\n");
+							}
+						}
+						fprintf(pTextFile, "\n");
+						fflush(pTextFile);
+					}
+					
+				}
+
+				fclose(pTextFile);
+			}
+
+			delete pFileName2;
+#endif
+		}
+
 		bool GlGeometry::BuildGeometry(int iWidth /*= 0*/, int iHeight /*= 0*/, void *pBuffer /*= NULL*/)
 		{
 			ClearBuffers();
@@ -118,6 +196,7 @@ namespace Baofeng
 			const int indexCount = m_IndexCount / 2;
 			const int indexOffset = eye * indexCount;
 			glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (void*)(indexOffset * 2));
+			// glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_SHORT, (void*)(indexOffset * 2));
 		}
 		void GlGeometryTriangles::DrawElementsRange(int eye)
 		{
@@ -128,7 +207,6 @@ namespace Baofeng
 		/*------------------------------------------------------------------
 		2015/08/17: 建立顶点与索引缓冲区
 		------------------------------------------------------------------*/
-
 		bool GlGeometryTriangles::BuildGeometry(int iWidth /*= 0*/, int iHeight /*= 0*/ , void *pBuffer /* = NULL*/)
 		{
 			GlGeometry::BuildGeometry(0, 0); // just ClearBuffer
@@ -147,8 +225,7 @@ namespace Baofeng
 					Manager::GetMojingManager()->GetDistortion()->BuildDistortionBufferOverlay(CELLS_COUNT, CELLS_COUNT, iWidth, iHeight);
 #endif
 			}
-
-
+	
 			//const int magic = ((int *)pBuffer)[0];
 			const int tesselationsX = ((int *)pBuffer)[1];
 			const int tesselationsY = ((int *)pBuffer)[2];
@@ -194,69 +271,35 @@ namespace Baofeng
 							v[7] = vSrc[5];
 
 							v[8] = (float)x / tesselationsX;
-							v[9] = 1;
-
-							if (eye == 0)
-							{
-								m_VertexLeft_Qualcomm.push_back(v[0]);
-								m_VertexLeft_Qualcomm.push_back(v[1]); // x,y
-
-								m_VertexLeft_Qualcomm.push_back(v[2]);
-								m_VertexLeft_Qualcomm.push_back(v[3]); // R
-
-								m_VertexLeft_Qualcomm.push_back(v[4]);
-								m_VertexLeft_Qualcomm.push_back(v[5]); // G
-
-								m_VertexLeft_Qualcomm.push_back(v[6]);
-								m_VertexLeft_Qualcomm.push_back(v[7]); // B
-
-								//LOGE("left vertex[%d]: %f,%f,%f,%f,%f,%f,%f,%f", vertNum, v[7], v[8], v[0], v[1], v[2], v[3], v[4], v[5]);
-							}
-							else
-							{
-								m_VertexRight_Qualcomm.push_back(v[0]);
-								m_VertexRight_Qualcomm.push_back(v[1]); // x,y
-
-								m_VertexRight_Qualcomm.push_back(v[2]);
-								m_VertexRight_Qualcomm.push_back(v[3]); // R
-
-								m_VertexRight_Qualcomm.push_back(v[4]);
-								m_VertexRight_Qualcomm.push_back(v[5]); // G
-
-								m_VertexRight_Qualcomm.push_back(v[6]);
-								m_VertexRight_Qualcomm.push_back(v[7]); // B
-
-								//LOGE("right vertex[%d]: %f,%f,%f,%f,%f,%f,%f,%f", vertNum, v[7], v[8], v[0], v[1], v[2], v[3], v[4], v[5]);
-						}
-
+							v[9] = 1;						
 #else
 							v[0] = -1.0 + eye + xf;	// 目标双眼[-1,+1]区间的X坐标,左眼固定于[-1 ， 0]，右眼固定于[0 ， 1]
 							v[1] = yf*2.0f - 1.0f;	// 目标双眼[-1,+1]区间的Y坐标
-
+							
 							// Copy the offsets from the file
 							// 下标2到7依次为Rx,Ry,Gx,Gy,Bx,By
 							for (int i = 0; i < 6; i++)
 							{
 								v[2 + i] = fovScale * bufferVerts
-									[(y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
+									[(y*(tesselationsX + 1) * 2 + x + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + i];
 							}
 
 							// 下标8是X坐标在条带内的位置比值，越靠近条带右边界数值越大，越靠近条带左边界数值越小
-							v[8] = (float)x / sliceTess;
+							v[8] = (float)x / tesselationsX;
 							// Enable this to allow fading at the edges.
 							// Samsung recommends not doing this, because it could cause
 							// visible differences in pixel wear on the screen over long
 							// periods of time.
 
 							// 下标9恒定为1
-							if (0 && (y == 0 || y == tesselationsY || sx == 0 || sx == tesselationsX))
+							if (0 && (y == 0 || y == tesselationsY   ))
 							{
 								v[9] = 0.0f;	// fade to black at edge
 							}
 							else
 							{
-								//v[9] = 1.0f;
-								v[9] = bufferVerts[(y*(tesselationsX + 1) * 2 + sx + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + 6];
+								v[9] = 1.0f;
+								//v[9] = bufferVerts[(y*(tesselationsX + 1) * 2 + eye * (tesselationsX + 1)) * DISTORTION_PARAMETES_COUNT + 6];
 							}
 #endif
 						}
@@ -266,6 +309,7 @@ namespace Baofeng
 			}
 			if (bNeedFreeBuffer)
 				free(pBuffer);
+
 
 			m_IndexCount = 2 * tesselationsX * tesselationsY * 6;
 			unsigned short* pTessIndices = new unsigned short[m_IndexCount];
@@ -329,48 +373,29 @@ namespace Baofeng
 								pTessIndices[index + 4] = vertBase + y * (tesselationsX + 1) + x + 1;
 								pTessIndices[index + 5] = vertBase + (y + 1) * (tesselationsX + 1) + x + 1;
 							}
-
-							if (eye == 0)
-							{
-								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 0]);
-								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 1]);
-								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 2]);
-								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 3]);
-								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 4]);
-								m_IndexLeft_Qualcomm.push_back(pTessIndices[index + 5]);
-							}
-							else
-							{
-								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 0]);
-								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 1]);
-								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 2]);
-								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 3]);
-								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 4]);
-								m_IndexRight_Qualcomm.push_back(pTessIndices[index + 5]);
-							}
 							index += 6;
 						}
 					}
 					verts += (tesselationsY + 1)*(tesselationsX + 1);
 				//}
 			}
-
+			GLenum  E = glGetError();
 			if (0 == this->m_VertexBuffer || !glIsBuffer(this->m_VertexBuffer))
 			{
 				glGenBuffers(1, &this->m_VertexBuffer);
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, this->m_VertexBuffer);
 			glBufferData(GL_ARRAY_BUFFER, floatCount * sizeof(*pTessVertices), (void*)pTessVertices, GL_STATIC_DRAW);
-			delete[] pTessVertices;
-
+			
+			E = glGetError();
 			if (0 == m_IndexBuffer || !glIsBuffer(m_IndexBuffer))
 			{
 				glGenBuffers(1, &m_IndexBuffer);
 			}
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_IndexCount * sizeof(*pTessIndices), (void*)pTessIndices, GL_STATIC_DRAW);
-			delete[] pTessIndices;
-
+			
+			E = glGetError();
 			glEnableVertexAttribArray(VERTEX_ATTRIBUTE_LOCATION_POSITION);
 			glVertexAttribPointer(VERTEX_ATTRIBUTE_LOCATION_POSITION, 2, GL_FLOAT,
 				false, attribCount * sizeof(float), (void *)(0 * sizeof(float)));
@@ -390,10 +415,249 @@ namespace Baofeng
 			glEnableVertexAttribArray(VERTEX_ATTRIBUTE_DISTORTION_SLICE_INFO);
 			glVertexAttribPointer(VERTEX_ATTRIBUTE_DISTORTION_SLICE_INFO, 2, GL_FLOAT,
 				false, attribCount * sizeof(float), (void *)(8 * sizeof(float)));
+			E = glGetError();
+#ifdef _DEBUG
+			FILE *pAttrFile = fopen("/sdcard/MojingSDK/AttrMJ.txt", "w+");
+			for (int eye = 0; eye < 2; eye++)
+			{
+				if (eye)
+				{
+					fputs("***********************RIGHT EYE***********************\r\n", pAttrFile);
+				}
+				else
+				{
+					fputs("***********************LEFT EYE***********************\r\n", pAttrFile);
+				}
+				for (int i = 0; i < tesselationsY; i++)
+				{
+					for (int j = 0; j < tesselationsX; j++)
+					{
+						fprintf(pAttrFile, "%03d , %03d \t", i, j);
+
+						float *pAttr = pTessVertices + (eye * tesselationsX * iHeight + i * tesselationsX + j) * 10;
+						for (int iAttr = 0; iAttr < 10; iAttr++)
+						{
+							fprintf(pAttrFile, "%.5f , ", pAttr[iAttr]);
+						}
+
+						fprintf(pAttrFile, "\r\n");
+					}
+					fprintf(pAttrFile, "\r\n");
+					fflush(pAttrFile);
+				}
+			}
+			fflush(pAttrFile);
+
+			fclose(pAttrFile);
+#endif
+			delete[] pTessVertices;
+			delete[] pTessIndices;
 
 			return true;
 		}
-
+		
+// 		bool GlGeometryTriangles::BuildGeometry_GVR(int iWidth/* = 0*/, int iHeight /*= 0*/)
+// 		{
+// 			ClearBuffers();
+// #define INDEX_LH 0
+// #define INDEX_YH 1
+// 			double dK[2][2] = {
+// 				{ 0.122f, 0.488f },// liuhao
+// 				{0.14142651829493, 0.472824921812758f }
+// 			};
+// 			char sKName[2][64] = {"L" , "Y"};
+// 			for (int iKK = 0; iKK < 2; iKK++)
+// 			{
+// 				double *pK = dK[iKK];
+// 				GvrProfile GP;
+// 				Screen S;
+// 				Viewer V;
+// 				V.lenses.separation = 0.05184f;
+// 				V.lenses.offset = 0;
+// 				/************************************************************************/
+// 				/* 
+// 				/* screenDistance变大，中心会显得“远离”，用于修正畸变过度（中央向眼睛方向突起）                                                       */
+// 				/************************************************************************/
+// 				for (int iDD = 32; iDD <= 36; iDD ++)
+// 				{
+// 					V.lenses.screenDistance = iDD;
+// 					V.lenses.screenDistance /= 1000.0;// mm -> m
+// 					V.lenses.alignment = V.lenses.AlignCenter;
+// 					V.maxFOV.outer =
+// 						V.maxFOV.inner =
+// 						V.maxFOV.upper =
+// 						V.maxFOV.lower = 88 / 2.0f;
+// 
+// 					DoubleArray temparray;
+// 					//= { 0.441f, 0.156f };
+// 					// 刘浩参数
+// 					temparray.push_back(pK[0]);
+// 					temparray.push_back(pK[1]);
+// 
+// 					// 孟玉凰参数
+// 					//			temparray.push_back(0.14142651829493);
+// 					//			temparray.push_back(0.472824921812758);
+// 					V.SetCoef(temparray);
+// 					S.width = 2 * 0.05184f;
+// 					S.height = 0.05184f;
+// 					S.border = 0.0f;
+// 					GP.SetScreen(S);
+// 					GP.SetViewer(V);
+// 					if (iWidth == 0)
+// 						iWidth = 33;
+// 					if (iHeight == 0)
+// 						iHeight = 33;
+// 					GP.ComputeDistortionBuffer(iWidth, iHeight);
+// 					// Attribute buffer :
+// 
+// 					int iAttributeCount = 10;
+// 					int floatCount = iWidth * iHeight * 2 * iAttributeCount;
+// 					float * pAttributesBuffer = new float[floatCount];
+// 					memset(pAttributesBuffer, 0, sizeof(float)* floatCount);
+// 					const float * pVertices = GP.GetVertices();
+// 					const float * pTexUV = GP.GetTexUV();
+// 					const unsigned short * pIndices = GP.GetIndices();
+// 					const int iIndexCount = 2 * (iWidth - 1) * (iHeight - 1) * 6;
+// 					m_IndexCount = iIndexCount;
+// 					for (int eye = 0; eye < 2; eye++)
+// 					{
+// 						for (int i = 0; i < iHeight; i++)
+// 						{
+// 							for (int j = 0; j < iWidth; j++)
+// 							{
+// 
+// 								int iIndex = eye * iHeight * iWidth + i * iWidth + j;
+// 								float * pAttributes = pAttributesBuffer + iIndex* iAttributeCount;
+// 								// X , Y
+// 								pAttributes[0] = *(pVertices + iIndex * 3);
+// 								pAttributes[1] = *(pVertices + iIndex * 3 + 1) * 2;
+// 
+// 								// Rx , Ry , Gx , Gy , Bx , By
+// 								// U 左眼是 [0 ， 0.5] 右眼[0.5 ， 1] 
+// 								// 如果换算到 [-1 , 1]需要做(U - 0.5 * eye) * 4 - 1的 计算
+// 
+// 								// V 是 [0 ， 1] 
+// 								// 如果换算到 [-1 , 1]需要做V * 2 - 1的 计算
+// 								float S = *(pTexUV + iIndex * 2);
+// 								float T = *(pTexUV + iIndex * 2 + 1);
+// 								pAttributes[2] = pAttributes[4] = pAttributes[6] = (S - 0.5 * eye) * 4 - 1;
+// 								pAttributes[3] = pAttributes[5] = pAttributes[7] = T * 2 - 1;
+// 
+// 								pAttributes[8] = (float)j / iWidth;
+// 								pAttributes[9] = *(pVertices + (iIndex * 3 + 2)) > 1e-4 ? 1 : 0;
+// 							}
+// 						}
+// 					}
+// 					if (0 == this->m_VertexBuffer || !glIsBuffer(this->m_VertexBuffer))
+// 					{
+// 						glGenBuffers(1, &this->m_VertexBuffer);
+// 					}
+// 					glBindBuffer(GL_ARRAY_BUFFER, this->m_VertexBuffer);
+// 					glBufferData(GL_ARRAY_BUFFER, floatCount * sizeof(float), (void*)pAttributesBuffer, GL_STATIC_DRAW);
+// 					int iE = glGetError();
+// 					if (0 == m_IndexBuffer || !glIsBuffer(m_IndexBuffer))
+// 					{
+// 						glGenBuffers(1, &m_IndexBuffer);
+// 					}
+// 					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
+// 					glBufferData(GL_ELEMENT_ARRAY_BUFFER, iIndexCount * sizeof(short), (void*)pIndices, GL_STATIC_DRAW);
+// 					iE = glGetError();
+// 					glEnableVertexAttribArray(VERTEX_ATTRIBUTE_LOCATION_POSITION);
+// 					glVertexAttribPointer(VERTEX_ATTRIBUTE_LOCATION_POSITION, 2, GL_FLOAT,
+// 						false, iAttributeCount * sizeof(float), (void *)(0 * sizeof(float)));
+// 
+// 					glEnableVertexAttribArray(VERTEX_ATTRIBUTE_DISTORTION_R);
+// 					glVertexAttribPointer(VERTEX_ATTRIBUTE_DISTORTION_R, 2, GL_FLOAT,
+// 						false, iAttributeCount * sizeof(float), (void *)(2 * sizeof(float)));
+// 
+// 					glEnableVertexAttribArray(VERTEX_ATTRIBUTE_DISTORTION_G);
+// 					glVertexAttribPointer(VERTEX_ATTRIBUTE_DISTORTION_G, 2, GL_FLOAT,
+// 						false, iAttributeCount * sizeof(float), (void *)(4 * sizeof(float)));
+// 
+// 					glEnableVertexAttribArray(VERTEX_ATTRIBUTE_DISTORTION_B);
+// 					glVertexAttribPointer(VERTEX_ATTRIBUTE_DISTORTION_B, 2, GL_FLOAT,
+// 						false, iAttributeCount * sizeof(float), (void *)(6 * sizeof(float)));
+// 
+// 					glEnableVertexAttribArray(VERTEX_ATTRIBUTE_DISTORTION_SLICE_INFO);
+// 					glVertexAttribPointer(VERTEX_ATTRIBUTE_DISTORTION_SLICE_INFO, 2, GL_FLOAT,
+// 						false, iAttributeCount * sizeof(float), (void *)(8 * sizeof(float)));
+// 
+// 
+// 
+// #ifdef _DEBUG
+// 					/*FILE *pAttrFile = fopen("/sdcard/MojingSDK/AttrGVR.txt" , "w+");
+// 					if (pAttrFile)
+// 					{
+// 					char EyeName[][16] = { "Left\0\0\0", "Right\0\0\0" };
+// 					for (int eye = 0; eye < 2; eye++)
+// 					{
+// 					if (eye)
+// 					{
+// 					fputs("***********************RIGHT EYE***********************\r\n", pAttrFile);
+// 					}
+// 					else
+// 					{
+// 					fputs("***********************LEFT EYE***********************\r\n", pAttrFile);
+// 					}
+// 					for (int i = 0; i < iHeight; i++)
+// 					{
+// 					for (int j = 0; j < iWidth; j++)
+// 					{
+// 					fprintf(pAttrFile, "%03d , %03d \t", i, j);
+// 
+// 					float *pAttr = pAttributesBuffer + (eye * iWidth * iHeight + i * iWidth + j) * iAttributeCount;
+// 					for (int iAttr = 0; iAttr < iAttributeCount; iAttr++)
+// 					{
+// 					fprintf(pAttrFile, "%.5f , ", pAttr[iAttr]);
+// 					}
+// 
+// 					fprintf(pAttrFile, "\r\n");
+// 					}
+// 					fprintf(pAttrFile, "\r\n");
+// 					fflush(pAttrFile);
+// 					}
+// 					}
+// 					fflush(pAttrFile);
+// 
+// 					fclose(pAttrFile);
+// 					}*/
+// 					/**
+// 					写文件前，需要调整属性表的顺序
+// 					*/
+// 					float *pFileBuffer = new float[2 * iWidth * iHeight * 9];
+// 					for (int eye = 0; eye < 2; eye++)
+// 					{
+// 						for (int i = 0; i < iHeight; i++)
+// 						{
+// 							// 注意：一体机中使用的数据是左右眼交织的，左眼一行、右眼一行
+// 							int iLineBegin = 2 * (i * iWidth) + eye * iWidth;
+// 							for (int j = 0; j < iWidth; j++)
+// 							{
+// 								int iIndexSrc = eye * iHeight * iWidth + i * iWidth + j;
+// 								float * pAttributes = pAttributesBuffer + iIndexSrc* iAttributeCount;
+// 								int iIndexDest = iLineBegin + j;
+// 								float * pAttributesFile = pFileBuffer + iIndexDest * 9;
+// 								pAttributesFile[0] = pAttributesFile[2] = pAttributesFile[4] = pAttributes[2];
+// 								pAttributesFile[1] = pAttributesFile[3] = pAttributesFile[5] = pAttributes[3];
+// 								pAttributesFile[6] = 1;
+// 								pAttributesFile[7] = pAttributes[0];
+// 								pAttributesFile[8] = pAttributes[1];
+// 							}
+// 						}
+// 					}
+// 
+// 					char szFileName[128];
+// 					sprintf(szFileName, "/sdcard/MojingSDK/DDD2_GVR_FOV88_%d_%s.dat", iDD , sKName[iKK]);
+// 					SaveAttributesToFile(szFileName, iWidth - 1, iHeight - 1, pFileBuffer);
+// 					delete pFileBuffer;
+// 
+// #endif
+// 					delete[] pAttributesBuffer;
+// 				}
+// 			}
+// 			
+// 			return true;
+// 		}
 		/*======================================================
 
 		类: GlGeometryTriangleStrip

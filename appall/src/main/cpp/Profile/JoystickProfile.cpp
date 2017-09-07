@@ -1,9 +1,11 @@
 ﻿#include "JoystickProfile.h"
 #include <sys/time.h>
+#include "../MojingManager.h"
 #include "../3rdPart/MD5/MD5.h"
 #include "../Parameters/MojingParameters.h"
 #include "../Platform/MojingPlatformBase.h"
 #include "../Profile/ProfileThreadMGR.h"
+#include "../Reporter/ReporterTools.h"
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
 #else
@@ -135,6 +137,13 @@ namespace Baofeng
 
 		void JoystickProfile::CheckUpdate()
 		{
+			double dLastCheckJoystickProfileTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckMobileConfig();
+			//request once per day.
+			if (fabs(ReporterTools::GetCurrentTime() - dLastCheckJoystickProfileTime) < CHECK_JOYSTICKPROFILE_INTERVEL)
+			{
+				return;
+			}
+			
 			char szTime[32];
 			char szReleaseDate[32];
 			String data;
@@ -146,8 +155,6 @@ namespace Baofeng
 			MOJING_TRACE(g_APIlogger, "Check update Version = " << m_uiReleaseDate);
 			struct timeval curtimeval;
 			struct timezone curtimezone;
-
-
 			
 			gettimeofday(&curtimeval, &curtimezone);
 			sprintf(szTime, "%u", (int)curtimeval.tv_sec);
@@ -186,6 +193,10 @@ namespace Baofeng
 				return;
 			}
 			
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->SetCheckJoystickProfile(ReporterTools::GetCurrentTime());
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->Save();
+			
+			//MOJING_TRACE(g_APIlogger, "JoystickProfile::CheckUpdateCallBack res: " << lpszRespString);
 			JoystickProfile * pThis = (JoystickProfile *)pCallBackParam;
 			char *pBuffer = new char[uiSize + 1];
 			memcpy(pBuffer, lpszRespString, uiSize);
@@ -219,9 +230,13 @@ namespace Baofeng
 
 		bool JoystickProfile::LoadFromJSON(JSON * pJSON)
 		{
+            if(pJSON == NULL) return false;
+            
 			JSON *pClass = pJSON->GetItemByName("Class");
 			JSON *pReleaseDate = pJSON->GetItemByName("ReleaseDate");
 			JSON *pOS = pJSON->GetItemByName("OS");
+            if(pOS == NULL || pClass == NULL || pReleaseDate == NULL)
+                return false;
             String szOSName = pOS->GetStringValue();
 			JSON *pJoystickConfig = pJSON->GetItemByName("JoystickConfig");
 			if (pJoystickConfig != NULL && pJoystickConfig->Type == JSON_Array)

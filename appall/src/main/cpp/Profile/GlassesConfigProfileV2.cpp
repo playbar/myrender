@@ -1,9 +1,11 @@
 ﻿#include "GlassesConfigProfileV2.h"
 #include <sys/time.h>
+#include <math.h>
 #include "../MojingSDKStatus.h"
 
 #include "../Base/Base32.h"
 #include "../Base/CRC.h"
+#include "../Base/MojingTimer.h"
 #include "../3rdPart/MD5/MD5.h"
 #include "../Platform/MojingPlatformBase.h"
 #include "../Distortion/MojingDistortion.h"
@@ -12,6 +14,7 @@
 #include "../Parameters/MojingParameters.h"
 #include "../Parameters/MojingDisplayParameters.h"
 #include "../Profile/ProfileThreadMGR.h"
+#include "../Reporter/ReporterTools.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -26,13 +29,13 @@ namespace Baofeng
 {
 	namespace Mojing
 	{
-		
+
 		extern unsigned char g_EncKey[16];
-		GlassesConfigProfileV2::GlassesConfigProfileV2():
+		GlassesConfigProfileV2::GlassesConfigProfileV2() :
 			m_uiAppID(0), m_uiReleaseDate(20150101)
 		{
 			const char* szAppID = MojingPlatformBase::GetPlatform()->GetAppID();
-			if ((szAppID == NULL) || (atoi(szAppID) == 0) )
+			if ((szAppID == NULL) || (atoi(szAppID) == 0))
 			{
 				String szAppName = MojingPlatformBase::GetPlatform()->GetAppName();
 				SetAppID(GenerationAppID(szAppName));
@@ -66,12 +69,12 @@ namespace Baofeng
 #elif defined(MJ_OS_IPHONE)
 			iBegin = 2;
 #endif
-			int iRet = GetCrc16(iBegin, (unsigned char*)szAppName , (int)strlen(szAppName));
+			int iRet = GetCrc16(iBegin, (unsigned char*)szAppName, (int)strlen(szAppName));
 
 			unsigned char *szKey = (unsigned char *)&iRet;
 			int iLength = (int)strlen(szAppName);
 			int i;
-			for ( i = iBegin; szAppName[i] != 0; i++)
+			for (i = iBegin; szAppName[i] != 0; i++)
 			{
 				szKey[i % 4] ^= (szAppName[i] + iLength);
 			}
@@ -151,6 +154,7 @@ namespace Baofeng
 				}
 				else
 				{
+					MOJING_TRACE(g_APIlogger, "Disable PID = " << pNewNode->GetID());
 					delete pNewNode;
 				}
 			}
@@ -214,11 +218,14 @@ namespace Baofeng
 		}
 		JSON* GlassesConfigProfileV2::ToJson()
 		{
-            return NULL;
+			return NULL;
 		}
 
 		bool GlassesConfigProfileV2::FromJson(JSON* pJson)
 		{
+			if (pJson == NULL)
+				return false;
+
 			if (ReleaseDateFromJson(pJson))
 			{
 				if (JSON *pSDKLimit = pJson->GetItemByName("SDKLimit"))
@@ -230,7 +237,7 @@ namespace Baofeng
 						pStatus->SetVerfiyStatus(VERIFY_VERSION_LOW);
 					}
 				}
-				
+
 				JSON *pGlassesConfig = pJson->GetItemByName("GlassesConfig");
 				JSON *pManufacturerConfig = pJson->GetItemByName("ManufacturerConfig");
 				JSON *pProductConfig = pJson->GetItemByName("ProductConfig");
@@ -253,6 +260,7 @@ namespace Baofeng
 		}
 		bool GlassesConfigProfileV2::UpdateFromProfile(const char * lpszProfilePath, JSON * pJsonFromUpdate)
 		{
+			MOJING_FUNC_TRACE(g_APIlogger);
 			/*来自安装包的节点*/
 			char filename[256];
 			char* szError = NULL;
@@ -261,27 +269,30 @@ namespace Baofeng
 				strcat(filename, "/");
 			strcat(filename, "GlassesConfig.json");
 			JSON *pJsonFromPacket = JSON::Load(filename, g_EncKey, (char const**)&szError);
-
+			/*部分应用（如Daydream游戏）的cache中没有GlassesConfig文件，
+			若直接退出将无法从sdcard或网络更新GlassesConfig数据，导致MachineList也无法更新，故去掉该判断*/
+			/*
 			if (pJsonFromPacket == NULL)
 			{
-				MOJING_ERROR(g_APIlogger , "Can not load profile from : " << lpszProfilePath);
+				MOJING_ERROR(g_APIlogger, "Can not load profile from : " << filename);
 				return false;
 			}
+			*/
 			/*来自SD卡的节点*/
 			JSON * pJsonFromSDCard = NULL;
 			String LocalPath = MojingPlatformBase::GetPlatform()->GetDefaultLocalProfilePath();
 			if (LocalPath.Right(1) != "/")
 				LocalPath += "/";
-			LocalPath += GetClassName() ;
+			LocalPath += GetClassName();
 			LocalPath += ".dat";
 
 			pJsonFromSDCard = JSON::Load(LocalPath, g_EncKey, (char const**)&szError);
-			
+
 			JSON *pUseNode = JSON_CompReleaseData(pJsonFromPacket, pJsonFromSDCard);
 			pUseNode = JSON_CompReleaseData(pUseNode, pJsonFromUpdate);
-			
+
 			MOJING_TRACE(g_APIlogger, "Load profile from PACKET(GlassV2) = " << (pJsonFromPacket ? "YES" : "NO") << "; SDCARD = " << (pJsonFromSDCard ? "YES" : "NO") << "; Update = " << (pJsonFromUpdate ? "YES" : "NO"));
-			
+
 			if (pUseNode == pJsonFromPacket)
 			{
 				MOJING_TRACE(g_APIlogger, "Using PACKET Profile");
@@ -299,7 +310,7 @@ namespace Baofeng
 			bool bRet = FromJson(pUseNode);
 			if (bRet && pUseNode == pJsonFromUpdate)
 			{// 使用网络配置文件更新当前的配置信息
-				pUseNode->Save(LocalPath , g_EncKey);
+				pUseNode->Save(LocalPath, g_EncKey);
 			}
 
 			if (pJsonFromPacket)
@@ -320,11 +331,11 @@ namespace Baofeng
 			JSON* pJsonRet = JSON::CreateObject();
 			pJsonRet->AddStringItem("ClassName", "ManufacturerList");
 			char szReleaseDate[16];
-			sprintf(szReleaseDate,"%d" , GetReleaseDate());
+			sprintf(szReleaseDate, "%d", GetReleaseDate());
 			pJsonRet->AddStringItem("ReleaseDate", szReleaseDate);
 
 			JSON* pManufacturerList = JSON::CreateArray();
-			pJsonRet->AddItem("ManufacturerList" , pManufacturerList);
+			pJsonRet->AddItem("ManufacturerList", pManufacturerList);
 
 			map<unsigned int, ManufacturerInfo*>::iterator it = m_ManufacturerMap.begin();
 			while (it != m_ManufacturerMap.end())
@@ -334,7 +345,7 @@ namespace Baofeng
 				MojingProfileKey ManufacturerKey;
 				ManufacturerKey.SetManufacturerID(MID);
 				MakeFinalKey(ManufacturerKey);
-				pManufacturer->AddStringItem("KEY" , ManufacturerKey.GetString());
+				pManufacturer->AddStringItem("KEY", ManufacturerKey.GetString());
 
 				pManufacturerList->AddArrayElement(pManufacturer);
 				it++;
@@ -352,7 +363,7 @@ namespace Baofeng
 
 			JSON* pProductList = JSON::CreateArray();
 			pJsonRet->AddItem("ProductList", pProductList);
-			
+
 			if (m_ManufacturerMap.find(ManufacturerKey.GetManufacturerID()) != m_ManufacturerMap.end())
 			{
 				ManufacturerInfo* pManufacturer = m_ManufacturerMap[ManufacturerKey.GetManufacturerID()];
@@ -387,7 +398,7 @@ namespace Baofeng
 			if (pRet)
 				return pRet;
 
-			
+
 			if (AID && MID && PID && GID && PlatformID)
 				return NULL;
 
@@ -532,7 +543,7 @@ namespace Baofeng
 				sprintf(szReleaseDate, "%d", GetReleaseDate());
 				pRet->AddStringItem("ReleaseDate", szReleaseDate);
 
-				pRet->AddItem("Manufacturer" , pManufacturerInfo->ToJson(wLanguageCode));
+				pRet->AddItem("Manufacturer", pManufacturerInfo->ToJson(wLanguageCode));
 				pRet->AddItem("Product", pProductInfo->ToJson(wLanguageCode));
 				pRet->AddItem("Glass", pGlassInfo->ToJson(wLanguageCode));
 			}
@@ -670,7 +681,7 @@ namespace Baofeng
 			{
 				return "{\"ERROR\":\"GLASS ID MISSING\"}";
 			}
-			
+
 			if (!pRet)
 				pRet = GetGlassInfoJson(RootKey, wLanguageCode);
 			if (pRet)
@@ -721,48 +732,48 @@ namespace Baofeng
 
 		/*String GlassesConfigProfileV2::GetElementJsonString(const char * lpszKey, const char*lpszLanguageName)
 		{
-			String strRet = "";
-			MojingProfileKey RootKey;
-			JSON *pRet = NULL;
-			unsigned short wLanguageCode = GetLanguageCode(lpszLanguageName);
-			if (RootKey.SetString(lpszKey) && wLanguageCode != 0)
-			{
-				MakeFinalKey(RootKey);
-				pRet = CheckKeyConnection(RootKey);
-				if (pRet == NULL)
-				{
-					if (RootKey.GetManufacturerID() == 0)
-					{// 没有指定厂商，返回所有的厂商列表
-						pRet = GetManufacturerJson(RootKey, wLanguageCode);
-					}
-					else if (RootKey.GetProductID() == 0)
-					{// 没有指定产品，返回厂商的产品列表
-						pRet = GetProductJson(RootKey, wLanguageCode);
-					}
-					else if (RootKey.GetGlassID() == 0)
-					{// 没有指定眼镜，返回眼镜列表
-						pRet = GetGlassJson(RootKey, wLanguageCode);
-					}
-					else
-					{// 返回完整的信息
-						pRet = GetGlassInfoJson(RootKey, wLanguageCode);
-					}
-				}
-				
-				if (pRet)
-				{
-					char *pErrorInfo = pRet->PrintValue(0, 0);
-					strRet = pErrorInfo;
-					MJ_FREE(pErrorInfo);
-					delete pRet;
-				}
-			}
-			else
-			{
-				return "{\"ERROR\":\"INVALID KEY\"}";
-			}
+		String strRet = "";
+		MojingProfileKey RootKey;
+		JSON *pRet = NULL;
+		unsigned short wLanguageCode = GetLanguageCode(lpszLanguageName);
+		if (RootKey.SetString(lpszKey) && wLanguageCode != 0)
+		{
+		MakeFinalKey(RootKey);
+		pRet = CheckKeyConnection(RootKey);
+		if (pRet == NULL)
+		{
+		if (RootKey.GetManufacturerID() == 0)
+		{// 没有指定厂商，返回所有的厂商列表
+		pRet = GetManufacturerJson(RootKey, wLanguageCode);
+		}
+		else if (RootKey.GetProductID() == 0)
+		{// 没有指定产品，返回厂商的产品列表
+		pRet = GetProductJson(RootKey, wLanguageCode);
+		}
+		else if (RootKey.GetGlassID() == 0)
+		{// 没有指定眼镜，返回眼镜列表
+		pRet = GetGlassJson(RootKey, wLanguageCode);
+		}
+		else
+		{// 返回完整的信息
+		pRet = GetGlassInfoJson(RootKey, wLanguageCode);
+		}
+		}
 
-			return strRet;
+		if (pRet)
+		{
+		char *pErrorInfo = pRet->PrintValue(0, 0);
+		strRet = pErrorInfo;
+		MJ_FREE(pErrorInfo);
+		delete pRet;
+		}
+		}
+		else
+		{
+		return "{\"ERROR\":\"INVALID KEY\"}";
+		}
+
+		return strRet;
 		}*/
 		ManufacturerInfo* GlassesConfigProfileV2::GetManufacturer(unsigned int ID)
 		{
@@ -863,8 +874,13 @@ namespace Baofeng
 #else
 				bool bPlatformID = true;
 #endif
-//				MOJING_TRACE(g_APIlogger, "APP_ID " << UsingKey.GetAppID() << ":" << GetAppID());
+				//				MOJING_TRACE(g_APIlogger, "APP_ID " << UsingKey.GetAppID() << ":" << GetAppID());
 				MOJING_TRACE(g_APIlogger, "CheckIDs " << bCheckManufacturerID << bProductID << bGlassID << bAppID << bPlatformID);
+				if (!bProductID)
+				{
+					MOJING_TRACE(g_APIlogger, "PID = " << UsingKey.GetProductID() << " , PMap.Count = " << m_ProductMap.size());
+				}
+
 				// 适配检查
 				if (bCheckManufacturerID && bProductID && bGlassID && bAppID && bPlatformID)
 				{// 所有ID都存在,且APP ID 和 PLATFORM ID匹配
@@ -886,7 +902,7 @@ namespace Baofeng
 						/*1 得到手机边框和眼镜的装配镜片中心位置，以米为单位*/
 						Parameters* pParameters = Manager::GetMojingManager()->GetParameters();
 						MojingDisplayParameters * pDisplay = pParameters->GetDisplayParameters();
-						
+
 						// 注意 ： 用户有可能会更新过配置，所以这里要再次获取一下用户设置的PPI
 						pDisplay->UpdatePPIFromUserSetting();
 
@@ -897,15 +913,15 @@ namespace Baofeng
 						double dScreenSize = sqrtf(fLongerEdgeInMeter*fLongerEdgeInMeter + fShorterEdgeInMeter*fShorterEdgeInMeter) / 2.54 * 100;
 
 						const MobilePositionInfo ProductCenter = pProduct->GetMobilePositoin(dScreenSize);
-						
+
 #ifdef MJ_OS_ANDROID
-                        float fMobileEdge = pDisplay->GetMobileEdge();
-                        float fScreenHafe = 0;
-                        
+						float fMobileEdge = pDisplay->GetMobileEdge();
+						float fScreenHafe = 0;
+
 						float fProductCenter = ProductCenter.GetMobilePosition();
 						if (ProductCenter.GetMobilePosition() > 0 && fMobileEdge > 0.0001)
 						{
-							
+
 							/*2 测算手机的屏幕高度和手机中心的位置，以米为单位*/
 							fScreenHafe = fmin(fLongerEdgeInMeter, fShorterEdgeInMeter) / 2;
 							/*3 计算中心高度调整量 ,以 米为单位。调高为正数，调低为负数*/
@@ -916,13 +932,13 @@ namespace Baofeng
 						}
 						float fUserPPI = pDisplay->GetUserPPI();
 						if (fUserPPI > 1)
-							MOJING_TRACE(g_APIlogger, "Using UserPPI = " << pDisplay->GetUserPPI() << " , XDPI = " << pDisplay->GetXdpi() << " , YDPI = " << pDisplay->GetYdpi()); 
+							MOJING_TRACE(g_APIlogger, "Using UserPPI = " << pDisplay->GetUserPPI() << " , XDPI = " << pDisplay->GetXdpi() << " , YDPI = " << pDisplay->GetYdpi());
 						else
 							MOJING_TRACE(g_APIlogger, "Using PPI = " << pDisplay->GetPPI() << " , XDPI = " << pDisplay->GetXdpi() << " , YDPI = " << pDisplay->GetYdpi());
-						MOJING_TRACE(g_APIlogger, "Using Screen = " << pDisplay->GetScreenWidth() << " x " << pDisplay->GetScreenHeight() << " , " << pDisplay->GetScreenWidthMeter() << " x " << pDisplay->GetScreenHeightMeter()) ;
+						MOJING_TRACE(g_APIlogger, "Using Screen = " << pDisplay->GetScreenWidth() << " x " << pDisplay->GetScreenHeight() << " , " << pDisplay->GetScreenWidthMeter() << " x " << pDisplay->GetScreenHeightMeter());
 						/*4 调整中心高度位置,以 米为单位。调高为正数，调低为负数*/
-						
-						MOJING_TRACE(g_APIlogger, "ProductCenter = " << fProductCenter << " , MobileSize = " << dScreenSize << "Inch , ScreenHafe = " << fScreenHafe << "M , MobileEdge" << fMobileEdge <<"M , YOffset = " << fYOffset << "M");
+
+						MOJING_TRACE(g_APIlogger, "ProductCenter = " << fProductCenter << " , MobileSize = " << dScreenSize << "Inch , ScreenHafe = " << fScreenHafe << "M , MobileEdge" << fMobileEdge << "M , YOffset = " << fYOffset << "M");
 #endif
 						pDistortion->SetYOffset(fYOffset);
 						int iSegments = pGlass->GetSegments();
@@ -930,7 +946,7 @@ namespace Baofeng
 						{
 							pDistortion->SetMetersPerTanAngleAtCenter(pGlass->GetMetersPerTanAngleAtCenter());
 							pDistortion->SetLensSeparation(pProduct->GetLensSeparation());
-							if (! pGlass->GetReCalculationKT())
+							if (!pGlass->GetReCalculationKT())
 							{
 								pDistortion->SetDistortionParamet(iSegments, pGlass->GetNoDispersion() != 0,
 									pGlass->m_fR, pGlass->m_fG, pGlass->m_fB, pGlass->m_fL,
@@ -940,7 +956,7 @@ namespace Baofeng
 							{
 								pDistortion->SetDistortionParamet(iSegments, pGlass->GetNoDispersion() != 0,
 									pGlass->m_fR, pGlass->m_fG, pGlass->m_fB, pGlass->m_fL,
-									NULL , NULL , NULL);
+									NULL, NULL, NULL);
 							}
 						}
 						else
@@ -955,12 +971,16 @@ namespace Baofeng
 							pDistortion->SetMetersPerTanAngleAtCenter(fMetersPerTanAngleAtCenter);
 							pDistortion->SetLensSeparation(pProduct->GetLensSeparation());
 							// 必然没有色散
-							pDistortion->SetDistortionParamet(0, true , NULL, NULL, NULL , NULL);
-							
+							pDistortion->SetDistortionParamet(0, true, NULL, NULL, NULL, NULL);
+
 						}
 						SetCurrentKey(UsingKey);
 						pDistortion->SetGlassKey(lpszKey);
-#if 1
+						String sDULR = pGlass->GetDURL_Original();
+						if (sDULR.GetLength() < 1)
+							sDULR = pGlass->GetDURL();
+						pDistortion->SetDURL(sDULR);
+#if 0
 						float *pFVectex = NULL, * pFUV = NULL;
 						int *pIndex = NULL;
 						int iCount = pDistortion->UNITY_BuildDistortionMesh(40, 40, NULL, NULL, NULL);
@@ -984,7 +1004,7 @@ namespace Baofeng
 						if (pDistortionFile)
 						{
 							fprintf(pDistortionFile ,"//Glass: %s \n" , UsingKey.GetGlassKeyIDString());
-							
+
 							if (pDistortionVertexBuffer)
 							{
 								String DistortionScript = pDistortionVertexBuffer->GetString();
@@ -1000,21 +1020,29 @@ namespace Baofeng
 						bRet = true;
 					}
 					else
-					{ 
+					{
 						MOJING_ERROR(g_APIlogger, "OUT 2");
 					}
 				}
 				else
 				{
-					MOJING_ERROR(g_APIlogger , "OUT 1");
+					MOJING_ERROR(g_APIlogger, "OUT 1");
 				}
 			}
 			return bRet;
 		}
 
+		
 		// 检查网络升级信息
 		void GlassesConfigProfileV2::CheckUpdate()
 		{
+			double dLastCheckGlassConfigTime = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetCheckGlassConfig();
+			//request once per day.
+			if (fabs(ReporterTools::GetCurrentTime() - dLastCheckGlassConfigTime) < CHECK_GLASSCONFIG_INTERVEL)
+			{
+				return;
+			}
+
 			char szTime[32];
 			char szReleaseDate[32];
 			String data;
@@ -1059,6 +1087,9 @@ namespace Baofeng
 				MOJING_TRACE(g_APIlogger, "Update FAILD! Code = " << RespCode);
 				return;
 			}
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->SetCheckGlassConfig(ReporterTools::GetCurrentTime());
+			Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->Save();
+
 			// 这是没有加密的JSON反馈，如果成功的返回了URL那么下载
 			GlassesConfigProfileV2 * pThis = (GlassesConfigProfileV2 *)pCallBackParam;
 			char *pBuffer = new char[uiSize + 1];
@@ -1119,6 +1150,7 @@ namespace Baofeng
                 MOJING_TRACE(g_APIlogger, "GlassesConfigProfileV2 Update NULL");
                 return;
             }
+
 			// 程序执行到这里表示成功下载了加密的配置文件
 			unsigned char* pEncBuffer = (unsigned char*)lpszRespString;
 			JSON *pNewJson = JSON::ParseEnc(lpszRespString, uiSize, g_EncKey);

@@ -13,11 +13,11 @@
 #import "MJGamepadButton.h"
 #import "MJGamepadThumbStick.h"
 #import "MJGamepadDirectionPad.h"
-
+#import "MJGamepadSensor.h"
 
 MJGamepadButtonType radianToButtonType(CGFloat radian);
 
-@class MJGamepadButton, MJGamepadDirectionPad, MJGamepadThumbStick, MJGamepad, MJGamepadElement;
+@class MJGamepadButton, MJGamepadDirectionPad, MJGamepadThumbStick, MJGamepadSensor, MJGamepad, MJGamepadElement;
 
 typedef void(^MJGamepadValueChangedHandler)(MJGamepad *gamepad, MJGamepadElement *element);
 
@@ -34,7 +34,12 @@ typedef NS_ENUM(NSInteger, MJGamepadState) {
 @property (nonatomic, retain) MJGamepadButton *buttonBack;
 @property (nonatomic, retain) MJGamepadButton *buttonStart;
 @property (nonatomic, retain) MJGamepadButton *buttonMenu;
+@property (nonatomic, retain) MJGamepadButton *buttonHome;
+@property (nonatomic, retain) MJGamepadButton *buttonClick;
+@property (nonatomic, retain) MJGamepadButton *btnVolumeDown;
+@property (nonatomic, retain) MJGamepadButton *btnVolumeUp;
 @property (nonatomic, retain) MJGamepadThumbStick *thumbStick;
+@property (nonatomic, retain) MJGamepadSensor *sensorStick;
 @property (nonatomic, retain) MJGamepadDirectionPad *vdpad;
 @property (copy) MJGamepadValueChangedHandler valueChangedHandler;
 

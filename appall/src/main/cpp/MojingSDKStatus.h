@@ -30,13 +30,23 @@ namespace Baofeng
 		{
 			ENGINE_NONE = 0,
 			ENGINE_UNITY, 
-			ENGINE_UNREAL
+			ENGINE_UNREAL,
+			ENGINE_GEAR,
+			ENGINE_GVR
 		};
 
 		enum DRAW_STATUS
 		{
 			DRAW_NO = 0,
 			DRAW_NOW,
+		};
+
+		enum SENSOR_ORIGIN
+		{
+			SENSOR_FROM_DEFAULT = 0,
+			SENSOR_FROM_NATIVE,
+			SENSOR_FROM_JAVA,
+			SENSOR_FROM_SERVICE
 		};
 
 		class MojingSDKStatus
@@ -58,8 +68,10 @@ namespace Baofeng
 			CLASS_MEMBER(TRACKER_STATUS, m_, TrackerStatus);
 			CLASS_MEMBER(DRAW_STATUS, m_, DrawStatus);
 			CLASS_MEMBER(SDK_VERIFY, m_, VerfiyStatus);
+			CLASS_MEMBER(SENSOR_ORIGIN, m_, SensorOrigin);
 
 			CLASS_MEMBER(bool , m_b , ShowTimeWarpRange);
+
 		};
 
 

@@ -188,8 +188,13 @@ defined(__xlC__) || defined(__xlc__))) || defined(__MACOS__)
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
 #else
+    #define GL_GLEXT_PROTOTYPES
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
+
+#include <GLES/gl.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #endif
     #define KTX_GLFUNCPTRS "gles2_funcptrs.h"
 
@@ -199,8 +204,9 @@ defined(__xlC__) || defined(__xlc__))) || defined(__MACOS__)
 #include <OpenGLES/ES3/gl.h>
 #include <OpenGLES/ES3/glext.h>
 #else
+#define GL_GLEXT_PROTOTYPES
 	#include <GLES3/gl3.h>
-	#include <GLES3/gl3ext.h>
+	#include <GLES2/gl2ext.h>
 #endif
 
     #define KTX_GLFUNCPTRS "gles3_funcptrs.h"
@@ -383,7 +389,7 @@ ktxLoadTextureM(const void* bytes, GLsizei size, GLuint* pTexture, GLenum* pTarg
  */
 KTX_error_code
 ktxWriteKTXF(FILE*, const KTX_texture_info* imageInfo,
-			 uint32_t bytesOfKeyValueData, const void* keyValueData,
+			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[]);
 
 /* ktxWriteKTXN
@@ -392,14 +398,23 @@ ktxWriteKTXF(FILE*, const KTX_texture_info* imageInfo,
  */
 KTX_error_code
 ktxWriteKTXN(const char* dstname, const KTX_texture_info* imageInfo,
-			 uint32_t bytesOfKeyValueData, const void* keyValueData,
+			 GLsizei bytesOfKeyValueData, const void* keyValueData,
+			 GLuint numImages, KTX_image_info images[]);
+
+/* ktxWriteKTXM
+ *
+ * Writes a KTX file into memory using supplied data.
+ */
+KTX_error_code
+ktxWriteKTXM(unsigned char** bytes, GLsizei* size, const KTX_texture_info* textureInfo,
+			 GLsizei bytesOfKeyValueData, const void* keyValueData,
 			 GLuint numImages, KTX_image_info images[]);
 
 /* ktxErrorString()
  *
  * Returns a string corresponding to a KTX error code.
  */
-const char* ktxErrorString(KTX_error_code error);
+const char* const ktxErrorString(KTX_error_code error);
 
 /* ktxHashTable_Create()
  *
@@ -454,7 +469,24 @@ ktxHashTable_Deserialize(unsigned int kvdLen, void* kvd, KTX_hash_table* pKvt);
 #endif
 
 /**
-@page history Revision History
+@page history KTX Library Revision History
+
+@section v5 Version 2.0.X
+Changed:
+@li New build system
+
+@section v4 Version 2.0.1
+Added:
+@li CMake build files. Thanks to Pavel Rotjberg for the initial version.
+
+Changed:
+@li ktxWriteKTXF to check the validity of the type & format combinations
+    passed to it.
+
+Fixed:
+@li Public Bugzilla <a href="http://www.khronos.org/bugzilla/show_bug.cgi?id=999">999</a>: 16-bit luminance texture cannot be written.
+@li compile warnings from compilers stricter than MS Visual C++. Thanks to
+    Pavel Rotjberg.
 
 @section v3 Version 2.0
 Added:

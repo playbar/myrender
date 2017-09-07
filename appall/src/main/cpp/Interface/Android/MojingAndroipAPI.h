@@ -27,6 +27,8 @@ extern "C" {
 	
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetEngineVersion(JNIEnv *env, jclass, jstring jstrEngineVersion);
 	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseUnityForSVR(JNIEnv *env, jclass);
+    JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseForDayDream(JNIEnv *env, jclass);
+	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsInMachine(JNIEnv *env, jclass);
 
 	/*
 	* Class:     com_baofeng_mojing_App
@@ -50,6 +52,8 @@ extern "C" {
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetEvent(JNIEnv *env, jclass, jstring eventName, jstring eChannelID, jstring eInName, jfloat eInData, jstring eOutName, jfloat eOutData);
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportLog(JNIEnv *env, jclass, jint iLogType, jstring typeName, jstring logContent);
+
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppReportUserAction(JNIEnv *env, jclass, jstring strActionType, jstring strItemID, jstring strJsonValue);
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_AppSetContinueInterval(JNIEnv *env, jclass, jint interval);
 
@@ -147,6 +151,12 @@ extern "C" {
 	JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetUserSettings(JNIEnv *jEnv, jclass);
 	// 修改当前用户设置
 	JNIEXPORT bool JNICALL  Java_com_baofeng_mojing_MojingSDK_SetUserSettings(JNIEnv *jEnv, jclass, jstring strUserSettings);
+
+	// 获取当前陀螺仪数据来源
+	JNIEXPORT int JNICALL Java_com_baofeng_mojing_MojingSDK_GetSensorOriginStatus(JNIEnv *jEnv, jclass);
+	//当前陀螺仪数据来源
+	JNIEXPORT bool JNICALL Java_com_baofeng_mojing_MojingSDK_SetSensorOriginStatus(JNIEnv *jEnv, jclass, jint jSensorOrigin);
+
 	/************************************************************************/
 	/* 厂商-产品-镜片-APP管理                                               */
 	/************************************************************************/
@@ -204,23 +214,27 @@ extern "C" {
 	// 获取光感数据
 	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsLowPower(JNIEnv *, jclass);
 
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetHDMWorking(JNIEnv *, jclass, jboolean bHDMWorking);
+
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetGlassesSN(JNIEnv *env, jclass, jstring jstrGlassesSN);
+
 	JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_GetSocketPort(JNIEnv *, jclass);
 
 	// 体感手柄接口
-	JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetKeymask(JNIEnv *env, jclass, jint iID, jintArray KeyMask);
-	JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+	JNIEXPORT jint JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetKeymask(JNIEnv *env, jclass, jint iID, jintArray KeyMask);
+	JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
 		jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
 		jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
 		jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
 		jfloatArray PositionArray,/*设备的空间位置，以米为单位，默认是0,0,0。*/
 		jintArray KeystatusArray/*设备上的按键状态，默认是0表示没有按键被按下*/);
-	JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetFixInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+	JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetFixInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
 		jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
 		jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
 		jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,
 		jfloatArray PositionArray/*设备的空间位置，以米为单位，默认是0,0,0。*/);
 
-    JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_Device_GetControlFixCurrentInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
+    JNIEXPORT jfloat JNICALL Java_com_baofeng_mojing_MojingSDK_DeviceGetControlFixCurrentInfo(JNIEnv *env, jclass, jint iID/*设备ID*/,
         jfloatArray QuartArray/*四元数表示的旋转，依次为XYZW*/,
         jfloatArray AngularAccelArray/*角加速度，依次为XYZ*/,
         jfloatArray LinearAccelArray/*线加速度，依次为XYZ*/,

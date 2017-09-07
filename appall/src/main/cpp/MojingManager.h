@@ -4,8 +4,6 @@
 #include <jni.h>
 #endif
 
-//#define ENABLE_DRMHELPER
-
 namespace Baofeng
 {
 	namespace Mojing
@@ -15,11 +13,8 @@ namespace Baofeng
 		class Parameters;
 		class Sensor;
 		class DatabaseInfoReporter;
-#ifdef MJ_OS_ANDROID
-		class ControllerTracker;
-#ifdef ENABLE_DRMHELPER
-		class DRMHelper;
-#endif
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
+   		class ControllerTracker;
 #endif
 
 		class Manager
@@ -29,11 +24,8 @@ namespace Baofeng
 			friend class MojingRenderBase;
 			friend class MobileConfigProfile;
 			friend class DatabaseInfoReporter;
-#ifdef MJ_OS_ANDROID
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 			friend class ControllerTracker;
-#ifdef ENABLE_DRMHELPER
-			friend class DRMHelper;
-#endif
 #endif
 		public:
 			static Manager* GetMojingManager(void);
@@ -47,11 +39,8 @@ namespace Baofeng
 			Distortion*	GetDistortion(void);
 			Parameters*	GetParameters(void); 
 			DatabaseInfoReporter* GetReporter(void);
-#ifdef MJ_OS_ANDROID
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 			ControllerTracker* GetControlTracker(void);
-#ifdef ENABLE_DRMHELPER
-			DRMHelper* GetDRMHelper();
-#endif
 #endif
 		protected:
 			void		SetSensor(const char* szGlassName = NULL);
@@ -70,9 +59,8 @@ namespace Baofeng
 			Sensor*		m_pGlassSensor;
 			Sensor*		m_pCheckSensor;
 			ControllerTracker* m_pControlTracker;
-#ifdef ENABLE_DRMHELPER
-			DRMHelper*	m_pDRMHelper;
-#endif
+#elif defined(MJ_OS_IOS)
+            ControllerTracker* m_pControlTracker;
 #endif
 			DatabaseInfoReporter* m_Reporter;
 		};

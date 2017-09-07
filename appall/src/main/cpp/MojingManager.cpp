@@ -10,11 +10,9 @@
 #include "Tracker/MojingGlassSensor.h"
 #include "Tracker/MojingAndroidSensor.h"
 #include "Tracker/AndroidInternalSensorChecker.h"
-#ifdef ENABLE_DRMHELPER
-#include "3rdPart/drm/drmHelper.h"
-#endif
 #elif defined(MJ_OS_MAC)
 #include "Tracker/MojingIOSSensor.h"
+#include "Tracker/MojingControllerSocket.h"
 #elif defined(MJ_OS_WIN32)
 #include "Tracker/MojingWinSensor.h"
 #endif
@@ -33,13 +31,12 @@ namespace Baofeng
 			, m_pParameters(NULL)
 			, m_pSensor(NULL)
 			, m_pDefaultSensor(NULL)
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
+   			, m_pControlTracker(NULL)
+#endif
 #ifdef MJ_OS_ANDROID
-			, m_pControlTracker(NULL)
 			, m_pGlassSensor(NULL)
 			, m_pCheckSensor(NULL)
-#ifdef ENABLE_DRMHELPER
-			, m_pDRMHelper(NULL)
-#endif
 #endif
 			, m_Reporter(NULL)
 		{
@@ -58,12 +55,14 @@ namespace Baofeng
 				}
 				if (m_pDistortion) delete m_pDistortion;
 				if (m_pSensor) m_pSensor = NULL;
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
+   				if (m_pControlTracker) delete m_pControlTracker;
+#endif
 #ifdef MJ_OS_ANDROID
 				if (m_pGlassSensor)
 				{
 					m_pGlassSensor->Release();
 				}
-				if (m_pControlTracker) delete m_pControlTracker;
 #endif
 				if (m_pDefaultSensor)
 				{
@@ -74,11 +73,6 @@ namespace Baofeng
 				{
 					m_Reporter->Release();
 				}
-#ifdef ENABLE_DRMHELPER
-#ifdef MJ_OS_ANDROID
-				if (m_pDRMHelper) delete m_pDRMHelper;
-#endif
-#endif
 				m_bInited = false;
 			}
 		}
@@ -102,6 +96,13 @@ namespace Baofeng
 				m_Reporter = new DatabaseInfoReporter();
 				m_bInited = m_Reporter->AppInit();
 			}
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
+            if (m_bInited && m_pControlTracker == NULL)
+            {
+                m_pControlTracker = new ControllerTracker();
+                m_bInited = m_pControlTracker->Init();
+            }
+#endif
 #if defined(MJ_OS_ANDROID)
 			if (m_bInited && m_pDefaultSensor == NULL)
 				m_pDefaultSensor = new AndroidInternalSensor();
@@ -109,18 +110,9 @@ namespace Baofeng
 				m_pGlassSensor = new GlassSensor();
 			if (m_bInited && m_pCheckSensor == NULL)
 				m_pCheckSensor = new AndroidInternalSensorChecker();
-			if (m_bInited && m_pControlTracker == NULL)
-			{
-				m_pControlTracker = new ControllerTracker();
-				m_bInited = m_pControlTracker->Init();
-			}
-#ifdef ENABLE_DRMHELPER
-			if (m_bInited && m_pDRMHelper == NULL)
-				m_pDRMHelper = new DRMHelper("libdrm.so");
-#endif
-#elif defined(MJ_OS_MAC)
-      if (m_bInited && m_pSensor == NULL)
-      	m_pDefaultSensor = new IOSInternalSensor();
+#elif defined(MJ_OS_IOS)
+            if (m_bInited && m_pSensor == NULL)
+                m_pDefaultSensor = new IOSInternalSensor();
 #elif defined(MJ_OS_WIN32)
 			if (m_bInited && m_pSensor == NULL)
 				m_pDefaultSensor = new WinInternalSensor();
@@ -168,22 +160,20 @@ namespace Baofeng
 		{
 			return m_pSensor;
 		}
-
+        
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
+        ControllerTracker*	Manager::GetControlTracker(void)
+        {
+            return m_pControlTracker;
+        }
+#endif
+        
 #ifdef MJ_OS_ANDROID
 		Sensor*	Manager::GetCheckSensor(void)
 		{
 			return m_pCheckSensor;
 		}
-		ControllerTracker*	Manager::GetControlTracker(void)
-		{
-			return m_pControlTracker;
-		}
-#ifdef ENABLE_DRMHELPER
-		DRMHelper*	Manager::GetDRMHelper(void)
-		{
-			return m_pDRMHelper;
-		}
-#endif
+
 #endif
 		DatabaseInfoReporter* Manager::GetReporter(void)
 		{

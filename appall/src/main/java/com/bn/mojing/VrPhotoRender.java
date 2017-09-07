@@ -21,7 +21,6 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import java.nio.IntBuffer;
 import java.lang.Math;
-import com.mj.b4815.R;
 
 public class VrPhotoRender implements GLSurfaceView.Renderer {
     	SphereModel sphere;

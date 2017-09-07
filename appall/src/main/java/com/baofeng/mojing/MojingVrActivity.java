@@ -1,10 +1,13 @@
 package com.baofeng.mojing;
 
+
 import com.baofeng.mojing.sensor.MojingSDKSensorManager;
 import com.baofeng.mojing.MojingSDKReport;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
+import java.lang.reflect.Method;
 
 public class MojingVrActivity extends Activity {
     MojingSurfaceView mMojingSurfaceView;
@@ -20,26 +23,60 @@ public class MojingVrActivity extends Activity {
 		mMojingSurfaceView.requestFocus();
 		mMojingSurfaceView.setFocusableInTouchMode(true);
         setContentView(mMojingSurfaceView);
-                
+             
+		try
+		{
+			Class<?> c = Class.forName("com.baofeng.mojing.check.MojingCheckService");     			    
+			Method method = c.getMethod("checkService", Activity.class);
+			Log.d("MojingVrActivity", "MojingCheckService checkService");		
+			method.invoke(c.newInstance(), this);
+		}
+   		catch(Exception e)
+   		{
+   			Log.d("MojingVrActivity", "MojingCheckService is not exist");
+   			e.printStackTrace();
+   		}  // end try 
+		//MojingCheckService.checkService(this);
+					    
 		com.baofeng.mojing.MojingSDK.Init(this);
 
 		com.baofeng.mojing.MojingSDK.SetEngineVersion("Android");
     }
 
     @Override protected void onPause() {
-        mMojingSurfaceView.onPause();
-        super.onPause();
+	    super.onPause();
+
 		MojingSDKSensorManager.UnRegisterSensor(this);
-        MojingSDKServiceManager.onPause(this);
-        com.baofeng.mojing.MojingVrLib.stopVsync(this);
+		if(!MojingSDK.IsUseUnityForSVR())
+        {
+			if(MojingSDK.IsInMachine()) {
+				MojingSDK.StopTracker();
+			}
+			else 
+			{
+			   MojingSDKServiceManager.onPause(this);
+			}
+		}
 		MojingSDKReport.onPause(this);
+        mMojingSurfaceView.onPause();
+        com.baofeng.mojing.MojingVrLib.stopVsync(this);
     }
 
     @Override protected void onResume() {
         super.onResume();   
 
 		MojingSDKSensorManager.RegisterSensor(this);
-        MojingSDKServiceManager.onResume(this);
+        if(!MojingSDK.IsUseUnityForSVR())
+        {
+            if(MojingSDK.IsInMachine())
+            {
+                MojingSDK.StartTracker(200);
+            }
+            else 
+			{
+                MojingSDKServiceManager.onResume(this);
+            }
+      	}
 		com.baofeng.mojing.MojingVrLib.startVsync(this);
         mMojingSurfaceView.onResume();
 		MojingSDKReport.onResume(this);

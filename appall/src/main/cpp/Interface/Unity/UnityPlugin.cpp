@@ -183,7 +183,7 @@ extern "C"
         return MojingSDK_IsTrackerCalibrated();
 	}
 
-#ifdef MJ_OS_ANDROID
+#if defined(MJ_OS_ANDROID) || defined(MJ_OS_IOS)
 	UNITY_EXPORT int Unity_Device_GetKeymask(int iID, int *pKeyMask)
 	{
 		return MojingSDK_Device_GetKeymask(iID, pKeyMask);
@@ -315,13 +315,6 @@ extern "C"
 			
 			Overlay.m_mtlTextureID = g_UnityPluginStatus.ConvertTexture(Overlay.m_iTextureID, iRightOverlayTextureID);
 			pUnityPlugin->SetRightOverlay(Overlay);
-#ifdef _DEBUG
-			//MOJING_TRACE(g_APIlogger, "Unity_SetOverlay3D -- Src = { " << Overlay.m_Rect.x << " , "
-			//	<< Overlay.m_Rect.y << " , " << Overlay.m_Rect.w << " , " << Overlay.m_Rect.h <<
-			//	" } , DistanceInMetre = " << Overlay.m_fDistanceInMetre);
-#endif
-
-			
 		}
 	}
         
@@ -381,6 +374,11 @@ extern "C"
 		return;
 	}
 
+	int g_iFrameCount = 0;
+	UNITY_EXPORT void Unity_SetFremeCount(int iFreamCount)
+	{
+		g_iFrameCount = iFreamCount;
+	}
 	UNITY_EXPORT void Unity_SetTextureID(void* iLeftTextureID, void* iRightTextureID)
 	{
         //MOJING_FUNC_TRACE(g_APIlogger);
@@ -400,6 +398,9 @@ extern "C"
 				UnityTexture.m_iRightTextureID, iRightTextureID, TextureType);
 
 			UnityTexture.m_ValueFlag = (__tagUnityTexture::VF)(__tagUnityTexture::TEXTURE_LEFT | __tagUnityTexture::TEXTURE_RIGHT);
+
+			//MOJING_TRACE(g_APIlogger, "-- HX -- Set Texture ID : " << UnityTexture.m_iLeftTextureID << " , FrameCount = "<< g_iFrameCount);
+
 			pUnityPlugin->SetTextureID(UnityTexture);
 		}
 		return;
@@ -962,6 +963,25 @@ extern "C"
     {
         return OnRenderEvent;
     }
+
+#ifdef MJ_OS_ANDROID
+	 void Unity_DD_SetEnableTracker(bool bEnable)
+	 {
+		 MojingSDK_DD_SetEnableTracker(bEnable);
+	 }
+
+	 // 获取DD陀螺仪状态
+	 bool Unity_DD_GetEnableTracker()
+	 {
+		return MojingSDK_DD_GetEnableTracker();
+	 }
+
+	 // 当DD陀螺仪关闭时，存放真实的陀螺仪数据
+	 bool Unity_DD_GetLastHeadView(float* pfViewMatrix)
+	 {
+		 return MojingSDK_DD_GetLastHeadView(pfViewMatrix);
+	 }
+#endif
 }	// extern "C"
 
 	// --------------------------------------------------------------------------

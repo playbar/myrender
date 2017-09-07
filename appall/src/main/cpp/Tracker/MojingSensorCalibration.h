@@ -26,12 +26,12 @@ namespace Baofeng
 		{
 		public:
 			SensorCalibration(Sensor* pSensor, const char *lpszModel = NULL);
-
+			virtual ~SensorCalibration(){};
 			// Load data from the HW and perform the necessary preprocessing
 			void Initialize(Parameters* pParameters);
 			// Apply the calibration
 			void Apply(MessageBodyFrame& msg);
-			CLASS_INTERFACE(float , m_f , CalibrationRate);
+			CLASS_MEMBER(float, m_f, CalibrationRate);
 			
 			//CLASS_MEMBER(int, m_i, CalibrationResetCount);
 		protected:

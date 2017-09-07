@@ -157,13 +157,13 @@ namespace Baofeng
 			pAccelerometerSensor = ASensorManager_getDefaultSensor(pSensorManager, ASENSOR_TYPE_ACCELEROMETER);
 			pGyroScopeSensor = ASensorManager_getDefaultSensor(pSensorManager, ASENSOR_TYPE_GYROSCOPE);
 			pMagSensorUncalibrated = ASensorManager_getDefaultSensor(pSensorManager, ASENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED);
-			pMagneticFieldSensor = NULL;
+			pMagneticFieldSensor = ASensorManager_getDefaultSensor(pSensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
 
 			int miniDelay = 0;
 			int wantDelay = US_PER_SAMPLE(m_nSampleFrequence);// Hz ==> 10^-6(微秒)
 			MOJING_TRACE(g_Sensorlogger, "Wanted Sensor's rate = " << m_nSampleFrequence);
 #define MICRO_SECOND 1000000L
-			if (pMagSensorUncalibrated != NULL)
+			if (pMagSensorUncalibrated != NULL) //优先使用ASENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED
 			{
 				miniDelay = ASensor_getMinDelay(pMagSensorUncalibrated); //微秒/次
 				miniDelay = miniDelay > wantDelay ? miniDelay : wantDelay; //如果值<miniDelay 将出错, 我们希望最大速率
@@ -171,16 +171,15 @@ namespace Baofeng
 				ASensorEventQueue_setEventRate(m_pQueue, pMagSensorUncalibrated, miniDelay);
 				MOJING_TRACE(g_Sensorlogger, "MagUncalibrated Sensor's rate = " << MICRO_SECOND / miniDelay);
 				if (pSensorParameters)
+				{
 					pSensorParameters->SetMagSensorUncalibrated(MICRO_SECOND / miniDelay);
-
-
+				}
 			}
 			else if (pMagneticFieldSensor != NULL)
 			{
 				// If the phone do not support
 				miniDelay = ASensor_getMinDelay(pMagneticFieldSensor); //微秒/次
 				miniDelay = miniDelay > wantDelay ? miniDelay : wantDelay;
-				pMagneticFieldSensor = ASensorManager_getDefaultSensor(pSensorManager, ASENSOR_TYPE_MAGNETIC_FIELD);
 				ASensorEventQueue_enableSensor(m_pQueue, pMagneticFieldSensor);
 				ASensorEventQueue_setEventRate(m_pQueue, pMagneticFieldSensor, miniDelay);
 				MOJING_TRACE(g_Sensorlogger, "MagneticField Sensor's rate = " << MICRO_SECOND / miniDelay);
@@ -270,6 +269,7 @@ namespace Baofeng
 			UInt64 ui64FirstSampleTime = 0; 
 			UInt64 ui64Last50FirstSampleTime = 0;
 			MojingSensorParameters *pSensorParameters = Manager::GetMojingManager()->GetParameters()->GetSensorParameters();
+			
 			/*以上是为了统计陀螺仪的实际采样速度*/
 			MessageBodyFrame theSample;
 			memset(&theSample, 0, sizeof(MessageBodyFrame));
@@ -335,7 +335,16 @@ namespace Baofeng
 								theSample.RotationRate.x = -event.vector.y;
 								theSample.RotationRate.y = event.vector.x;
 								theSample.RotationRate.z = event.vector.z;
+								/*******************
+								注意：下面的代码原本为：
 								theSample.TimeDelta = NanoSecondToSecond(event.timestamp) - theSample.LastSampleTime;
+								这就意味着如果发送间隔超过了500Hz，那么永远不会有连续两个采样的 间隔是小于阈值0.002秒的。这种情况下就会
+								导致几乎所有的采样都被过滤掉。
+								将代码修改为只记录上一次被发送出去的数据的时间戳，并且新来的采样只和这个时间比较来确定两个被处理的采样之间的间隔。
+								*******************/
+								
+								static double dLastSampleTime = 0;
+								theSample.TimeDelta = NanoSecondToSecond(event.timestamp) - dLastSampleTime;
 								theSample.LastSampleTime = NanoSecondToSecond(event.timestamp);
 								theSample.AbsoluteTimeSeconds = Timer::GetSeconds();
 								if (ui64FirstSampleTime == 0)
@@ -379,9 +388,35 @@ namespace Baofeng
 // 								}
 // 									i64Last = event.timestamp;
 // #endif
-								
-								if (!GetExitFlag() && theSample.TimeDelta > 0.002f)
+								static double dTimeLimit = -1;
+								if (dTimeLimit < 0)
+								{
+									MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
+									if (pDeviceParameters)
+									{
+										if (pDeviceParameters->GetIsMachine())
+										{
+											dTimeLimit = 0;// 不做区别											
+										}
+										else
+										{
+											dTimeLimit = 0.002f;// 超过500Hz认为是发生了数据抖动
+										}
+									}
+									else
+									{
+										dTimeLimit = 0.002f;// 默认不许超过500Hz
+									}
+								}
+								if (!GetExitFlag() && theSample.TimeDelta > dTimeLimit)
+								{
+									dLastSampleTime = theSample.LastSampleTime;
+									{
+										double dSysTimeOffset = (Timer::GetSeconds() - NanoSecondToSecond(event.timestamp));
+										//MOJING_TRACE(g_Sensorlogger , Timer::FormatDoubleTimeInMS(dSysTimeOffset));
+									}
 									OnSensorData(theSample);
+								}
 							}
 							else if (event.type == ASENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED)
 							{

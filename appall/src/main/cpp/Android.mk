@@ -69,35 +69,50 @@ LOCAL_MODULE := libsqlite3
 LOCAL_SRC_FILES := 3rdPart/sqlite3/$(TARGET_ARCH_ABI)/libsqlite3.so		   
 include $(PREBUILT_SHARED_LIBRARY)
 
-#libktx
+#protobuf
 #include $(CLEAR_VARS)
-#LOCAL_MODULE := ktx
+#LOCAL_MODULE := libprotobuf
+#LOCAL_SRC_FILES := 3rdPart/Protobuf/lib/$(TARGET_ARCH_ABI)/libprotobuf.so
+##include $(PREBUILT_STATIC_LIBRARY)
+#include $(PREBUILT_SHARED_LIBRARY)
 
-#LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
-#LOCAL_ARM_NEON  := true				# compile with neon support enabled
+#libglHelper
+include $(CLEAR_VARS)
 
-#LOCAL_CFLAGS    := $(COMMON_CFLAGS)
-#LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
+LOCAL_MODULE := glHelper
 
-#LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/ktx/include
+LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
+LOCAL_ARM_NEON  := true				# compile with neon support enabled
 
-#LOCAL_SRC_PATH := 3rdPart/ktx/lib
-#LOCAL_SRC_FILES :=	$(LOCAL_SRC_PATH)/checkheader.c \
-#					$(LOCAL_SRC_PATH)/errstr.c \
-#					$(LOCAL_SRC_PATH)/etcdec.cxx \
-#					$(LOCAL_SRC_PATH)/etcunpack.cxx \
-#					$(LOCAL_SRC_PATH)/hashtable.c \
-#					$(LOCAL_SRC_PATH)/loader.c \
-#					$(LOCAL_SRC_PATH)/swap.c \
-#					$(LOCAL_SRC_PATH)/writer.c \
+LOCAL_CFLAGS    := $(COMMON_CFLAGS)
+LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
+
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/ktx/include \
+					$(LOCAL_PATH)/3rdPart/ktx/other_include \
+
+LOCAL_SRC_PATH := 3rdPart/ktx/lib
+LOCAL_SRC_FILES :=	$(LOCAL_SRC_PATH)/checkheader.c \
+					$(LOCAL_SRC_PATH)/errstr.c \
+					$(LOCAL_SRC_PATH)/etcdec.cxx \
+					$(LOCAL_SRC_PATH)/etcunpack.cxx \
+					$(LOCAL_SRC_PATH)/hashtable.c \
+					$(LOCAL_SRC_PATH)/loader.c \
+					$(LOCAL_SRC_PATH)/swap.c \
+					$(LOCAL_SRC_PATH)/writer.c \
+					$(LOCAL_SRC_PATH)/ktxfilestream.c \
+					$(LOCAL_SRC_PATH)/ktxmemstream.c \
+					$(LOCAL_SRC_PATH)/KtxLoader.cpp \
+
+					LOCAL_LDLIBS    := -lGLESv2 -lEGL
 
 #include $(BUILD_STATIC_LIBRARY)
-
+include $(BUILD_SHARED_LIBRARY)
 
 ##################################################################################
 # libmojing
 ##################################################################################
 include $(CLEAR_VARS)
+
 
 MOJING_SRC_FILES = MojingAPI.cpp \
 					MojingManager.cpp \
@@ -106,6 +121,8 @@ MOJING_SRC_FILES = MojingAPI.cpp \
 					3rdPart/AES/AES.cpp \
 					3rdPart/AES/AESPro.cpp \
 					3rdPart/MD5/MD5.cpp 
+#					3rdPart/Protobuf/CardboardDevice.pb.cc
+
 # miniZip
 MOJING_SRC_FILES += 3rdPart/minizip/ioapi.c \
 					3rdPart/minizip/miniunz.c \
@@ -141,8 +158,18 @@ MOJING_SRC_FILES += Base/Base32.cpp \
 					Base/MojingUTF8Util.cpp \
 					Base/MojingLoadSo.cpp
 
+# MemoryCheck 
+# MOJING_SRC_FILES += Base/MojingMemoryCheck.cpp 
+
 # Distortion
-MOJING_SRC_FILES += Distortion/MojingDistortion.cpp 
+MOJING_SRC_FILES += Distortion/MojingDistortion.cpp \
+					Distortion/GVR/GvrProfile.cpp
+
+# Hook
+MOJING_SRC_FILES += Hook/Global/detour.cpp \
+					Hook/Global/instruction.cpp \
+					Hook/Global/HookBase.cpp \
+					Hook/HookGVR/HookGVRTools.cpp
 
 # Interface
 MOJING_SRC_FILES += Interface/Android/MojingAndroidAPI.cpp \
@@ -153,7 +180,8 @@ MOJING_SRC_FILES += Interface/Android/MojingAndroidAPI.cpp \
 					Interface/Unity/UnityPluginInterface/UnityPluginStatus.cpp \
 					Interface/Unity/UnityPluginInterface/UnityPluginInterfaceBase.cpp \
 					Interface/Unity/UnityPluginInterface/UnityPluginInterfaceQ820.cpp \
-#					Interface/Unity/UnityDaydreamAPI.cpp
+					Interface/Gear/MojingGearAPI.cpp
+
 
 # Parameters
 MOJING_SRC_FILES += Parameters/MojingDeviceParameters.cpp \
@@ -166,7 +194,7 @@ MOJING_SRC_FILES += Parameters/MojingDeviceParameters.cpp \
 					Parameters/MojingSensorParameters.cpp 
 
 # Platform
-MOJING_SRC_FILES += Platform/MojingPlatformAndroid.cpp Platform/MojingPlatformBase.cpp 
+MOJING_SRC_FILES += Platform/MojingPlatformBase.cpp 
 
 # Profile
 MOJING_SRC_FILES += Profile/FileProfile.cpp \
@@ -178,6 +206,7 @@ MOJING_SRC_FILES += Profile/FileProfile.cpp \
 				   Profile/DebugSettingsProfile.cpp \
 				   Profile/MojingProfileKey.cpp \
 				   Profile/ProfileThreadMGR.cpp \
+				   Profile/ProfileV2/DayDreamParameters.cpp \
 				   Profile/ProfileV2/GlassInfo.cpp \
 				   Profile/ProfileV2/ManufacturerInfo.cpp \
 				   Profile/ProfileV2/ProductInfo.cpp \
@@ -212,7 +241,8 @@ MOJING_SRC_FILES += Reporter/ActiveTimeInfoReporter.cpp \
 					Reporter/MojingMerchantVerify.cpp \
 					Reporter/PageInfoReporter.cpp \
 					Reporter/ReporterTools.cpp \
-					Reporter/RunInfoReporter.cpp 
+					Reporter/RunInfoReporter.cpp \
+					Reporter/UserActionReporter.cpp
 
 # Tracker
 MOJING_SRC_FILES += Tracker/AndroidInternalSensorChecker.cpp \
@@ -237,8 +267,14 @@ LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
 LOCAL_ARM_NEON  := true				# compile with neon support enabled
 
 LOCAL_CFLAGS    := $(COMMON_CFLAGS)
+# LOCAL_CFLAGS 	+= -D GOOGLE_PROTOBUF_NO_RTTI=1
+
 LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/log4cplus/include
+LOCAL_CPPFLAGS 	+= -fexceptions
+
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/3rdPart/log4cplus/include 
+#					$(LOCAL_PATH)/3rdPart/Protobuf/include
+					
 LOCAL_SRC_FILES := $(MOJING_SRC_FILES)
 LOCAL_SRC_FILES += Render/MojingRenderMultiThread_3288.cpp \
 				   	3rdPart/3288VSync/C3288VSync.cpp \
@@ -247,18 +283,18 @@ LOCAL_SRC_FILES += Render/MojingRenderMultiThread_3288.cpp \
 					3rdPart/Qualcomm/CSVRApi.cpp
 
 LOCAL_LDLIBS    := -llog -lGLESv2 -lEGL -landroid -lz
-LOCAL_STATIC_LIBRARIES := breakpad_client
-LOCAL_SHARED_LIBRARIES := libcurl libsqlite3
+LOCAL_STATIC_LIBRARIES := breakpad_client 
+LOCAL_SHARED_LIBRARIES := libcurl libsqlite3 
 
 include $(BUILD_SHARED_LIBRARY)
 
 ##################################################################################
 # libOverlay
 ##################################################################################
-include $(CLEAR_VARS)
-LOCAL_MODULE := libOverlay
-LOCAL_SRC_FILES := 3rdPart/3288Overlay/lib/libOverlay.so	   
-include $(PREBUILT_SHARED_LIBRARY)
+#include $(CLEAR_VARS)
+#LOCAL_MODULE := libOverlay
+#LOCAL_SRC_FILES := 3rdPart/3288Overlay/lib/libOverlay.so	   
+#include $(PREBUILT_SHARED_LIBRARY)
 
 
 ##################################################################################
@@ -281,29 +317,29 @@ include $(PREBUILT_SHARED_LIBRARY)
 ##################################################################################
 # libmojingvrrom
 ##################################################################################
-include $(CLEAR_VARS)
-
-LOCAL_MODULE    := libmojingvrrom
-
-LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
-LOCAL_ARM_NEON  := true				# compile with neon support enabled
-
-LOCAL_CFLAGS    := $(COMMON_CFLAGS)
-LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
-
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/Render/Model \
-					$(LOCAL_PATH)/googlebreakpad/src
-
-LOCAL_SRC_FILES := Interface/Android/MojingVRRom.cpp \
-					Interface/Android/MojingVRRomAPI.cpp \
-					Render/Models/Model.cpp \
-				   	Render/Models/SkyboxModel.cpp \
-				   	Render/Models/SphereModel.cpp \
-					Render/Models/RectangleModel.cpp
-
-LOCAL_LDLIBS    := -lGLESv2
-LOCAL_SHARED_LIBRARIES := libmojing
-include $(BUILD_SHARED_LIBRARY)
+#include $(CLEAR_VARS)
+#
+#LOCAL_MODULE    := libmojingvrrom
+#
+#LOCAL_ARM_MODE  := arm				# full speed arm instead of thumb
+#LOCAL_ARM_NEON  := true				# compile with neon support enabled
+#
+#LOCAL_CFLAGS    := $(COMMON_CFLAGS)
+#LOCAL_CPPFLAGS  := $(COMMON_CPPFLAGS)
+#
+#LOCAL_C_INCLUDES := $(LOCAL_PATH)/Render/Model \
+#					$(LOCAL_PATH)/googlebreakpad/src
+#
+#LOCAL_SRC_FILES := Interface/Android/MojingVRRom.cpp \
+#					Interface/Android/MojingVRRomAPI.cpp \
+#					Render/Models/Model.cpp \
+#				   	Render/Models/SkyboxModel.cpp \
+#				   	Render/Models/SphereModel.cpp \
+#					Render/Models/RectangleModel.cpp
+#
+#LOCAL_LDLIBS    := -lGLESv2
+#LOCAL_SHARED_LIBRARIES := libmojing
+#include $(BUILD_SHARED_LIBRARY)
 
 # libmojing GLES 3
 #include $(CLEAR_VARS)

@@ -60,7 +60,9 @@ namespace Baofeng
 			
 			// 等待200毫秒
 			while (m_pCurrentThread == this && iTryCount < 200)
+			{
 				usleep(1000);
+			}
 			
 			if (gettid() == GetRenderThreadID())
 			{// 回复模型线程的结构

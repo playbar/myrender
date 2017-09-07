@@ -6,6 +6,8 @@
 //
 //
 
+#include "JoystickData_Mojing.h"
+
 #import "MJGamepad.h"
 #import <CoreBluetooth/CoreBluetooth.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -210,12 +212,22 @@ MJGamepadButtonType radianToButtonType(CGFloat radian)
     CBPeripheral *_peripheral;
     
     mj_buffer *_buffer;
+    bool m_bConnecting;
+    int m_nReconnectCount;
+    long m_LastStartScanTime;
+    JoystickData_Mojing *m_pJoystick;
+    
+    int m_discoverDevice;
+    float m_joystickDistance;
 }
 
-
+- (void)startScanning:(CBCentralManager *)central;
 - (BOOL)onReceiveNewKeyCode:(UInt8 *)rawData peripheralName:(NSString *)name;
+- (BOOL)onReceiveMJMotionKeyCode:(UInt8 *)raw_data peripheralName:(NSString *)name;
 - (void)processKeyStatus;
 - (void)processThumbStick;
+- (void)processTouchPadPos;
+- (void)processSensorData;
 
 @end
 
@@ -224,8 +236,13 @@ MJGamepadButtonType radianToButtonType(CGFloat radian)
 @synthesize btnPadConnect = _btnPadConnect;
 @synthesize buttonBack = _buttonBack;
 @synthesize buttonStart = _buttonStart;
+@synthesize buttonHome = _buttonHome;
+@synthesize buttonClick = _buttonClick;
 @synthesize buttonMenu = _buttonMenu;
+@synthesize btnVolumeDown = _btnVolumeDown;
+@synthesize btnVolumeUp = _btnVolumeUp;
 @synthesize thumbStick = _thumbStick;
+@synthesize sensorStick = _sensorStick;
 @synthesize vdpad = _vdpad;
 @synthesize valueChangedHandler = _valueChangedHandler;
 @synthesize sdkVersion = _sdkVersion;
@@ -246,7 +263,10 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 - (void)dealloc
 {
     free(_buffer);
-   
+    if(m_pJoystick)
+    {
+        delete m_pJoystick;
+    }
 /*
     [_btnCBCMEnabled release];
     [_btnPadConnect release];
@@ -271,7 +291,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     if (self)
     {
         _sdkVersion = @"1.0";
-        _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:nil];
+        _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:@{CBCentralManagerOptionShowPowerAlertKey:[NSNumber numberWithBool:NO]}];
         
         _buffer = (mj_buffer *)malloc(sizeof(mj_buffer));
         _buffer->all_flags = MJGamepadButtonUnknown;
@@ -288,9 +308,17 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         _buttonMenu = [[MJGamepadButton alloc] init];
         _buttonBack = [[MJGamepadButton alloc] init];
         _buttonStart = [[MJGamepadButton alloc] init];
+        _buttonHome = [[MJGamepadButton alloc] init];
+        _buttonClick = [[MJGamepadButton alloc] init];
+        _btnVolumeDown = [[MJGamepadButton alloc] init];
+        _btnVolumeUp = [[MJGamepadButton alloc] init];
         
+        _sensorStick = [[MJGamepadSensor alloc] init];
         _thumbStick = [[MJGamepadThumbStick alloc] init];
         _vdpad = [[MJGamepadDirectionPad alloc] init];
+        
+        m_pJoystick = new JoystickData_Mojing();
+        m_nReconnectCount = 0;
     }
     
     return self;
@@ -306,6 +334,14 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     [_buttonBack setPressed:(_buffer->back)==0?NO:YES];
     [_buttonMenu setTimestamp:_buffer->timestamp];
     [_buttonMenu setPressed:(_buffer->menu)==0?NO:YES];
+    [_buttonHome setTimestamp:_buffer->timestamp];
+    [_buttonHome setPressed:(_buffer->home)==0?NO:YES];
+    [_buttonClick setTimestamp:_buffer->timestamp];
+    [_buttonClick setPressed:(_buffer->click)==0?NO:YES];
+    [_btnVolumeUp setTimestamp:_buffer->timestamp];
+    [_btnVolumeUp setPressed:(_buffer->volume_up)==0?NO:YES];
+    [_btnVolumeDown setTimestamp:_buffer->timestamp];
+    [_btnVolumeDown setPressed:(_buffer->volume_down)==0?NO:YES];
 }
 
 - (void)processThumbStick
@@ -322,6 +358,19 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     vpad_buff.right = _buffer->right;
     vpad_buff.center = _buffer->center;
     [_vdpad setBuffer:vpad_buff];
+}
+
+- (void)processTouchPadPos
+{
+    [_thumbStick setTimestamp:_buffer->timestamp];
+    [_thumbStick setTouchPoint:_buffer->touchpad_point];
+}
+
+- (void)processSensorData
+{
+    [_sensorStick setTimestamp:_buffer->timestamp];
+    [_sensorStick setHomeKeyStatus:_buffer->timestamp keyStaus:(_buffer->home)==0?NO:YES];
+    [_sensorStick setSensorData:_buffer->sensor_data];
 }
 
 - (CGFloat)ConvertMotionData:(UInt8)lsb msb:(UInt8)msb
@@ -344,6 +393,96 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 //  NSLog(@"lsb : %d ---- msb : %d ---- Uint16 : %d ----- CGFloat : %f", lsb, msb, n, f);
     return f;
 }
+
+//解析Mojing Motion数据
+- (BOOL)onReceiveMJMotionKeyCode:(UInt8 *)raw_data peripheralName:(NSString *)name
+{
+    if(m_pJoystick == NULL) return FALSE;
+    
+    STJoystickData joystickData;
+    if(m_pJoystick->BytesToData(raw_data, &joystickData) == false)
+    {
+        return FALSE;
+    }
+    
+    //更新状态字
+    uint32_t currentKeyStatus = MJGamepadButtonUnknown;
+    //设备键值
+    if (joystickData.keyState & 0x1 || joystickData.keyState & 0x20)
+    {
+        currentKeyStatus |= MJGamepadButtonClick;
+    }
+    if (joystickData.keyState & 0x2)
+    {
+        currentKeyStatus |= MJGamepadButtonHome;
+    }
+    if (joystickData.keyState & 0x4)
+    {
+        currentKeyStatus |= MJGamepadButtonBack;
+    }
+    if (joystickData.keyState & 0x8)
+    {
+        currentKeyStatus |= MJGamepadButtonVolumeDown;
+    }
+    if (joystickData.keyState & 0x10)
+    {
+        currentKeyStatus |= MJGamepadButtonVolumeUp;
+    }
+
+    BOOL touchPadChanged = joystickData.bTouched;//(joystickData.fTouchpadX != _buffer->touchpad_point.x || joystickData.fTouchpadY != _buffer->touchpad_point.y);
+    if (touchPadChanged)
+    {
+        //暂未发送touch状态
+        currentKeyStatus |= MJGamepadButtonTouchPad;
+    }
+    
+    _buffer->timestamp = joystickData.dTimestamp;
+    //按键
+    if ( currentKeyStatus != _buffer->all_flags )
+    {
+        _buffer->all_flags = currentKeyStatus;
+        [self processKeyStatus];
+    }
+    
+    //Touch
+    static bool bLastSendTouchPoint = false;
+    if (touchPadChanged)
+    {
+        _buffer->touchpad_point.x = joystickData.fTouchpadX;
+        _buffer->touchpad_point.y = joystickData.fTouchpadY;
+        [self processTouchPadPos];
+        bLastSendTouchPoint = true;
+    }
+    else if(bLastSendTouchPoint)
+    {
+        _buffer->touchpad_point.x = 0;
+        _buffer->touchpad_point.y = 0;
+        [self processTouchPadPos];
+        bLastSendTouchPoint = false;
+    }
+
+    
+    //Sensor
+    _buffer->sensor_data.fOrientationX = -joystickData.fOrientationX;
+    _buffer->sensor_data.fOrientationY = -joystickData.fOrientationY;
+    _buffer->sensor_data.fOrientationZ = joystickData.fOrientationZ;
+    _buffer->sensor_data.fOrientationW = joystickData.fOrientationW;
+    _buffer->sensor_data.fAccelX = joystickData.fAccelX;
+    _buffer->sensor_data.fAccelY = joystickData.fAccelY;
+    _buffer->sensor_data.fAccelZ = joystickData.fAccelZ;
+    _buffer->sensor_data.fGyroX = joystickData.fGyroX;
+    _buffer->sensor_data.fGyroY = joystickData.fGyroY;
+    _buffer->sensor_data.fGyroZ = joystickData.fGyroZ;
+    [self processSensorData];
+    
+    if (_valueChangedHandler)
+    {
+        _valueChangedHandler(self, nil);
+    }
+    
+    return YES;
+}
+
 
 //收到新数据
 - (BOOL)onReceiveNewKeyCode:(UInt8 *)raw_data peripheralName:(NSString *)name
@@ -505,7 +644,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     //*处理得到后的键值
 
     //更新状态字
-    MJGamepadButtonType currentKeyStatus = MJGamepadButtonUnknown;
+    uint32_t currentKeyStatus = MJGamepadButtonUnknown;
     BOOL leftThumbChanged = (m != _buffer->left_thumb_point.x || n != _buffer->left_thumb_point.y);
     if (is_ok)
     {
@@ -578,7 +717,75 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     return YES;
 }
 
+/*
+ 计算公式：
+ 
+ d = 10^((abs(RSSI) - A) / (10 * n))
+ 
+ 其中：
+ 
+ d - 计算所得距离(单位米)
+ 
+ RSSI - 接收信号强度（负值）
+ 
+ A - 发射端和接收端相隔1米时的信号强度
+ 
+ n - 环境衰减因子
+*/
+
+- (float)calcDistByRSSI:(int)rssi
+{
+    int A = 59;
+    float n = 2.0;
+    
+    int iRssi = abs(rssi);
+    float power = (iRssi-A)/(10*n);
+    return pow(10, power);
+}
+
+
 #pragma mark - CBCentralManager Delegate
+- (void)startScanning:(CBCentralManager *)central
+{
+    NSLog(@"startScanning retrieveConnectedPeripheralsWithServices...");
+    m_bConnecting = false;
+    
+    //serivces uuid
+    NSMutableArray * services = [NSMutableArray array];
+    [services addObject:[CBUUID UUIDWithString:@"622f5b2a-60da-4484-929a-69e3a9140258"]];
+    [services addObject:[CBUUID UUIDWithString:@"FFF0"]];
+    [services addObject:[CBUUID UUIDWithString:@"FFF4"]];
+    
+    NSMutableArray* retrievePeripherals = [NSMutableArray array];
+    retrievePeripherals = [central retrieveConnectedPeripheralsWithServices:services];
+    
+    for (CBPeripheral* peripheral in retrievePeripherals) {
+        if ([peripheral.name isEqualToString:@"Mojing"]
+            || [peripheral.name isEqualToString:@"Mojing4"]
+            || [peripheral.name isEqualToString:@"mojing-motion"])
+        {
+            NSLog(@"Get retrieveperipheral name : %@ , state == %ld ", peripheral.name, (long)peripheral.state);
+            //peripheral.services.
+            //[central cancelPeripheralConnection:peripheral];
+            peripheral.delegate = self;
+            self.peripheral = peripheral;//[peripheral retain];
+            //[central connectPeripheral:peripheral options:nil];
+            m_bConnecting = true;
+            //NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES],CBConnectPeripheralOptionNotifyOnDisconnectionKey, nil];
+            [central connectPeripheral:peripheral options:nil];
+            m_nReconnectCount = 0;
+            return;
+        }
+    }
+    
+    NSLog(@"startScanning scanForPeripheralsWithServices...");
+    m_LastStartScanTime = time(NULL);
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO],CBCentralManagerScanOptionAllowDuplicatesKey, nil];
+    [_centralManager scanForPeripheralsWithServices:nil options:options];
+    //[central scanForPeripheralsWithServices:nil options:nil];
+}
+
+
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
     NSString *state = nil;
@@ -613,7 +820,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
             state = @"CBCentralManagerStatePoweredOn";
             [_btnCBCMEnabled setTimestamp:_buffer->timestamp];
             [_btnCBCMEnabled setPressed:YES];
-            [central scanForPeripheralsWithServices:nil options:nil];
+            [self startScanning:central];
             break;
         default:
             break;
@@ -623,26 +830,64 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    if(peripheral == nil)
+    if(m_bConnecting)
     {
         return;
     }
     
+    //间隔5s重新一次扫描
+    if(time(NULL) - m_LastStartScanTime > 5)
+    {
+        NSLog(@"Start a new scanning...");
+        [central stopScan];
+        [self startScanning:central];
+        return;
+    }
+    
+    if(peripheral == nil )
+    {
+        return;
+    }
+    
+    
+ 
     //NSLog(@"didDiscoverPeripheral: %@", peripheral);
     //6字节旧版本（TI版本）协议名称废弃
     if ([peripheral.name isEqualToString:@"Mojing"]
         || [peripheral.name isEqualToString:@"3DBB"]
-        || [peripheral.name isEqualToString:@"Mojing4"])
+        || [peripheral.name isEqualToString:@"Mojing4"]
+        || [peripheral.name isEqualToString:@"mojing-motion"])
     {
-        NSLog(@"Discover peripheral name : %@", peripheral.name);
         
-        NSLog(@"peripheral.state == %ld", (long)peripheral.state);
+        NSLog(@"Discover peripheral name : %@ , state == %ld", peripheral.name , (long)peripheral.state);
+        /*
+        if (m_discoverDevice < 3)
+        {
+            float distance = [self calcDistByRSSI:RSSI.intValue];
+            if (m_joystickDistance == 0 || m_joystickDistance > distance)
+            {
+                m_joystickDistance = distance;
+                self.peripheral.delegate = self;
+                self.peripheral = peripheral;
+            }
+            m_discoverDevice++;
+            return;
+        }*/
         
         if (peripheral.state == CBPeripheralStateDisconnected)
         {
-            peripheral.delegate = self;
-            self.peripheral = peripheral;//[peripheral retain];
-            [central connectPeripheral:peripheral options:nil];
+            float distance = [self calcDistByRSSI:RSSI.intValue];
+            if (distance < 2)
+            {
+                m_bConnecting = true;
+                self.peripheral.delegate = self;
+                self.peripheral = peripheral;
+                [central connectPeripheral:self.peripheral options:nil];
+                m_nReconnectCount = 0;
+                //m_joystickDistance = 0;
+                //m_discoverDevice = 0;
+            }
+            
         }
     }
     
@@ -651,7 +896,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
-    NSLog(@"didConnectPeripheral");
+    NSLog(@"didConnectPeripheral peripheral name : %@", peripheral.name);
 
     [_btnPadConnect setTimestamp:_buffer->timestamp];
     [_btnPadConnect setPressed:YES];
@@ -659,14 +904,34 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     self.peripheral = peripheral;
     [self updateStatus];
 
-    [central stopScan];
+    //if([central isScanning])
+    {
+        [central stopScan];
+    }
     [peripheral discoverServices:nil];
-    
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-    NSLog(@"didDisconnectPeripheral");
+    NSLog(@"didDisconnectPeripheral peripheral name : %@ , error code = %ld", peripheral.name, (long)error.code);
+    
+    if((NSInteger)[central state] == CBCentralManagerStatePoweredOn)
+    {
+        if([peripheral.name isEqualToString:@"mojing-motion"] && (error == nil || error.code == 0 ) )
+        {
+            if(m_nReconnectCount < 5)  //最多重连5次
+            {
+                NSLog(@"Reconnecting to peripheral name : %@ ", peripheral.name);
+                peripheral.delegate = self;
+                self.peripheral = peripheral;//[peripheral retain];
+                m_bConnecting = true;
+                //NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES],CBConnectPeripheralOptionNotifyOnConnectionKey, nil];
+                [central connectPeripheral:peripheral options:nil];
+                m_nReconnectCount++;
+                return;
+            }
+        }
+    }
     
     self.peripheral = peripheral;
     [self updateStatus];
@@ -676,7 +941,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 
     if (_isAutoScan)
     {
-        [central scanForPeripheralsWithServices:nil options:nil];
+        [self startScanning:central];
     }
 }
 
@@ -750,13 +1015,28 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         // reading the value of a characteristic
         //[peripheral readValueForCharacteristic:characteristic];
         
-        //只订阅FFF4(由于硬件原因订阅其他值可能会出问题)
+        //魔镜手柄，只订阅FFF4(由于硬件原因订阅其他值可能会出问题)
         /*
          旧版：FFF0, 新版: FFF4
          */
         if ([uuidString isEqualToString:@"FFF4"] || [uuidString isEqualToString:@"FFF0"])
         {
             [peripheral setNotifyValue:YES forCharacteristic:characteristic];
+        }
+        
+        //mojing-motion
+        if ([uuidString isEqualToString:@"FFB4A651-C224-420B-A134-13D3ABA313FB"])
+        {
+            [peripheral setNotifyValue:YES forCharacteristic:characteristic];
+            for (CBDescriptor *d in characteristic.descriptors) {
+                NSString *uuidStr = d.UUID.UUIDString;
+                //NSLog(@"CBDescriptor name is :%@", uuidStr);
+                if([uuidString isEqualToString:@"2902"])
+                {
+                    NSData *data = [@"10" dataUsingEncoding:NSUTF8StringEncoding];
+                    [peripheral writeValue:data forDescriptor:d];
+                }
+            }
         }
     }
 }
@@ -794,6 +1074,14 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         //电量
         if (valueLength != 1) return;
         _battery = raw_data[0]; //raw battery value
+    }
+    else if([uuidString isEqualToString:@"FFB4A651-C224-420B-A134-13D3ABA313FB"])
+    {
+        if (valueLength == 20)
+        {
+            _buffer->raw_char_size = 20;
+            [self onReceiveMJMotionKeyCode:raw_data peripheralName:peripheral.name];
+        }
     }
     else if ([uuidString isEqualToString:@"FFF4"])
     {
@@ -897,17 +1185,17 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
 
     if(self.peripheralState != CBPeripheralStateDisconnected)
     {
-        NSLog(@"--->updateStatus: %ld", (long)self.peripheralState);
+        //NSLog(@"--->updateStatus: %ld", (long)self.peripheralState);
     }
     
-    self.centralManagerState = _centralManager.state;
+    self.centralManagerState = (CBCentralManagerState)_centralManager.state;
 }
 
 - (void)scan
 {
     if (_centralManager != nil && [_centralManager isKindOfClass:[CBCentralManager class]])
     {
-        [_centralManager scanForPeripheralsWithServices:nil options:nil];
+        [self startScanning:_centralManager];
     }
 }
 
@@ -924,9 +1212,34 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     if (_centralManager != nil && [_centralManager isKindOfClass:[CBCentralManager class]]
         && _peripheral != nil && [_peripheral isKindOfClass:[CBPeripheral class]])
     {
+        for(CBService *service in _peripheral.services)
+        {
+            for (CBCharacteristic *characteristic in service.characteristics)
+            {
+                //*
+                NSString *uuidString = nil;
+                if ([characteristic.UUID respondsToSelector:@selector(UUIDString)])
+                {
+                    //iOS 7.1+
+                    uuidString = characteristic.UUID.UUIDString;
+                }
+                else
+                {
+                    // < iOS 7.1
+                    uuidString = [characteristic.UUID representativeString];
+                }
+           
+                //mojing-motion
+                if ([uuidString isEqualToString:@"FFB4A651-C224-420B-A134-13D3ABA313FB"])
+                {
+                    [_peripheral setNotifyValue:NO forCharacteristic:characteristic];
+                }
+            }
+        }
+        
+        m_nReconnectCount = 5; //主动断开的不重连
         [_centralManager cancelPeripheralConnection:_peripheral];
     }
 }
-
 
 @end

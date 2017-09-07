@@ -63,7 +63,7 @@ namespace Baofeng
 		{
 			char Brand[PROP_VALUE_MAX], Model[PROP_VALUE_MAX], Serial[PROP_VALUE_MAX];
 			char szMerchantID[PROP_VALUE_MAX], szAppID[PROP_VALUE_MAX], szAppKey[PROP_VALUE_MAX];
-			char szChannelID[PROP_VALUE_MAX], szProfilePath[PROP_VALUE_MAX];
+			char szChannelID[PROP_VALUE_MAX], szProfilePath[260];
             char szAppName[PROP_VALUE_MAX];
             char szPackageName[PROP_VALUE_MAX];
             char szUserID[PROP_VALUE_MAX];
@@ -137,7 +137,9 @@ namespace Baofeng
 			strcpy(szAppName, GetCurAppVersion());
 			strcpy(szPackageName, GetCurPackageName());
 			strcpy(szUserID, GetUserID());
-			strcpy(szProfilePath, GetSDKAssetsDirPath());
+            const char* path = GetSDKAssetsDirPath();
+            if(path != NULL)
+                strcpy(szProfilePath, path);
 #endif
 
 
@@ -320,6 +322,7 @@ namespace Baofeng
 		}
 		void UnityPluginInterfaceBase::OnEvent_ChangeMojingWorld()
 		{
+			MOJING_FUNC_TRACE(g_APIlogger);
 			MojingSDK_ChangeMojingWorld(m_strGlassName.c_str());
 		}
 		void UnityPluginInterfaceBase::OnEvent_LeaveMojingWorld()
@@ -371,10 +374,12 @@ namespace Baofeng
 		/*以下是对外提供的响应*/
 		bool UnityPluginInterfaceBase::IsInMojingWorld(const char * szGlassesName)
 		{
-			MOJING_FUNC_TRACE(g_APIlogger); 
+			//MOJING_FUNC_TRACE(g_APIlogger); 
 			const char* pGlassesNow = MojingSDK_GetGlasses();
 			bool bRet = (strcmp(pGlassesNow, szGlassesName) == 0);
+#ifdef _DEBUG
 			MOJING_TRACE(g_APIlogger , "IsInMojingWorld = " << bRet);
+#endif
 			return  bRet && GetIsInMojingWorld();
 		}
 

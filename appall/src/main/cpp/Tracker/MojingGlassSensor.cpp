@@ -1,6 +1,5 @@
 ﻿#include <stdio.h>
 #include "../MojingManager.h"
-#include "../Parameters/MojingParameters.h"
 #include "../Base/MojingTypes.h"
 #include "../Base/MojingTimer.h"
 #include "../Base/MojingLog.h"
@@ -31,7 +30,6 @@ extern MojingLogger g_Sensorlogger;
 #endif
 
 #define PORT 16168   //The port on which to listen for incoming data
-#define USE_MMAP 0	 //disable USE MMAP
 
 #define	ASENSOR_TYPE_ACCELEROMETER		1
 #define	ASENSOR_TYPE_MAGNETIC_FIELD		2
@@ -114,30 +112,10 @@ namespace Baofeng
 			return m_iMaxSampleRate;
 		}
 
-		int g_GlassSensorCount = 0;
-		int GlassSensor::Run()
+		void GlassSensor::ReceiveSocketData(MojingSensorParameters * pSensorParameters)
 		{
 			MOJING_FUNC_TRACE(g_Sensorlogger);
-			char buf[64];
-			int myCount = g_GlassSensorCount++;
-			sprintf(buf, "GlassSensor_%d", myCount);
 
-			SetThreadName(buf);
-			MOJING_TRACE(g_Sensorlogger, "Start GlassSensor " << myCount);
-			__android_log_print(ANDROID_LOG_INFO, "JNIMsg", "Start GlassSensor %d", myCount);
-
-			MojingSensorParameters * pSensorParameters = NULL;
-			Manager *pManager = Manager::GetMojingManager();
-			if (pManager)
-			{
-				pSensorParameters = pManager->GetParameters()->GetSensorParameters();
-			}
-
-#if USE_MMAP
-			// mmap
-			int mmap_fd;
-			MMapedSensorData *mmap_ptr = NULL;
-#else
 			SocketSensorData *mmap_ptr = NULL;
 			SocketSensorData sdata;
 
@@ -158,51 +136,61 @@ namespace Baofeng
 				}
 			}
 
-//			// create a UDP socket
-//			if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-//			{
-//				__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "create socket failed");
-//			}
-//			else
-//			{
-//				__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "create socket OK");
-//
-//				// zero out the structure
-//				memset((char *) &si_me, 0, sizeof(si_me));
-//
-//				si_me.sin_family = AF_INET;
-//				si_me.sin_port = htons(0);
-//				si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-//
-//				// bind socket to port
-//				if(bind(s, (struct sockaddr*)&si_me, sizeof(si_me)) == -1)
-//				{
-//					__android_log_print(ANDROID_LOG_ERROR, "JNIMsg", "bind socket failed");
-//				}
-//				else
-//				{
-//					// todo: call binder add socket target
-//
-//					getsockname(s, (struct sockaddr*)&si_me, &slen_me);
-//
-//					__android_log_print(ANDROID_LOG_DEBUG, "JNIMsg", "bind socket OK port=%d", ntohs(si_me.sin_port));
-//
-//					// set timeout
-//					struct timeval tv;
-//					tv.tv_sec = 0;
-//					tv.tv_usec = 100000;
-//					if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0)
-//					{
-//					}
-//
-//					mmap_ptr = &sdata;
-//				}
-//			}
-#endif
-
 			while (!GetExitFlag())
 			{
-#if USE_MMAP
+				if (mmap_ptr != NULL && s != -1 && (recv_len = recvfrom(s, mmap_ptr, sizeof(SocketSensorData), 0, (struct sockaddr *)&si_other, &slen)) != -1)
+				{
+					//__android_log_print(ANDROID_LOG_INFO, "JNIMsg", "sensor data time %f delta %f", mmap_ptr->data.TimeS, mmap_ptr->data.TimeDelta);
+
+					bool isLowPower = mmap_ptr->data.Flags & SENSOR_LOW_POWER_BIT;
+					if (pSensorParameters && pSensorParameters->GetIsLowPower() != isLowPower)
+					{
+						pSensorParameters->SetIsLowPower(isLowPower);
+					}
+
+					if (!GetExitFlag() && mmap_ptr->data.TimeDelta > 0.002f)
+					{
+						Quatf fOrientation;
+						Vector3f fAngularAcceleration;
+						Vector3f fLinearAcceleration;
+
+						fOrientation.x = mmap_ptr->data.Orientation_X;
+						fOrientation.y = mmap_ptr->data.Orientation_Y;
+						fOrientation.z = mmap_ptr->data.Orientation_Z;
+						fOrientation.w = mmap_ptr->data.Orientation_W;
+
+						fAngularAcceleration.x = mmap_ptr->data.AngularAccel_X;
+						fAngularAcceleration.y = mmap_ptr->data.AngularAccel_Y;
+						fAngularAcceleration.z = mmap_ptr->data.AngularAccel_Z;
+
+						fLinearAcceleration.x = mmap_ptr->data.LinearAccel_X;
+						fLinearAcceleration.y = mmap_ptr->data.LinearAccel_Y;
+						fLinearAcceleration.z = mmap_ptr->data.LinearAccel_Z;
+
+#ifdef ENABLE_SENSOR_LOGGER
+						__android_log_print(ANDROID_LOG_DEBUG,
+							"JNIMsg",
+							"Sensor data from service. Orientation (%f / %f / %f / %f), AngularAcceleration(%f / %f / %f), LinearAcceleration(%f / %f / %f), LinearAcceleration: %f\n", \
+							fOrientation.x, fOrientation.y, fOrientation.z, fOrientation.w, mmap_ptr->data.Temperature, \
+							fAngularAcceleration.x, fAngularAcceleration.y, fAngularAcceleration.z, \
+							fLinearAcceleration.x, fLinearAcceleration.y, fLinearAcceleration.z);
+#endif
+						OnSensorData(fOrientation, fAngularAcceleration, fLinearAcceleration, mmap_ptr->data.TimeS, mmap_ptr->data.Temperature);
+					}
+				}
+			}
+
+			//close(s);
+		}
+
+		// mmap
+		void GlassSensor::ReadMMapData(MojingSensorParameters * pSensorParameters)
+		{
+			MOJING_FUNC_TRACE(g_Sensorlogger);
+			int mmap_fd;
+			MMapedSensorData *mmap_ptr = NULL;
+			while (!GetExitFlag())
+			{
 				if (mmap_ptr == NULL)
 				{
 					mkdir("/sdcard/MojingSDK", 0777);
@@ -239,11 +227,8 @@ namespace Baofeng
 
 				// replace trywait with timedwait to reduce CPU usage
 				if (mmap_ptr != NULL && 0 == sem_timedwait_millsecs(&mmap_ptr->semlock, 100))
-#else
-				if (mmap_ptr != NULL && s != -1 && (recv_len = recvfrom(s, mmap_ptr, sizeof(SocketSensorData), 0, (struct sockaddr *)&si_other, &slen)) != -1)
-#endif
 				{
-//					__android_log_print(ANDROID_LOG_INFO, "JNIMsg", "sensor data time %f delta %f", mmap_ptr->data.TimeS, mmap_ptr->data.TimeDelta);
+					//__android_log_print(ANDROID_LOG_INFO, "JNIMsg", "sensor data time %f delta %f", mmap_ptr->data.TimeS, mmap_ptr->data.TimeDelta);
 
 					bool isLowPower = mmap_ptr->data.Flags & SENSOR_LOW_POWER_BIT;
 					if (pSensorParameters && pSensorParameters->GetIsLowPower() != isLowPower)
@@ -293,11 +278,35 @@ namespace Baofeng
 					}
 				}
 			}
+		}
+		
+		int g_GlassSensorCount = 0;
+		int GlassSensor::Run()
+		{
+			MOJING_FUNC_TRACE(g_Sensorlogger);
+			char buf[64];
+			int myCount = g_GlassSensorCount++;
+			sprintf(buf, "GlassSensor_%d", myCount);
 
-#if USE_MMAP
-#else
-//			close(s);
-#endif
+			SetThreadName(buf);
+			MOJING_TRACE(g_Sensorlogger, "Start GlassSensor " << myCount);
+			__android_log_print(ANDROID_LOG_INFO, "JNIMsg", "Start GlassSensor %d", myCount);
+
+			MojingSensorParameters * pSensorParameters = NULL;
+			Manager *pManager = Manager::GetMojingManager();
+			if (pManager)
+			{
+				pSensorParameters = pManager->GetParameters()->GetSensorParameters();
+			}
+
+			if (strcmp(pManager->GetParameters()->GetDeviceParameters()->GetModel(), "KE-01") == 0) //KE-01分体机时采用socket模式传输
+			{
+				ReceiveSocketData(pSensorParameters);
+			}
+			else //其他采用mmap模式传输
+			{
+				ReadMMapData(pSensorParameters);
+			}
 
 			MOJING_TRACE(g_Sensorlogger, "Exit GlassSensor " << myCount);
 			return 0;

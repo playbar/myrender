@@ -8,7 +8,7 @@ namespace Baofeng
 	namespace Mojing
 	{
 		//MODEL = SM-N9108V
-		MojingDisplayParameters::MojingDisplayParameters() :m_fScale(1), m_fAvgRenderTime(0), m_fMobileEdge(0.004)
+		MojingDisplayParameters::MojingDisplayParameters() :m_fScale(1), m_fAvgRenderTime(0),m_fUserPPI(0), m_fMobileEdge(0.004)
 // 			: m_fScreenHeightMeter(0)
 // 			, m_fScreenWidthMeter(0)
 		{

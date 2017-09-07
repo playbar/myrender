@@ -54,6 +54,7 @@ namespace Baofeng
 			//timeWarps[0][scan] = Matrix4f(currentWarpSource.WarpParms.Images[eye][0].TexCoordsFromTanAngles) * warp;
 			//int GetCalibrationResetCount()const; 
 			float GetCalibrationRate()const;
+			void SetCalibrationRate(float fRate)const;
 			//void ResetCalibrationResetCount();
 			void SendSensorData(float* pArray, double dLastSampleTime);
 			CLASS_MEMBER(bool, m_b, DataFromExternal);

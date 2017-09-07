@@ -36,6 +36,7 @@ extern MojingLogger g_APIlogger;
 @implementation MojingGamepad
 @synthesize buttonValueChangedHandler = _buttonValueChangedHandler;
 @synthesize axisValueChangedHandler = _axisValueChangedHandler;
+@synthesize sensorDataChangedHandler = _sensorDataChangedHandler;
 
 CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MojingGamepad)
 
@@ -167,6 +168,68 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
             Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
         };
         
+        //Home
+        mjPad.buttonHome.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
+            if(blockMjPad.buttonValueChangedHandler)
+            {
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_HOME, pressed);
+            }
+            
+            NSLog(@"HOME键%@", pressed? @"按下":@"松开");
+            NSString *str = [NSString stringWithFormat:@"HOME键%@", pressed? @"按下":@"松开"];
+            Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
+        };
+       
+        //Click
+        mjPad.buttonClick.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
+            if(blockMjPad.buttonValueChangedHandler)
+            {
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, BUTTON_A, pressed);
+            }
+            
+            NSLog(@"Click键%@", pressed? @"按下":@"松开");
+            NSString *str = [NSString stringWithFormat:@"Click键%@", pressed? @"按下":@"松开"];
+            Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
+        };
+       
+        //音量加
+        mjPad.btnVolumeUp.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
+            if(blockMjPad.buttonValueChangedHandler)
+            {
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_VOLUMEUP, pressed);
+            }
+            
+            NSLog(@"音量加键%@", pressed? @"按下":@"松开");
+            NSString *str = [NSString stringWithFormat:@"音量加键%@", pressed? @"按下":@"松开"];
+            Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
+        };
+        
+        //音量减
+        mjPad.btnVolumeDown.valueChangedHandler = ^void(MJGamepadButton *button, BOOL pressed, float value){
+            if(blockMjPad.buttonValueChangedHandler)
+            {
+                blockMjPad.buttonValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, KEY_VOLUMEDOWN, pressed);
+            }
+            
+            NSLog(@"音量减键%@", pressed? @"按下":@"松开");
+            NSString *str = [NSString stringWithFormat:@"音量减键%@", pressed? @"按下":@"松开"];
+            Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
+        };
+        
+        //Sensor
+        mjPad.sensorStick.valueChangedHandler = ^void(MJGamepadSensor *sensor, NSMutableDictionary *dicOrientation, NSMutableDictionary *dicAccel, NSMutableDictionary *dicGyro, double timestamp){
+            if(blockMjPad.sensorDataChangedHandler)
+            {
+                blockMjPad.sensorDataChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_NONE, dicOrientation, dicAccel, dicGyro, timestamp);
+            }
+            
+            //NSLog(@"Orientation: %@", dicOrientation);
+            //NSLog(@"dicAccel: %@", dicAccel);
+            //NSLog(@"dicGyro: %@", dicGyro);
+            //NSLog(@"timestamp: %f", timestamp);
+            //NSString *str = [NSString stringWithFormat:@"音量减键%@", pressed? @"按下":@"松开"];
+            //Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
+        };
         
         //摇杆
         mjPad.thumbStick.valueChangedHandler = ^void(MJGamepadThumbStick *stick, float x, float y){
@@ -175,7 +238,7 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
                 blockMjPad.axisValueChangedHandler(blockMjPad->mjPad.peripheral.name, AXIS_DPAD, x, y);
             }
             
-            //NSLog(@"摇杆坐标: (%f, %f), 长度:%f", x, y, stick.offsetToCenter);
+            NSLog(@"摇杆坐标: (%f, %f), 长度:%f", x, y, stick.offsetToCenter);
             //NSString *str = [NSString stringWithFormat:@"摇杆坐标: (%f, %f), 长度:%f", x, y, stick.offsetToCenter];
             //Log_OC(LOG_LEVEL_TRACE, str, [[NSString stringWithUTF8String:__FILE__] lastPathComponent],  __LINE__);
         };

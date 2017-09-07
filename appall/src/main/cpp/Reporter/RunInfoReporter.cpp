@@ -56,7 +56,7 @@ namespace Baofeng
 				
 			joMsg->AddStringItem("cpu", platformBase->GetCPUName());
 			joMsg->AddStringItem("iid", pReporter->GetInstallID());
-
+			joMsg->AddStringItem("os", platformBase->GetOSString());
 			//joMsg->Save("/sdcard/MojingSDK/RunInfo.txt", 0);
 
 			char *pJsonValue = joMsg->PrintValue(0, false);

@@ -5,6 +5,7 @@
 #include <vector>
 #define DISTORTION_PARAMETES_COUNT 7
 #define UNREAL_DISTORTION_PARAMETES_COUNT 9 // 增加两个元素，下标7为目标点的X坐标，下标8为目标点的Y坐标
+
 namespace Baofeng
 {
 	namespace Mojing
@@ -165,6 +166,7 @@ namespace Baofeng
 			std::vector<float> vertices_left;
 			std::vector<float> vertices_right;
 			std::vector<unsigned int> indices;
+			void SaveToFile(const char* szFileName)const;
 		};
 		class Distortion
 		{
@@ -179,14 +181,14 @@ namespace Baofeng
 			float m_KL[21];// 亮度系数，默认是1
 
 			void ReCalculationKT(float* fKT);
-			void WarpTexCoordChroma(const hmdInfoInternal_t & hmdInfo, const float in[2], float red[2], float green[2], float blue[2], float light[1]);
+			void WarpTexCoordChroma(const hmdInfoInternal_t & hmdInfo, float in[2], float red[2], float green[2], float blue[2], float light[1]);
 			// Vector3f DistortionFnScaleRadiusSquaredChroma(float rsq);
 			Vector3f DistortionFnScaleRadiusSquared_V3(float rsq)const;
 			Vector4f DistortionFnScaleRadiusSquared_V4(float rsq)const;
 			Vector3f DistortionFnScaleRadiusSquared_Unreal(float rsq)const;
 
 			float EvalCatmullRomSpline(float const *K, float scaledVal, int NumSegments)const;
-
+			
 			void * BuildDistortionBuffer(const hmdInfoInternal_t &HMDI, int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/);
 			void * BuildDistortionBuffer_V2(const hmdInfoInternal_t &HMDI, int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/);
 			DistortionVertexBuffer* BuildDistortionVertexBuffer(int eyeBlocksWide /* = 32*/, int eyeBlocksHigh/* = 32*/);
@@ -194,6 +196,10 @@ namespace Baofeng
 			Distortion();
 			virtual ~Distortion();
 			void * BuildDistortionBuffer(int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/);
+			
+			// 参考谷歌的畸变方程和畸变算法，制作Mesh表
+			void * BuildDistortionBufferFromDURL(Mesh_820& mesh, const int eyeBlocksWide/* = 32*/, const int eyeBlocksHigh/* = 32*/);
+
 			/*0   1    2    3    4    5    6    7   8   9*/
 			/*X , Y , Rx , Ry , Gx , Gy , Bx , By , A , 0*/
 			void * BuildDistortionBuffer_V2(Mesh_820& mesh, int eyeBlocksWide/* = 32*/, int eyeBlocksHigh/* = 32*/);
@@ -202,6 +208,7 @@ namespace Baofeng
 			int UNITY_BuildDistortionMesh(int eyeBlocksWide /* = 40*/, int eyeBlocksHigh/* = 40*/, void* fppVertex, void* fppUV, void* fppIndex);
 			CLASS_MEMBER(float , m_f , MetersPerTanAngleAtCenter);
 			CLASS_MEMBER_STR(String, m_sz, GlassKey);
+			CLASS_MEMBER_STR(String, m_sz, DURL);
 			CLASS_MEMBER(float, m_f, LensSeparation);
 			CLASS_INTERFACE(int, m_i, Segment);
 			CLASS_MEMBER(float, m_f, YOffset);
@@ -212,6 +219,7 @@ namespace Baofeng
 			void SetDistortionParamet(int iSegment, bool bNoDispersion , float* fKR, float * fKG, float * fKB, float *fKL = NULL, float * fKRT = NULL, float * fKGT = NULL, float * fKBT = NULL);
 			int GetDistortionParamet(float* fKR, float * fKG, float * fKB);
 			bool IsDistortionNeeded(void) { return m_iSegment != 0; };
+			
 		};
 	}//namespace Mojing
 }//namespace Baofeng
