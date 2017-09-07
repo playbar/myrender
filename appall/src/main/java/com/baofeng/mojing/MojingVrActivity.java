@@ -40,7 +40,7 @@ public class MojingVrActivity extends Activity {
 					    
 		com.baofeng.mojing.MojingSDK.Init(this);
 
-		com.baofeng.mojing.MojingSDK.SetEngineVersion("Android");
+		//com.baofeng.mojing.MojingSDK.SetEngineVersion("Android");
     }
 
     @Override protected void onPause() {

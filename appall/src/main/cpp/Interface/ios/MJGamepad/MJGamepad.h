@@ -50,11 +50,15 @@ typedef NS_ENUM(NSInteger, MJGamepadState) {
 @property (nonatomic) CBCentralManagerState centralManagerState;
 @property (nonatomic) CBPeripheralState peripheralState;
 @property (nonatomic) BOOL isAutoScan;
+@property (nonatomic, strong) NSMutableDictionary *deviceInfoCharValueDictionary;
+
 
 - (void)scan; 		//扫描蓝牙设备
 - (void)stopScan; 	//停止扫描蓝牙设备
 - (void)disconnect; //主动断开
 
 + (instancetype)sharedMJGamepad;
+
+- (NSDictionary *)getDeviceInfoCharValueDictionary;
 
 @end

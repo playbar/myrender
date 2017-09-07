@@ -1,4 +1,4 @@
-include ':app'
+//include ':app'
 include ':appall'
 //include ':renderall'
 //include ':utest'
