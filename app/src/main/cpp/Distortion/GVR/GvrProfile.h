@@ -48,7 +48,7 @@ namespace Baofeng
 			{
 				m_Coef = Coef;
 			};
-			GvrDistortion(double* pCoef,int iCount)
+			GvrDistortion(double* pCoef, int iCount)
 			{
 				while (iCount--)
 				{
@@ -73,8 +73,12 @@ namespace Baofeng
 
 			float distortInv(float radius)const {
 				// Secant method.
-				float r0 = 0;
-				float r1 = 1;
+// 				float r0 = 0;
+// 				float r1 = 1;
+
+				float r0 = radius / 0.9;
+				float r1 = radius * 0.9;
+
 				float dr0 = radius - distort(r0);
 				while (abs(r1 - r0) > 0.0001f) {
 					float dr1 = radius - distort(r1);
@@ -84,6 +88,23 @@ namespace Baofeng
 					dr0 = dr1;
 				}
 				return r1;
+			}
+
+			String ToString()const
+			{
+				String Ret = "[ ";
+				char szTemp[18];
+				for (int i = 0; i < m_Coef.size(); i++)
+				{
+					sprintf(szTemp , "%4f" , m_Coef[i]);
+					Ret += szTemp;
+					if (i != m_Coef.size() - 1)
+					{
+						Ret += " , ";
+					}
+				}
+				Ret += " ]";
+				return Ret;
 			}
 		};
 
@@ -110,6 +131,14 @@ namespace Baofeng
 
 		struct EyeVisibleTanAngles
 		{
+			EyeVisibleTanAngles();
+			EyeVisibleTanAngles(const float Left,
+				const float Top,
+				const float Right,
+				const float Bottom
+				);
+			EyeVisibleTanAngles(const EyeVisibleTanAngles& Other);
+
 			float m_fLeft;
 			float m_fTop;
 			float m_fRight;
@@ -129,6 +158,38 @@ namespace Baofeng
 				}
 				return *((float*)NULL);// ERROR!!!
 			};
+
+			// 交集运算
+			EyeVisibleTanAngles operator & (const EyeVisibleTanAngles Other)
+			{
+				EyeVisibleTanAngles Ret(
+					fmax(m_fLeft , Other.m_fLeft),
+					fmin(m_fTop, Other.m_fTop),
+					fmin(m_fRight, Other.m_fRight),
+					fmax(m_fBottom, Other.m_fBottom)
+					);
+				return Ret;
+			}
+
+			// 并集运算
+			EyeVisibleTanAngles operator | (const EyeVisibleTanAngles Other)
+			{
+				EyeVisibleTanAngles Ret(
+					fmin(m_fLeft, Other.m_fLeft),
+					fmax(m_fTop, Other.m_fTop),
+					fmax(m_fRight, Other.m_fRight),
+					fmin(m_fBottom, Other.m_fBottom)
+					);
+				return Ret;
+			}
+			String ToString()
+			{
+				String S;
+				char szTemp[512];
+				sprintf(szTemp , "[ %.4f ,  %.4f ,  %.4f ,  %.4f ]", m_fLeft, m_fTop , m_fRight , m_fBottom);
+				S = szTemp;
+				return S;
+			}
 		};
 	
 		class GvrProfile

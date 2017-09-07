@@ -4,8 +4,17 @@
 #include "../../Profile/ProfileV2/DayDreamParameters.h"
 #include "../../MojingManager.h"
 #include "../../Parameters/MojingParameters.h"
-#define Deg2Rad (PI / 180.0f)
+#ifdef LOG4CPLUS_IMPORT
+#include "../../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../../LogTraker/LogInterface.h"
+#endif
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
 
+#define Deg2Rad(D) ((D) * PI / 180.0f)
+#define Rad2Deg(R) ((R) * 180.0f / PI)
 namespace Baofeng
 {
 	namespace Mojing
@@ -52,10 +61,12 @@ namespace Baofeng
 		struct EyeVisibleTanAngles GvrProfile::GetLeftEyeVisibleTanAngles()const
 		{
 			// Tan-angles from the max FOV.
-			float fovLeft = tanf(-m_Viewer.maxFOV.outer * Deg2Rad);
-			float fovTop = tanf(m_Viewer.maxFOV.upper * Deg2Rad);
-			float fovRight = tanf(m_Viewer.maxFOV.inner * Deg2Rad);
-			float fovBottom = tanf(-m_Viewer.maxFOV.lower * Deg2Rad);
+			float fovLeft = tanf(Deg2Rad (- m_Viewer.maxFOV.outer));
+			float fovTop = tanf(Deg2Rad(m_Viewer.maxFOV.upper));
+			float fovRight = tanf(Deg2Rad(m_Viewer.maxFOV.inner));
+			float fovBottom = tanf(Deg2Rad(-m_Viewer.maxFOV.lower));
+			
+
 			// Viewport size.
 			float halfWidth = m_Screen.width / 4;
 			float halfHeight = m_Screen.height / 2;
@@ -69,20 +80,25 @@ namespace Baofeng
 			float screenRight = m_Viewer.distortion.distort((centerX + halfWidth) / centerZ);
 			float screenBottom = m_Viewer.distortion.distort((centerY - halfHeight) / centerZ);
 			// Compare the two sets of tan-angles and take the value closer to zero on each side.
-			EyeVisibleTanAngles ret; 
-			ret.m_fLeft = fmax(fovLeft, screenLeft);
-			ret.m_fTop = fmin(fovTop, screenTop);
-			ret.m_fRight = fmin(fovRight, screenRight);
-			ret.m_fBottom = fmax(fovBottom, screenBottom);
+			
+			EyeVisibleTanAngles FovRect(fovLeft, fovTop, fovRight, fovBottom); 
+			EyeVisibleTanAngles ScreenRect(screenLeft, screenTop, screenRight, screenBottom);
+
+			EyeVisibleTanAngles ret = ScreenRect & FovRect; 
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "LeftEyeVisibleTanAngles = " << ret.ToString() << " , FovRect = " << FovRect.ToString() << " , ScreenRect = " << ScreenRect.ToString());
+#endif
+
+
 			return ret;
 		}
 		struct  EyeVisibleTanAngles  GvrProfile::GetLeftEyeNoLensTanAngles()const
 		{
 			// Tan-angles from the max FOV.
-			float fovLeft = m_Viewer.distortion.distortInv(tanf(-m_Viewer.maxFOV.outer * Deg2Rad));
-			float fovTop = m_Viewer.distortion.distortInv(tanf(m_Viewer.maxFOV.upper * Deg2Rad));
-			float fovRight = m_Viewer.distortion.distortInv(tanf(m_Viewer.maxFOV.inner * Deg2Rad));
-			float fovBottom = m_Viewer.distortion.distortInv(tanf(-m_Viewer.maxFOV.lower * Deg2Rad));
+			float fovLeft = m_Viewer.distortion.distortInv(tanf(Deg2Rad(-m_Viewer.maxFOV.outer)));
+			float fovTop = m_Viewer.distortion.distortInv(tanf(Deg2Rad(m_Viewer.maxFOV.upper)));
+			float fovRight = m_Viewer.distortion.distortInv(tanf(Deg2Rad(m_Viewer.maxFOV.inner)));
+			float fovBottom = m_Viewer.distortion.distortInv(tanf(Deg2Rad(-m_Viewer.maxFOV.lower)));
 			// Viewport size.
 			float halfWidth = m_Screen.width / 4;
 			float halfHeight = m_Screen.height / 2;
@@ -96,11 +112,19 @@ namespace Baofeng
 			float screenRight = (centerX + halfWidth) / centerZ;
 			float screenBottom = (centerY - halfHeight) / centerZ;
 			// Compare the two sets of tan-angles and take the value closer to zero on each side.
-			EyeVisibleTanAngles ret;
-			ret.m_fLeft = fmax(fovLeft, screenLeft);
-			ret.m_fTop = fmin(fovTop, screenTop);
-			ret.m_fRight = fmin(fovRight, screenRight);
-			ret.m_fBottom = fmax(fovBottom, screenBottom);
+			EyeVisibleTanAngles FovRect(fovLeft, fovTop, fovRight, fovBottom);
+			EyeVisibleTanAngles ScreenRect(screenLeft, screenTop, screenRight, screenBottom);
+
+			EyeVisibleTanAngles ret = ScreenRect & FovRect; 
+			// 			EyeVisibleTanAngles ret;
+// 			ret.m_fLeft = fmax(fovLeft, screenLeft);
+// 			ret.m_fTop = fmin(fovTop, screenTop);
+// 			ret.m_fRight = fmin(fovRight, screenRight);
+// 			ret.m_fBottom = fmax(fovBottom, screenBottom);
+
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "EyeNoLensTanAngles = " << ret.ToString() << " , FovRect = " << FovRect.ToString() << " , ScreenRect = " << ScreenRect.ToString());
+#endif
 			return ret;
 		}
 		Rectf GvrProfile::GetLeftEyeVisibleScreenRect(EyeVisibleTanAngles undistortedFrustum) const
@@ -239,6 +263,7 @@ namespace Baofeng
 			if (DDP.GetK1() < 0 || DDP.GetK2() < 0)
 				return false;
 			ReleaseBuffers();
+			MOJING_TRACE(g_APIlogger , "Using Parmate : " << DDP.GetCompanyName() << " :: " << DDP.GetViewerName());
 			/************************************************************************/
 			/* Viewer                                                                      */
 			/************************************************************************/
@@ -271,6 +296,7 @@ namespace Baofeng
 			m_Viewer.maxFOV.lower = DDP.GetBottomFOV();
 			m_Viewer.maxFOV.upper = DDP.GetTopFOV();
 
+
 			/************************************************************************/
 			/* Screen                                                               */
 			/************************************************************************/
@@ -280,16 +306,32 @@ namespace Baofeng
 			m_Screen.width = pDisplay->GetScreenWidthMeter();
 			m_Screen.height = pDisplay->GetScreenHeightMeter();
 
+#ifdef _DEBUG
+			m_Viewer.ApproximateInverse(1);
+			MOJING_TRACE(g_APIlogger, "R = 1 " << " , inverse =" << m_Viewer.inverse.ToString());
+#endif
+
+			EyeVisibleTanAngles LeftEyeNoLensTanAngles = GetLeftEyeNoLensTanAngles();
+			float R = GetMaxRadius(LeftEyeNoLensTanAngles);
+			m_Viewer.ApproximateInverse(R);
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "MaxR = " << R << " , inverse =" << m_Viewer.inverse.ToString());
+#endif
 			return true;
 		}
 #define CLAMP01(__V__) ((__V__) < 0 ?  0 : (__V__) > 1? 1 : (__V__)) 
 #define LERP(__FROM__ , __TO__ , __RATE__) ((__FROM__) * (1-__RATE__) + (__TO__) * (__RATE__))
 		int  GvrProfile::ComputeDistortionBuffer(const int iWidth /*= 32*/, const int iHeight /*= 32*/, bool bDistortVertices /*= true*/, Mesh_820 * pMesh /*= NULL*/)
 		{		
+			// 用户体验范围
 			EyeVisibleTanAngles lensFrustum =GetLeftEyeVisibleTanAngles();
+
+			// 不考虑畸变时，屏幕显示的范围。小于lensFrustum
 			EyeVisibleTanAngles noLensFrustum = GetLeftEyeNoLensTanAngles();
 			Rectf viewport = GetLeftEyeVisibleScreenRect(noLensFrustum);
-				
+#ifdef _DEBUG
+			MOJING_TRACE(g_APIlogger, "viewport[x,y,w,h] = " << viewport.x << " , " << viewport.y << " , " << viewport.w << " , " << viewport.h);
+#endif
 			ReAllocBuffers(iWidth, iHeight);
 			int halfwidth = iWidth / 2;
 			int halfheight = iHeight / 2;
@@ -346,10 +388,21 @@ namespace Baofeng
 							bOutOfBound = (XBound <= 0 || YBound <= 0 || XBound >= 1 || YBound >= 1);								
 						}
 						// Convert u,v to mesh screen coordinates.
+						// 程序执行到这里， u , v是tan值，需要转换为屏幕坐标。
+						// U = u * 
+
+
 						float aspect = m_Screen.width / m_Screen.height;
+#if 1
 						u = (viewport.x + u * viewport.w - 0.5f) * aspect;
-						v = viewport.y + v * viewport.h- 0.5f;
+#else
+						// 魔镜的上屏Mesh算法是不依赖于长宽比的。
+						u = (viewport.x + u * viewport.w - 0.5f)/* / aspect*/;
+						u *= 2; 
+#endif					
+						v = viewport.y + v * viewport.h - 0.5f;
 						// 整理取值范围
+						
 						v *= 2;
 						// Adjust s to account for left/right split in StereoScreen.
 // 						s = (s + e) / 2; 
@@ -461,8 +514,10 @@ namespace Baofeng
 				noLensFrustum[2] = w - noLensFrustum[2];
 				viewport.x = 1 - (viewport.x + viewport.w);
 			}
+
+			
 #ifdef _DEBUG
-			SaveDistortionBuffer("/sdcard/MojingSDK/log/DURL.txt");
+			SaveDistortionBuffer("/sdcard/MojingSDK/log/MeshDURL.txt");
 			SaveDDDDFile("/sdcard/MojingSDK/log/DDD2.dat");
 #endif
 			return iWidth * iHeight * 2;

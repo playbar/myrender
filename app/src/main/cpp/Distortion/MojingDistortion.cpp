@@ -18,6 +18,35 @@ namespace Baofeng
 	namespace Mojing
 	{
 		extern unsigned char g_EncKey[16];
+		EyeVisibleTanAngles::EyeVisibleTanAngles():
+			m_fLeft(0),
+			m_fTop(0),
+			m_fRight(0),
+			m_fBottom(0)
+		{
+
+		}
+		EyeVisibleTanAngles::EyeVisibleTanAngles(const float Left,
+							const float Top,
+							const float Right,
+							const float Bottom
+							):
+							m_fLeft(Left ),
+							m_fTop(Top ),
+							m_fRight(Right ),
+							m_fBottom(Bottom)
+		{
+
+		}
+		EyeVisibleTanAngles::EyeVisibleTanAngles(const EyeVisibleTanAngles& Other):
+			m_fLeft(Other.m_fLeft),
+			m_fTop(Other.m_fTop),
+			m_fRight(Other.m_fRight),
+			m_fBottom(Other.m_fBottom)
+		{
+
+		}
+
 		Distortion::Distortion()
 		{
 			SetMetersPerTanAngleAtCenter(0.037f);
@@ -177,16 +206,19 @@ namespace Baofeng
 #endif
 			// 注意 ：如果无畸变的小FOV镜片使用DURL会导致画变小。
 			// 所以，如果是无畸变的时候，不要用DURL来弄
+#if 0
 			if (GetSegment() && m_KG[20] > 1.01)
 			{
 				void *pRet = BuildDistortionBufferFromDURL(mesh_820, eyeBlocksWide, eyeBlocksHigh);
 				if (pRet)
 				{
-					MOJING_TRACE(g_APIlogger, "Using Distortion Buffer From DURL");
+#ifdef _DEBUG
+					MOJING_TRACE(g_APIlogger, "Using Distortion Buffer From DURL:" << m_szDURL);
+#endif
 					return pRet;
 				}
 			}
-
+#endif
 			/*全新流程，Mesh表只覆盖需要显示的区域*/
 			DistortionVertexBuffer* pUnrealVertex = BuildDistortionVertexBuffer(eyeBlocksWide, eyeBlocksHigh);
 			const int vertexCount = 2 * (eyeBlocksWide + 1) * (eyeBlocksHigh + 1);
@@ -382,9 +414,18 @@ namespace Baofeng
 			MOJING_FUNC_TRACE(g_APIlogger);
 			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1angc9JfT9VD0qEAAAMEIAADBCAAAsQgAALEJYATUpXA89OgjarPo9mpn5PlAAYAA";
 			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1angc9JfT9VD0qEAAAMEIAADBCAAAsQgAANEJYATUpXA89OgjarPo9mpn5PlAAYAA";
-			// m_szDURL = "CgzmmrTpo47prZTplZwSDeaatOmjjumtlOmVnDIdrkdhPSUlBoE9KhAAALhBAAC4QQAAuEEAALhBWAE1KVwPPToIAAAAAAAAAABQAGAA";// MJ2
-			// m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB2WQws9Jc3MTD0qEAAALEIAADRCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1ABYAA";
+			
+			// MJ2
+			// m_szDURL = "CgzmmrTpo47prZTplZwSDeaatOmjjumtlOmVnDIdrkdhPSUlBoE9KhAAALhBAAC4QQAAuEEAALhBWAE1KVwPPToIAAAAAAAAAABQAGAA";
+			
+			// Martix
+						
+//			m_szDURL = "CgzmmrTpo47prZTplZwSBk1hdHJpeB1wzgg9JS5WVD0qEAAAMEIAADBCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1AAYAA";
+			
 #endif
+			// 白日梦
+			m_szDURL = "CgzmmrTpo47prZTplZwSCeeZveaXpeaiph3sUTg9JSUGgT0qEAAAIEIAACBCAAAgQgAAIEJYADUpXA89OghSuJ4-AACAPlAAYAA";
+
 			GvrProfile GP;
 
 			if (!GP.InitFromDURL(m_szDURL))
@@ -443,7 +484,6 @@ namespace Baofeng
 			HMDI.lensSeparation = GetLensSeparation();
 			//////////////////////////////////////////////////////////////////////////////////
 			return BuildDistortionBuffer(HMDI, eyeBlocksWide, eyeBlocksHigh);
-
 		}
 
 		int Distortion::UNREAL_BuildDistortionMesh(int eyeBlocksWide /* = 40*/, int eyeBlocksHigh/* = 40*/, void* pVerts, void* pIndices)

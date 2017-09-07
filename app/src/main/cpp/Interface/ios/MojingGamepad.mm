@@ -494,4 +494,29 @@ static void  Log_OC(int logLevel, NSString* info, NSString* filename, int line)
         mjPad.isAutoScan = bAuto;
     }
 }
+
+- (CBCentralManager *)getMotionGamepadCentralManager
+{
+    if(mjPad)
+    {
+        return mjPad.centralManager;
+    }
+    return nil;
+}
+- (CBPeripheral *)getMotionGamepadPeripheral
+{
+    if(mjPad)
+    {
+        return mjPad.peripheral;
+    }
+    return nil;
+}
+- (NSDictionary *)getMotionGamepadDeviceInfoDic
+{
+    if(mjPad)
+    {
+        return [mjPad getDeviceInfoCharValueDictionary];
+    }
+    return nil;
+}
 @end

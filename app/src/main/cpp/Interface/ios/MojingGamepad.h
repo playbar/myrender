@@ -11,6 +11,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <CoreBluetooth/CoreBluetooth.h>
 #import "MojingKeyCode.h"
 
 @class MojingGamepad;
@@ -35,6 +36,11 @@ typedef void(^GamepadSensorDataChangedHandler)(NSString* peripheralName, AXIS_GA
 - (void)disconnect;                 //Disconnect mojing4
 - (void)setAutoScan:(BOOL)bAuto;    //set AutoScan or not
 /*++++++++++++++++++++++++++++++++++++++++*/
+
+/*+++ Only for MojingMotion +++++++++++++++++++*/
+- (CBCentralManager *)getMotionGamepadCentralManager;
+- (CBPeripheral *)getMotionGamepadPeripheral;
+- (NSDictionary *)getMotionGamepadDeviceInfoDic;
 
 + (instancetype)sharedGamepad;
 @end

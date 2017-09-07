@@ -19,6 +19,7 @@
 #import "MJGamepadDirectionPad.h"
 #import "MJGamepadThumbStick.h"
 #import "MJGamepadDirectionPad.h"
+#import "MJGamepadConst.h"
 
 /*
  * 解密
@@ -217,8 +218,9 @@ MJGamepadButtonType radianToButtonType(CGFloat radian)
     long m_LastStartScanTime;
     JoystickData_Mojing *m_pJoystick;
     
-    int m_discoverDevice;
     float m_joystickDistance;
+    
+    NSMutableArray *_deviceInfoServerArray;
 }
 
 - (void)startScanning:(CBCentralManager *)central;
@@ -317,8 +319,11 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         _thumbStick = [[MJGamepadThumbStick alloc] init];
         _vdpad = [[MJGamepadDirectionPad alloc] init];
         
+        _deviceInfoServerArray = [[NSMutableArray alloc]init];
+        
         m_pJoystick = new JoystickData_Mojing();
         m_nReconnectCount = 0;
+        _deviceInfoCharValueDictionary = [[NSMutableDictionary alloc]init];
     }
     
     return self;
@@ -849,7 +854,8 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         return;
     }
     
-    
+    self.peripheral = peripheral;
+    self.peripheral.delegate = self;
  
     //NSLog(@"didDiscoverPeripheral: %@", peripheral);
     //6字节旧版本（TI版本）协议名称废弃
@@ -859,33 +865,17 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         || [peripheral.name isEqualToString:@"mojing-motion"])
     {
         
-        NSLog(@"Discover peripheral name : %@ , state == %ld", peripheral.name , (long)peripheral.state);
-        /*
-        if (m_discoverDevice < 3)
-        {
-            float distance = [self calcDistByRSSI:RSSI.intValue];
-            if (m_joystickDistance == 0 || m_joystickDistance > distance)
-            {
-                m_joystickDistance = distance;
-                self.peripheral.delegate = self;
-                self.peripheral = peripheral;
-            }
-            m_discoverDevice++;
-            return;
-        }*/
+        NSLog(@"Discover peripheral name : %@ , state == %ld", self.peripheral.name , (long)self.peripheral.state);
         
-        if (peripheral.state == CBPeripheralStateDisconnected)
+        if (self.peripheral.state == CBPeripheralStateDisconnected)
         {
             float distance = [self calcDistByRSSI:RSSI.intValue];
             if (distance < 2)
             {
                 m_bConnecting = true;
-                self.peripheral.delegate = self;
-                self.peripheral = peripheral;
                 [central connectPeripheral:self.peripheral options:nil];
                 m_nReconnectCount = 0;
-                //m_joystickDistance = 0;
-                //m_discoverDevice = 0;
+                m_joystickDistance = 0;
             }
             
         }
@@ -932,6 +922,9 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
             }
         }
     }
+    
+    [_deviceInfoServerArray removeAllObjects];
+    [_deviceInfoCharValueDictionary removeAllObjects];
     
     self.peripheral = peripheral;
     [self updateStatus];
@@ -993,6 +986,10 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         NSLog(@"Error discovering characteristics: %@", [error localizedDescription]);
         return;
     }
+    if ([service.UUID isEqual:DEVICE_INFO_SERVICE_UUID] || [service.UUID isEqual:DEVICE_BETTERY_SERVICE_UUID])
+    {
+        [_deviceInfoServerArray addObjectsFromArray:service.characteristics];
+    }
     
     for (CBCharacteristic *characteristic in service.characteristics)
     {
@@ -1041,6 +1038,7 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     }
 }
 
+
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
     if (error)
@@ -1049,11 +1047,14 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
         return;
     }
     
+    
     //NSLog(@"UUID: %@, value: %@", characteristic.UUID, characteristic.value);
     
     NSData *valueData = characteristic.value; //数据
     NSUInteger valueLength = valueData.length; //数据长度
     UInt8 *raw_data = (UInt8 *)[valueData bytes]; //原始数据
+    
+    
 
     //*
     NSString *uuidString = nil;
@@ -1242,4 +1243,153 @@ CWL_SYNTHESIZE_SINGLETON_FOR_CLASS(MJGamepad)
     }
 }
 
+- (NSDictionary *)getDeviceInfoCharValueDictionary
+{
+    for (CBCharacteristic *characteristic in _deviceInfoServerArray)
+    {
+        NSData *valueData = characteristic.value;
+        
+        if ([characteristic.UUID isEqual:DEVICE_MANUFACTURER_NAME_CHARACTERISTIC_UUID])
+        {
+            NSString *manufactureName = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (manufactureName != nil && manufactureName.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:manufactureName forKey:MANUFACTURER_NAME];
+            }
+        }
+        /* Read the model number that is assigned by the device vendor from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_MODEL_NUMBER_CHARACTERISTIC_UUID])
+        {
+            NSString *modelNumberString = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (modelNumberString != nil && modelNumberString.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:modelNumberString forKey:MODEL_NUMBER];
+            }
+        }
+        /* Read the serial number for a particular instance of the device from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_SERIAL_NUMBER_CHARACTERISTIC_UUID])
+        {
+            NSString *serialNumberString = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (serialNumberString != nil && serialNumberString.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:serialNumberString forKey:SERIAL_NUMBER];
+            }
+        }
+        /* Read the hardware revision for the hardware within the device from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_HARDWARE_REVISION_CHARACTERISTIC_UUID])
+        {
+            NSString *hardwareRevisionString = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (hardwareRevisionString != nil && hardwareRevisionString.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:hardwareRevisionString forKey:HARDWARE_REVISION];
+            }
+        }
+        else if ([characteristic.UUID isEqual:DEVICE_FIRMWARE_REVISION_CHARACTERISTIC_UUID])
+        {
+            NSString *firmwareRevisionString = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (firmwareRevisionString != nil && firmwareRevisionString.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:firmwareRevisionString forKey:FIRMWARE_REVISION];
+            }
+        }
+        /* Read the software revision for the software within the device from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_SOFTWARE_REVISION_CHARACTERISTIC_UUID])
+        {
+            
+            NSString *softwareRevisionString = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (softwareRevisionString != nil && softwareRevisionString.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:softwareRevisionString forKey:SOFTWARE_REVISION];
+            }
+        }
+        /* Read a structure containing an Organizationally Unique Identifier (OUI) followed by a manufacturer-defined identifier and is unique for each individual instance of the product from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_SYSTEMID_CHARACTERISTIC_UUID])
+        {
+            
+            //            NSString *systemID = [NSString stringWithFormat:@"%@",characteristic.value];
+            NSString *systemID = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            if (systemID != nil && systemID.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:systemID forKey:SYSTEM_ID];
+            }
+            
+        }
+        /* Read the regulatory and certification information for the product in a list defined in IEEE 11073-20601 from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_CERTIFICATION_DATALIST_CHARACTERISTIC_UUID])
+        {
+            
+            //            NSString *certificationDataList = [NSString stringWithFormat:@"%@",valueData];
+            NSString *certificationDataList = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (certificationDataList != nil && certificationDataList.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:certificationDataList forKey:REGULATORY_CERTIFICATION_DATA_LIST];
+            }
+        }
+        /* Read a set of values used to create a device ID value that is unique for this device from characteristic
+         */
+        else if ([characteristic.UUID isEqual:DEVICE_PNPID_CHARACTERISTIC_UUID])
+        {
+            
+            //            NSString *pnpID = [NSString stringWithFormat:@"%@",characteristic.value];
+            NSString *pnpID = [[NSString alloc] initWithData:valueData encoding:NSUTF8StringEncoding];
+            
+            if (pnpID != nil && pnpID.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:pnpID forKey:PNP_ID];
+                
+            }
+        }
+        else if ([characteristic.UUID isEqual:DEVICE_BETTERY_CHARACTERISTIC_UUID])
+        {
+            
+            //            NSString *pnpID = [NSString stringWithFormat:@"%@",characteristic.value];
+            int betterValue;
+            [valueData getBytes: &betterValue length: sizeof(betterValue)];
+            
+            NSString *betteryString = [NSString stringWithFormat:@"%d",betterValue];
+            if (betteryString != nil && betteryString.length > 0)
+            {
+                [_deviceInfoCharValueDictionary setObject:betteryString forKey:BETTERY_VALUE];
+            }
+        }
+    }
+    
+    return [NSDictionary dictionaryWithDictionary:_deviceInfoCharValueDictionary];
+}
+- (NSString *)representativeString:(NSData *)data;
+{
+    //NSData *data = UUID.data;
+    
+    NSUInteger bytesToConvert = [data length];
+    const unsigned char *uuidBytes = (unsigned char *)[data bytes];
+    NSMutableString *outputString = [NSMutableString stringWithCapacity:16];
+    
+    for (NSUInteger currentByteIndex = 0; currentByteIndex < bytesToConvert; currentByteIndex++)
+    {
+        switch (currentByteIndex)
+        {
+            case 3:
+            case 5:
+            case 7:
+            case 9:[outputString appendFormat:@"%02x-", uuidBytes[currentByteIndex]]; break;
+            default:[outputString appendFormat:@"%02x", uuidBytes[currentByteIndex]];
+        }
+        
+    }
+    
+    return outputString;
+}
 @end

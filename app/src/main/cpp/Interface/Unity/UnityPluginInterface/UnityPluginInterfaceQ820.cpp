@@ -153,7 +153,9 @@ namespace Baofeng
 			/******************************************************************************/
 			/* 注意：因为我们的畸变效果与DayDream游戏还有差异，所以这里使用特殊的参数设置*/
 			/******************************************************************************/
-			pDistortion->SetDURL("CgzmmrTpo47prZTplZwSBk1hdHJpeB2WQws9Jc3MTD0qEAAALEIAADRCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1ABYAA");
+//		  CgzmmrTpo47prZTplZwSBk1hdHJpeB2WQws9Jc3MTD0qEAAALEIAADRCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1ABYAA
+//		  CgzmmrTpo47prZTplZwSBk1hdHJpeB1wzgg9JS5WVD0qEAAAMEIAADBCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1AAYAA
+			//			pDistortion->SetDURL("CgzmmrTpo47prZTplZwSBk1hdHJpeB1wzgg9JS5WVD0qEAAAMEIAADBCAAAsQgAANEJYATUpXA89OgjNzEw9ZmYmP1AAYAA");
 			void* vbuffer = pDistortion->BuildDistortionBuffer_V2(warpMesh, 32, 32);
 			float* pVertexLeft = &(warpMesh.vertices_left[0]);
 			float* pVertexRight = &(warpMesh.vertices_right[0]);

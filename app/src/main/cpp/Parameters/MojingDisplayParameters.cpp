@@ -2,7 +2,16 @@
 #include "../Base/MojingTypes.h"
 #include "../MojingManager.h" 
 #include "../Parameters/MojingParameters.h"
+#ifdef LOG4CPLUS_IMPORT
+#include "../3rdPart/log4cplus/LogInterface.h"
+#else
+#include "../LogTraker/LogInterface.h"
+#endif
 
+
+#ifdef ENABLE_LOGGER
+extern MojingLogger g_APIlogger;
+#endif
 namespace Baofeng
 {
 	namespace Mojing
@@ -28,6 +37,7 @@ namespace Baofeng
 			{
 				fUserSettingPPI = pUserSettingProfile->GetUserScreenSizePPI();
 				SetUserPPI(fUserSettingPPI);
+				MOJING_TRACE(g_APIlogger, "Using User PPI = " << fUserSettingPPI);
 				return true;
 			}
 			else
