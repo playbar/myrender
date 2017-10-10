@@ -19,6 +19,8 @@
 #include "../../LogTraker/LogInterface.h"
 #endif
 
+//#define HOOK_DEBUG
+
 #ifdef ENABLE_LOGGER
 extern MojingLogger g_APIlogger;
 #endif
@@ -91,7 +93,7 @@ bool HookGVRTools::Init()
 
 			MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
 
-			if (DEVICE_ABILITY_SVR & pDeviceParameters->GetAbility())
+			if (DEVICE_ABILITY_SVR & pDeviceParameters->GetAbility() && (pDeviceParameters->GetCurrentMachine().m_iID == 2))
 			{
 #if USING_SVR_SENSOR
 				MOJING_TRACE(g_APIlogger, "DEVICE_ABILITY_SVR...");
@@ -137,7 +139,7 @@ bool HookGVRTools::Init()
 bool HookGVRTools::LoadGVR()
 {
 	MOJING_FUNC_TRACE(g_APIlogger); 
-	if (m_hGVR == nullptr)
+	if (m_hGVR == NULL)
 	{
 		m_hGVR = dlopen("libgvr.so", RTLD_LAZY);
 	}
@@ -188,7 +190,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 #else
 gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time)
 {
-#ifdef _DEBUG
+#ifdef HOOK_DEBUG
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
 	gvr_mat4f Ret;
@@ -268,7 +270,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		{
 			bool bIsMJ5 = MojingSDK_IsHDMWorking();
 			bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
-	#ifdef _DEBUG
+	#ifdef HOOK_DEBUG
 			MOJING_TRACE(g_APIlogger, "HOOK_gvr_get_head_space_from_start_space_rotation IsMJ5: " << bIsMJ5 << " SensorDataFromMJSDK: " << bSensorDataFromMJSDK);
 	#endif
 			if (bIsMJ5 || bSensorDataFromMJSDK)

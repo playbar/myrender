@@ -268,7 +268,7 @@ extern "C" {
 	JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDKPrivate_DistortionResetParamet(JNIEnv *, jclass) {return false;};
 #endif
 
-JNIEXPORT void JNICALL Java_com_google_vr_ndk_base_GvrLayout_initHook(JNIEnv* env, jobject obj);
+
 	
 
 #ifdef __cplusplus

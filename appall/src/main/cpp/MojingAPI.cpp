@@ -1,5 +1,6 @@
 ﻿#include <dirent.h>
 #include <unistd.h>
+#include <Hook/eglhook/elf_eglhook.h>
 #include "MojingAPI.h"
 #include "Base/MojingTypes.h"
 #include "MojingManager.h"
@@ -188,10 +189,11 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 		pStatus->SetInitStatus(INIT_DONE);
 		pStatus->SetApp(szAppName);
 
-//#ifdef MJ_OS_ANDROID
-//		// 注意： 因为下面的代码会开辟很多的线程，有可能会导致下HOOK的时候卡死
-//		HookGVRTools::Init();
-//#endif // MJ_OS_ANDROID
+#ifdef MJ_OS_ANDROID
+		// 注意： 因为下面的代码会开辟很多的线程，有可能会导致下HOOK的时候卡死
+		HookGVRTools::Init();
+		hookEglGetProcAddress();
+#endif // MJ_OS_ANDROID
 
 		//if (strcmp(szAppID, "UNKNOWN") != 0)
 		{
@@ -1167,9 +1169,9 @@ double MojingSDK_getLastSensorState(float* fArray)
 uint64_t MojingSDK_getLastHeadView(float* pfViewMatrix)
 {
 	ENTER_MINIDUMP_FUNCTION;
-// #ifdef _DEBUG
-// 	MOJING_FUNC_TRACE(g_APIlogger);
-// #endif
+//#ifdef _DEBUG
+//	MOJING_FUNC_TRACE(g_APIlogger);
+//#endif
 	uint64_t Ret = 0;
 	
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
@@ -1352,7 +1354,7 @@ bool MojingSDK_EnterMojingWorld(const char * szGlassesName, bool bEnableMultiThr
 	bool bIsUnreal = (pStatus->GetEngineStatus() == ENGINE_UNREAL);
 	bool bIsGear = (pStatus->GetEngineStatus() == ENGINE_GEAR);
 	bool bIsUnityWithQ820 = ((pStatus->GetEngineStatus() == ENGINE_UNITY) &&
-		// pDeviceParameters->GetCurrentMachine().m_iID == 2
+		(pDeviceParameters->GetCurrentMachine().m_iID == 2) &&
 		(pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR) != 0);
 
 	if (!bIsUnreal && !bIsUnityWithQ820 && !bIsGear)
@@ -1735,7 +1737,7 @@ bool MojingSDK_IsUseUnityForSVR()
         MOJING_TRACE(g_APIlogger, "MojingSDK_IsUseUnityForSVR: get DeviceParameters failed.");
         return false;
 	}
-	if (pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR)
+	if (pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR && (pDeviceParameters->GetCurrentMachine().m_iID == 2))
 	{
 	MOJING_TRACE(g_APIlogger, "Run in SVR device...");
 	return true;

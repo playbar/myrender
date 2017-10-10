@@ -54,7 +54,14 @@ public class MojingVrActivity extends Activity {
 			}
 			else 
 			{
-			   MojingSDKServiceManager.onPause(this);
+				if(MojingSDK.IsVrServiceDisabled())
+				{
+					MojingSDK.StopTracker();
+				}
+				else
+				{
+					MojingSDKServiceManager.onPause(this);
+				}
 			}
 		}
 		MojingSDKReport.onPause(this);
@@ -74,7 +81,14 @@ public class MojingVrActivity extends Activity {
             }
             else 
 			{
-                MojingSDKServiceManager.onResume(this);
+				if(MojingSDK.IsVrServiceDisabled())
+				{
+					MojingSDK.StartTracker(100);
+				}
+				else
+				{
+					MojingSDKServiceManager.onResume(this);
+				}
             }
       	}
 		com.baofeng.mojing.MojingVrLib.startVsync(this);

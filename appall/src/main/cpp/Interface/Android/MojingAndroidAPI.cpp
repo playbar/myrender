@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <android/native_window_jni.h>	// for native window JNI
 #include <sys/system_properties.h>
-#include <Hook/HookGVR/HookGVRTools.h>
 
 //#include <android/log.h>
 
@@ -1307,11 +1306,6 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDKPrivate_FuncTest(JNIEnv 
 		//CrashReporter *pReport = CrashReporter::GetCrashReporter(szUploadFile);
 		//pReport->DoReport();
 	}
-}
-
-JNIEXPORT void JNICALL Java_com_google_vr_ndk_base_GvrLayout_initHook(JNIEnv* env, jobject obj)
-{
-	HookGVRTools::Init();
 }
 
 /************************************************************************/
