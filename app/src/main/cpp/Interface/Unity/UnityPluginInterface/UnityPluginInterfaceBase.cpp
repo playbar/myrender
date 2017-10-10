@@ -184,7 +184,7 @@ namespace Baofeng
 				MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
 				MachineListNode CurrentMachineType = pDeviceParameters->GetCurrentMachine();
 
-				if (pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR)
+				if (pDeviceParameters->GetAbility() & DEVICE_ABILITY_SVR && (pDeviceParameters->GetCurrentMachine().m_iID == 2))
 				{
 					MOJING_TRACE(g_APIlogger, "Create UnityPluginInterfaceQ820");
 					g_pUnityPlugin = new UnityPluginInterfaceQ820;
