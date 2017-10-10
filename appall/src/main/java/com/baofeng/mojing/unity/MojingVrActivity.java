@@ -19,7 +19,7 @@ import android.view.View.OnGenericMotionListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.View.OnTouchListener;
-import com.baofeng.mojing.MojingSDK;
+
 import com.baofeng.mojing.MojingSDKReport;
 import com.baofeng.mojing.MojingSDKServiceManager;
 import com.baofeng.mojing.MojingSurfaceView;
@@ -31,6 +31,7 @@ import com.baofeng.mojing.unity.inputinterface.InputListenerCallBack;
 import com.unity3d.player.UnityPlayer;
 import com.zeemote.zc.ZeemoteActivityManager;
 import java.io.File;
+import com.baofeng.mojing.MojingSDK;
 
 public class MojingVrActivity extends Activity implements MojingInputCallback {
     private static final String TAG = MojingVrActivity.class.getSimpleName();

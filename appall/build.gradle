@@ -5,7 +5,7 @@ android {
     buildToolsVersion = '25.0.0'
 
     defaultConfig {
-        applicationId = 'com.mojing.DDDemo5503'
+        applicationId = 'com.bn.mojing.MojingSDKDemo'
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
@@ -52,8 +52,8 @@ dependencies {
     compile files('libs/ZControllerLib-android-1.9.2.jar')
     compile files('libs/ZControllerLib-android-ui-1.9.2.jar')
     compile files('libs/ZControllerLib-common-1.9.2.jar')
-    compile files('libs/gvr.jar')
-    compile files('libs/unitygvr.jar')
+//    compile files('libs/gvr.jar')
+//    compile files('libs/unitygvr.jar')
 
     compile(name: 'gvr', ext:'aar')
     compile(name: 'unitygvr', ext:'aar')
