@@ -1,6 +1,5 @@
 package com.mojing.DDDemo5503;
 
-import com.google.vr.ndk.base.GvrApi;
 import com.unity3d.player.*;
 import android.app.Activity;
 import android.content.Intent;

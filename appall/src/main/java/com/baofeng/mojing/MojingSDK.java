@@ -60,7 +60,6 @@ public class MojingSDK
     }
 
 	public static native int GetSystemIntProperty(String property, int defaultValue);
-	private static boolean m_bVrServiceDisabled = false;
 	// FOR HOOK DD
 	//private static native boolean hookGvrInit();
 	private static boolean m_inited = false;
@@ -451,16 +450,6 @@ public class MojingSDK
 			g_DeviceTimer.cancel();		
 
 		g_DeviceTimer = null;
-	}
-
-	public static void onDisableVrService(boolean bDisabled)
-	{
-		m_bVrServiceDisabled = bDisabled;
-	}
-
-	public static boolean IsVrServiceDisabled()
-	{
-		return m_bVrServiceDisabled;
 	}
 
 	public static boolean IsSensorFromJava()
