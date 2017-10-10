@@ -77,6 +77,10 @@ add_library(mojing SHARED
             Hook/Global/instruction.cpp
             Hook/Global/HookBase.cpp
             Hook/HookGVR/HookGVRTools.cpp
+            Hook/eglhook/elf_common.cpp
+            Hook/eglhook/elf_hooker.cpp
+            Hook/eglhook/elf_eglhook.cpp
+            Hook/eglhook/elf_module.cpp
             Interface/Android/MojingAndroidAPI.cpp
 			Interface/Android/MojingNativeInput.cpp
 			Interface/Unreal/MojingUnrealAPI.cpp
