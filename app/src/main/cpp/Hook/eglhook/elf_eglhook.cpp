@@ -46,7 +46,7 @@ EGLClientBuffer mjeglCreateNativeClientBufferANDROID (const EGLint *attrib_list)
 EGLAPI __eglMustCastToProperFunctionPointerType (*old_eglGetProcAddress)(const char *procname) = NULL;
 EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char *procname)
 {
-
+    LOGE("mj_eglGetProcAddress");
     __eglMustCastToProperFunctionPointerType pfun = old_eglGetProcAddress(procname);
 
     if(strcmp(procname, "eglCreateImageKHR") == 0)
