@@ -189,11 +189,11 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 		pStatus->SetInitStatus(INIT_DONE);
 		pStatus->SetApp(szAppName);
 
-#ifdef MJ_OS_ANDROID
-		// 注意： 因为下面的代码会开辟很多的线程，有可能会导致下HOOK的时候卡死
-		HookGVRTools::Init();
-		hookEglGetProcAddress();
-#endif // MJ_OS_ANDROID
+//#ifdef MJ_OS_ANDROID
+//		// 注意： 因为下面的代码会开辟很多的线程，有可能会导致下HOOK的时候卡死
+//		HookGVRTools::Init();
+//		hookEglGetProcAddress();
+//#endif // MJ_OS_ANDROID
 
 		//if (strcmp(szAppID, "UNKNOWN") != 0)
 		{

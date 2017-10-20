@@ -498,18 +498,18 @@ enum detour_status inlineHook( uint32_t target_addr )
     if ( item->status == REGISTERED )
     {
 		pid_t pid;
-#ifdef _DEBUG
-		MOJING_TRACE(g_APIlogger, "freeze ..."); 
-#endif
-		pid = freeze(item, ACTION_ENABLE);
-#ifdef _DEBUG
-		MOJING_TRACE(g_APIlogger, "doInlineHook ...");
-#endif
+//#ifdef _DEBUG
+//		MOJING_TRACE(g_APIlogger, "freeze ...");
+//#endif
+//		pid = freeze(item, ACTION_ENABLE);
+//#ifdef _DEBUG
+//		MOJING_TRACE(g_APIlogger, "doInlineHook ...");
+//#endif
         doInlineHook( item );
-#ifdef _DEBUG
-		MOJING_TRACE(g_APIlogger, "unFreeze ...");
-#endif
-        unFreeze( pid );
+//#ifdef _DEBUG
+//		MOJING_TRACE(g_APIlogger, "unFreeze ...");
+//#endif
+//        unFreeze( pid );
 
         return DETOUR_OK;
     }

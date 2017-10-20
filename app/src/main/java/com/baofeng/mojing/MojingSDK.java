@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.Timer;
@@ -17,7 +18,9 @@ import android.R.bool;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Build;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.view.InputDevice;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -672,8 +675,9 @@ public class MojingSDK
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////
-	public static native void FuncTest();
 	private static native void Log(int logLevel, String sInfo, String sFileName, int line);
+
+	public static native void hookFun();
 
 	private static void Log(int logLevel, String sInfo)
 	{
@@ -705,4 +709,47 @@ public class MojingSDK
 	  {
 		Log(0, sInfo);
 	  }
+
+	public static void setsDaydreamPhoneOverrideForTesting() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			try {
+				Class cls = Class.forName("com.google.vr.ndk.base.DaydreamUtils");
+				Field f = cls.getDeclaredField("sDaydreamPhoneOverrideForTesting");
+				f.setAccessible(true);
+				f.set(null, true);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (NoSuchFieldException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+
+	public static void setsFingerprint() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			try {
+				Class cls = Class.forName("android.os.Build");
+				Field f = cls.getDeclaredField("FINGERPRINT");
+				f.setAccessible(true);
+				String fingerPrint = (String) f.get(null);
+				if (!TextUtils.isEmpty(fingerPrint)) {
+					if (!fingerPrint.endsWith("dev-keys")) {
+						String end = fingerPrint.substring(fingerPrint.length() - 8);
+						String newFingerPrint = fingerPrint.replace(end, "dev-keys");
+						f.set(null, newFingerPrint);
+					}
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (NoSuchFieldException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 }

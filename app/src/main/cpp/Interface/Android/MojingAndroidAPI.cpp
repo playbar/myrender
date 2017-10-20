@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <android/native_window_jni.h>	// for native window JNI
 #include <sys/system_properties.h>
+#include <Hook/HookGVR/HookGVRTools.h>
+#include <Hook/eglhook/elf_eglhook.h>
 
 //#include <android/log.h>
 
@@ -153,6 +155,12 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 		jEnv->ReleaseStringUTFChars(sFileName, jFileName);
 	}
 #endif
+}
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookFun(JNIEnv *jEnv, jclass)
+{
+    HookGVRTools::Init();
+    hookEglGetProcAddress();
 }
 
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, jclass jClass, jstring merchantID, jstring appID, jstring appKey, jstring appName, jstring packageName,

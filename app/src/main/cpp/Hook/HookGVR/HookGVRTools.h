@@ -33,6 +33,9 @@ typedef const char *(*FP_gvr_get_viewer_vendor)(const gvr_context *gvr);
 #define FN_gvr_get_version_string "gvr_get_version_string"
 typedef const char * (*FP_gvr_get_version_string)();
 
+#define FN_gvr_on_surface_created_reprojection_thread "gvr_on_surface_created_reprojection_thread"
+typedef int (*FP_gvr_on_surface_created_reprojection_thread)(const gvr_context *gvr);
+
 #define FN_gvr_frame_submit "gvr_frame_submit"
 struct gvr_frame;
 struct gvr_buffer_viewport_list;
@@ -55,6 +58,7 @@ private:
 	static bool LoadGVR();
 	static gvr_mat4f HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time);
 	static void HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space);
+	static int HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr);
 
 	static void HOOK_gvr_reset_tracking(gvr_context *gvr); // Deprecated
 	static void HOOK_gvr_recenter_tracking(gvr_context *gvr);
@@ -67,6 +71,8 @@ private:
 	static FP_gvr_get_viewer_model m_fp_gvr_get_viewer_model;
 	static FP_gvr_get_viewer_vendor m_fp_gvr_get_viewer_vendor;
 	static FP_gvr_get_version_string m_fp_gvr_get_version_string;
+	static FP_gvr_on_surface_created_reprojection_thread m_fp_gvr_on_surface_created_reprojection_thread;
+
 };
 extern bool g_bEnableDDTracker;
 extern float g_fDDHeaderView[16];

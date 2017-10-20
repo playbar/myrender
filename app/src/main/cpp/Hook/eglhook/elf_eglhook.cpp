@@ -15,6 +15,10 @@
 
 static elf_hooker __hooker;
 
+static int gismaligpu = false;
+int greprojectiontid = 0;
+static int swapbuffer = 0;
+
 typedef EGLImageKHR (*FP_eglCreateImageKHR)(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
 FP_eglCreateImageKHR pfun_eglCreateImageKHR = NULL;
 EGLImageKHR mjeglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
@@ -42,11 +46,31 @@ EGLClientBuffer mjeglCreateNativeClientBufferANDROID (const EGLint *attrib_list)
 }
 
 
+EGLBoolean (*old_eglSwapBuffers)(EGLDisplay dpy, EGLSurface surface) = NULL;
+EGLBoolean mj_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
+{
+    EGLBoolean re = true;
+//    eglMakeCurrent(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), eglGetCurrentSurface(EGL_READ), eglGetCurrentContext());
+    if( gismaligpu && greprojectiontid == gettid())
+    {
+        glFinish();
+    }else{
+        re = old_eglSwapBuffers(dpy, surface);
+    }
+    return re;
+}
+
+
 //typedef void (*__eglMustCastToProperFunctionPointerType)(void);
 EGLAPI __eglMustCastToProperFunctionPointerType (*old_eglGetProcAddress)(const char *procname) = NULL;
 EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char *procname)
 {
+
     LOGE("mj_eglGetProcAddress");
+    const char *glrender = (const char *)glGetString(GL_RENDERER);
+    if(glrender && strstr(glrender, "Mali") != NULL ){
+        gismaligpu = true;
+    }
     __eglMustCastToProperFunctionPointerType pfun = old_eglGetProcAddress(procname);
 
     if(strcmp(procname, "eglCreateImageKHR") == 0)
@@ -64,13 +88,52 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     return pfun;
 }
 
+void (*old_glViewport)(GLint x, GLint y, GLsizei width, GLsizei height) = NULL;
+void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
+{
+//    if( rendertid != gettid())
+//    {
+//        glFinish();
+//    }
+    if( gismaligpu && greprojectiontid == gettid() && x == 0 )
+    {
+        swapbuffer = 1;
+    }
+    return old_glViewport(x, y, width, height);
+
+}
+
+
+void (*old_glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices) = NULL;
+void mj_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices)
+{
+    old_glDrawElements(mode, count, type, indices);
+
+    static int scount = 0;
+    if( swapbuffer)
+    {
+        ++scount;
+        if(scount == 2 )
+        {
+            old_eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
+            swapbuffer = 0;
+            scount = 0;
+        }
+    }
+    return;
+}
+
 
 void hookEglGetProcAddress()
 {
     LOGE("hookEglGetProcAddress");
     __hooker.phrase_proc_maps();
     __hooker.dump_module_list();
+
+    __hooker.hook_module("libandroid_runtime.so", "eglSwapBuffers", (void *) mj_eglSwapBuffers, (void **) &old_eglSwapBuffers);
     __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void*)mj_eglGetProcAddress, (void**)&old_eglGetProcAddress);
+    __hooker.hook_module("libgvr.so", "glViewport", (void*)mj_glViewport, (void**)&old_glViewport);
+    __hooker.hook_module("libgvr.so", "glDrawElements", (void*)mj_glDrawElements, (void**)&old_glDrawElements);
 }
 
 

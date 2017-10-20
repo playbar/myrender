@@ -19,6 +19,7 @@ import android.os.Message;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
+import com.baofeng.mojing.MojingSDK;
 
 public class MojingActivity extends MojingVrActivity{
 	static final int SEND_SMS_REQUEST = 0; 
@@ -107,9 +108,20 @@ public class MojingActivity extends MojingVrActivity{
         float ratio = (float)Math.tan(Math.toRadians(fov));
         MatrixState.setProjectFrustum(-ratio, ratio, -ratio, ratio, 1.f, 800);
 	}
+
+	static
+	{
+		System.loadLibrary("mojing");
+	}
 	
     @Override protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+		MojingSDK.Init(this);
+		MojingSDK.hookFun();
+		MojingSDK.setsDaydreamPhoneOverrideForTesting();
+		MojingSDK.setsFingerprint();
+		String strver = MojingSDK.GetSDKVersion();
+        boolean b = MojingSDK.IsInMachine();
         mView = super.getSurfaceView();
         
         mGLMsgHandler = new GLMsgHandler(this);
