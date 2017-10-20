@@ -67,12 +67,12 @@ bool HookGVRTools::Init()
 	bool bRet = false;
 	if (LoadGVR())
 	{
-		HookParamet HP[5];
+		HookParamet HP[4];
 		HOOK_PARAMET(HP[0], gvr_get_head_space_from_start_space_rotation);
 		HOOK_PARAMET(HP[1], gvr_reset_tracking);
 		HOOK_PARAMET(HP[2], gvr_recenter_tracking);
 		HOOK_PARAMET(HP[3], gvr_frame_submit);
-		HOOK_PARAMET(HP[4], gvr_on_surface_created_reprojection_thread);
+//		HOOK_PARAMET(HP[4], gvr_on_surface_created_reprojection_thread);
 
 		if (HookBase::HookToFunctions(m_hGVR, HP, 4) &&
 			// get function with out hook
@@ -85,7 +85,7 @@ bool HookGVRTools::Init()
 			m_fp_gvr_reset_tracking = (FP_gvr_reset_tracking)HP[1].fpRealFunction;
 			m_fp_gvr_recenter_tracking = (FP_gvr_recenter_tracking)HP[2].fpRealFunction;
 			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
-			m_fp_gvr_on_surface_created_reprojection_thread = (FP_gvr_on_surface_created_reprojection_thread)HP[4].fpRealFunction;
+//			m_fp_gvr_on_surface_created_reprojection_thread = (FP_gvr_on_surface_created_reprojection_thread)HP[4].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
 			sEngenVersion += m_fp_gvr_get_version_string();
@@ -358,7 +358,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 
 void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space)
 {
-    LOGE("HOOK_gvr_frame_submit");
+    LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
 	if (m_fp_gvr_frame_submit)
 	{
 		m_fp_gvr_frame_submit(frame, list, head_space_from_start_space);
@@ -382,10 +382,10 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 extern int greprojectiontid;
 int HookGVRTools::HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr)
 {
+    LOGE("HOOK_gvr_on_surface_created_reprojection_thread");
 	int re = 0;
 	if(m_fp_gvr_on_surface_created_reprojection_thread)
 		re = m_fp_gvr_on_surface_created_reprojection_thread(gvr);
-	greprojectiontid = gettid();
 	return re;
 }
 
