@@ -16,7 +16,7 @@
 static elf_hooker __hooker;
 
 static int gismaligpu = false;
-static int swapbuffer = 0;
+int needswapbuffer = 0;
 
 typedef EGLImageKHR (*FP_eglCreateImageKHR)(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
 FP_eglCreateImageKHR pfun_eglCreateImageKHR = NULL;
@@ -54,6 +54,7 @@ EGLBoolean mj_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     if( gismaligpu )
     {
         glFinish();
+        needswapbuffer = 1;
     }else{
         re = old_eglSwapBuffers(dpy, surface);
     }
@@ -65,10 +66,6 @@ Fn_glViewport old_glViewport = NULL;
 void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 {
     LOGE("mj_glViewport, x=%d, tid=%d", x, gettid());
-    if( gismaligpu && x == 0 )
-    {
-        swapbuffer = 1;
-    }
     return old_glViewport(x, y, width, height);
 
 }
@@ -80,13 +77,12 @@ void mj_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *in
 {
     LOGE("mj_glDrawElements, tid=%d", gettid());
     old_glDrawElements(mode, count, type, indices);
-    if( swapbuffer)
+    if( needswapbuffer)
     {
         glFinish();
-        swapbuffer = 0;
         old_eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
         LOGE("mj_glDrawElements, old_eglSwapBuffers, tid=%d", gettid());
-        swapbuffer = 0;
+        needswapbuffer = 0;
     }
     return;
 }

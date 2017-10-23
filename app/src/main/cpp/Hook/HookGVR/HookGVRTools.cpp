@@ -48,6 +48,7 @@ FP_gvr_get_viewer_model HookGVRTools::m_fp_gvr_get_viewer_model = NULL;
 FP_gvr_get_viewer_vendor HookGVRTools::m_fp_gvr_get_viewer_vendor = NULL;
 FP_gvr_get_version_string HookGVRTools::m_fp_gvr_get_version_string = NULL;
 FP_gvr_on_surface_created_reprojection_thread HookGVRTools::m_fp_gvr_on_surface_created_reprojection_thread = NULL;
+FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
 
 extern String ParseGlassKey(String sJson);
 HookGVRTools::HookGVRTools()
@@ -67,11 +68,12 @@ bool HookGVRTools::Init()
 	bool bRet = false;
 	if (LoadGVR())
 	{
-		HookParamet HP[4];
+		HookParamet HP[5];
 		HOOK_PARAMET(HP[0], gvr_get_head_space_from_start_space_rotation);
 		HOOK_PARAMET(HP[1], gvr_reset_tracking);
 		HOOK_PARAMET(HP[2], gvr_recenter_tracking);
 		HOOK_PARAMET(HP[3], gvr_frame_submit);
+        HOOK_PARAMET(HP[4], gvr_render_reprojection_thread);
 //		HOOK_PARAMET(HP[4], gvr_on_surface_created_reprojection_thread);
 
 		if (HookBase::HookToFunctions(m_hGVR, HP, 4) &&
@@ -85,6 +87,7 @@ bool HookGVRTools::Init()
 			m_fp_gvr_reset_tracking = (FP_gvr_reset_tracking)HP[1].fpRealFunction;
 			m_fp_gvr_recenter_tracking = (FP_gvr_recenter_tracking)HP[2].fpRealFunction;
 			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
+            m_fp_gvr_render_reprojection_thread = (FP_gvr_render_reprojection_thread)HP[4].fpRealFunction;
 //			m_fp_gvr_on_surface_created_reprojection_thread = (FP_gvr_on_surface_created_reprojection_thread)HP[4].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
@@ -379,7 +382,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 
 }
 
-extern int greprojectiontid;
+
 int HookGVRTools::HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr)
 {
     LOGE("HOOK_gvr_on_surface_created_reprojection_thread");
@@ -387,6 +390,18 @@ int HookGVRTools::HOOK_gvr_on_surface_created_reprojection_thread(const gvr_cont
 	if(m_fp_gvr_on_surface_created_reprojection_thread)
 		re = m_fp_gvr_on_surface_created_reprojection_thread(gvr);
 	return re;
+}
+
+extern int needswapbuffer;
+int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
+{
+    LOGE("HOOK_gvr_render_reprojection_thread");
+    int re = 0;
+    if( m_fp_gvr_render_reprojection_thread) {
+        needswapbuffer = 1;
+		re = m_fp_gvr_render_reprojection_thread(gvr);
+	}
+    return re;
 }
 
 void HookGVRTools::HOOK_gvr_reset_tracking( gvr_context *gvr)
