@@ -11,12 +11,38 @@
 #include <jni.h>
 #include <EGL/eglext.h>
 #include <Base/MojingLog.h>
+#include <Hook/Global/detour.h>
 #include "elf_eglhook.h"
 
 static elf_hooker __hooker;
 
 static int gismaligpu = false;
 int needswapbuffer = 0;
+int rendertid = 0;
+int gvrmajorversion = 0;
+int gvrminorversion = 0;
+
+
+int hook(uint32_t target_addr, uint32_t new_addr, uint32_t **proto_addr)
+{
+    if (registerInlineHook(target_addr, new_addr, proto_addr) != DETOUR_OK) {
+        return -1;
+    }
+    if (inlineHook((uint32_t) target_addr) != DETOUR_OK) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int unHook(uint32_t target_addr)
+{
+    if (inlineUnHook(target_addr) != DETOUR_OK) {
+        return -1;
+    }
+
+    return 0;
+}
 
 typedef EGLImageKHR (*FP_eglCreateImageKHR)(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
 FP_eglCreateImageKHR pfun_eglCreateImageKHR = NULL;
@@ -51,7 +77,7 @@ EGLBoolean mj_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
     LOGE("mj_eglSwapBuffers, tid=%d", gettid());
     EGLBoolean re = true;
 //    eglMakeCurrent(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW), eglGetCurrentSurface(EGL_READ), eglGetCurrentContext());
-    if( gismaligpu )
+    if( gismaligpu && rendertid != gettid())
     {
         glFinish();
         needswapbuffer = 1;
@@ -77,9 +103,9 @@ void mj_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *in
 {
     LOGE("mj_glDrawElements, tid=%d", gettid());
     old_glDrawElements(mode, count, type, indices);
-    if( needswapbuffer)
+    if( needswapbuffer && rendertid != gettid())
     {
-        glFinish();
+//        glFinish();
         old_eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
         LOGE("mj_glDrawElements, old_eglSwapBuffers, tid=%d", gettid());
         needswapbuffer = 0;
@@ -95,7 +121,8 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     LOGE("mj_eglGetProcAddress, procname=%s", procname);
     const char *glrender = (const char *)glGetString(GL_RENDERER);
     if(glrender && strstr(glrender, "Mali") != NULL ){
-        gismaligpu = true;
+//        if( gvrmajorversion > 1 && gvrminorversion >= 20 )
+            gismaligpu = true;
     }
     __eglMustCastToProperFunctionPointerType pfun = old_eglGetProcAddress(procname);
 
@@ -129,6 +156,7 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 void hookEglGetProcAddress()
 {
     LOGE("hookEglGetProcAddress");
+    hook((uint32_t) glDrawElements, (uint32_t)mj_glDrawElements, (uint32_t **) &old_glDrawElements);
     __hooker.phrase_proc_maps();
     __hooker.dump_module_list();
 
@@ -136,6 +164,7 @@ void hookEglGetProcAddress()
     __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void*)mj_eglGetProcAddress, (void**)&old_eglGetProcAddress);
 //    __hooker.hook_module("libgvr.so", "glViewport", (void*)mj_glViewport, (void**)&old_glViewport);
 //    __hooker.hook_module("libgvr.so", "glDrawElements", (void*)mj_glDrawElements, (void**)&old_glDrawElements);
+//    __hooker.hook_module("libgvr.so", "eglSwapBuffers", (void*)mj_eglSwapBuffers, (void**)&old_eglSwapBuffers);
 }
 
 

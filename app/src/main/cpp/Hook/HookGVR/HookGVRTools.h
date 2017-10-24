@@ -14,6 +14,12 @@ typedef struct gvr_mat4f
 	float m[4][4];
 } gvr_mat4f;
 
+typedef struct gvr_version_ {
+    int32_t major;
+    int32_t minor;
+    int32_t patch;
+} gvr_version;
+
 #define FN_gvr_get_head_space_from_start_space_rotation "gvr_get_head_space_from_start_space_rotation"
 typedef gvr_mat4f (*FP_gvr_get_head_space_from_start_space_rotation)(const gvr_context *gvr, const gvr_clock_time_point time);
 
@@ -39,6 +45,9 @@ typedef int (*FP_gvr_on_surface_created_reprojection_thread)(const gvr_context *
 #define FN_gvr_render_reprojection_thread "gvr_render_reprojection_thread"
 typedef int (*FP_gvr_render_reprojection_thread)(const gvr_context *gvr);
 
+#define FN_gvr_get_version "gvr_get_version"
+typedef gvr_version (*FP_gvr_get_version)();
+
 #define FN_gvr_frame_submit "gvr_frame_submit"
 struct gvr_frame;
 struct gvr_buffer_viewport_list;
@@ -50,6 +59,8 @@ public:
 	HookGVRTools();
 	virtual ~HookGVRTools();
 	static bool Init();
+
+	static gvr_version HOOK_gvr_get_version();
 private:
 #if USING_SVR_SENSOR
 	static class CSVRApi m_SVRApi;
@@ -64,6 +75,7 @@ private:
 	static int HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr);
 	static int HOOK_gvr_render_reprojection_thread(const gvr_context *gvr);
 
+
 	static void HOOK_gvr_reset_tracking(gvr_context *gvr); // Deprecated
 	static void HOOK_gvr_recenter_tracking(gvr_context *gvr);
 	static void * m_hGVR;
@@ -77,6 +89,7 @@ private:
 	static FP_gvr_get_version_string m_fp_gvr_get_version_string;
 	static FP_gvr_on_surface_created_reprojection_thread m_fp_gvr_on_surface_created_reprojection_thread;
 	static FP_gvr_render_reprojection_thread m_fp_gvr_render_reprojection_thread;
+	static FP_gvr_get_version m_fp_gvr_get_version;
 
 };
 extern bool g_bEnableDDTracker;

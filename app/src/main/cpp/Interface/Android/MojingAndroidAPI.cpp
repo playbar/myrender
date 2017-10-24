@@ -159,7 +159,7 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookFun(JNIEnv *jEnv, jclass)
 {
-//    HookGVRTools::Init();
+    HookGVRTools::Init();
     hookEglGetProcAddress();
 }
 

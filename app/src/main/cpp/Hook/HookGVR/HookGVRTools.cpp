@@ -49,6 +49,7 @@ FP_gvr_get_viewer_vendor HookGVRTools::m_fp_gvr_get_viewer_vendor = NULL;
 FP_gvr_get_version_string HookGVRTools::m_fp_gvr_get_version_string = NULL;
 FP_gvr_on_surface_created_reprojection_thread HookGVRTools::m_fp_gvr_on_surface_created_reprojection_thread = NULL;
 FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
+FP_gvr_get_version HookGVRTools::m_fp_gvr_get_version = NULL;
 
 extern String ParseGlassKey(String sJson);
 HookGVRTools::HookGVRTools()
@@ -60,6 +61,9 @@ HookGVRTools::~HookGVRTools()
 {
 }
 
+extern int gvrmajorversion;
+extern int gvrminorversion;
+
 #define HOOK_PARAMET(PP , __GVR_FUNCTION_NAME__) {strcpy(PP.szFunctionName , FN_##__GVR_FUNCTION_NAME__) ; PP.fpHookToFunction= (void*)HookGVRTools::HOOK_##__GVR_FUNCTION_NAME__;PP.fpRealFunction=NULL;}
 #define HOOK_FUNCTION(__GVR_FUNCTION_NAME__) HookBase::HookToFunction(m_hGVR, FN_##__GVR_FUNCTION_NAME__, (void*)HookGVRTools::HOOK_##__GVR_FUNCTION_NAME__, (void**)&m_fp_##__GVR_FUNCTION_NAME__)
 bool HookGVRTools::Init()
@@ -68,32 +72,42 @@ bool HookGVRTools::Init()
 	bool bRet = false;
 	if (LoadGVR())
 	{
-		HookParamet HP[5];
+		HookParamet HP[6];
 		HOOK_PARAMET(HP[0], gvr_get_head_space_from_start_space_rotation);
 		HOOK_PARAMET(HP[1], gvr_reset_tracking);
 		HOOK_PARAMET(HP[2], gvr_recenter_tracking);
 		HOOK_PARAMET(HP[3], gvr_frame_submit);
-        HOOK_PARAMET(HP[4], gvr_render_reprojection_thread);
+//        HOOK_PARAMET(HP[4], gvr_render_reprojection_thread);
+//		HOOK_PARAMET(HP[5], gvr_get_version);
 //		HOOK_PARAMET(HP[4], gvr_on_surface_created_reprojection_thread);
 
-		if (HookBase::HookToFunctions(m_hGVR, HP, 4) &&
-			// get function with out hook
+		if (HookBase::HookToFunctions(m_hGVR, HP, 6) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_model)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_vendor)) &&
-			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version_string)))
+			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version_string))&&
+//			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_render_reprojection_thread)) &&
+            NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version)))
 		{
 			// Get Function pointer HOOKed
 			m_fp_gvr_get_head_space_from_start_space_rotation = (FP_gvr_get_head_space_from_start_space_rotation)HP[0].fpRealFunction;
 			m_fp_gvr_reset_tracking = (FP_gvr_reset_tracking)HP[1].fpRealFunction;
 			m_fp_gvr_recenter_tracking = (FP_gvr_recenter_tracking)HP[2].fpRealFunction;
 			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
-            m_fp_gvr_render_reprojection_thread = (FP_gvr_render_reprojection_thread)HP[4].fpRealFunction;
+//            m_fp_gvr_render_reprojection_thread = (FP_gvr_render_reprojection_thread)HP[4].fpRealFunction;
+//			m_fp_gvr_get_version = (FP_gvr_get_version)HP[5].fpRealFunction;
 //			m_fp_gvr_on_surface_created_reprojection_thread = (FP_gvr_on_surface_created_reprojection_thread)HP[4].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
-			sEngenVersion += m_fp_gvr_get_version_string();
+            const char *pver = m_fp_gvr_get_version_string();
+			sEngenVersion += pver;
 			MOJING_TRACE(g_APIlogger, "GVR version: " << sEngenVersion.ToCStr());
 			MojingSDK_SetEngineVersion(sEngenVersion);
+
+            gvr_version version;
+            version = m_fp_gvr_get_version();
+            gvrmajorversion = version.major;
+            gvrminorversion = version.minor;
+			LOGE("gvr_version major=%d, minor=%d", gvrmajorversion, gvrminorversion);
 
 			g_bEnableDDTracker = true;
 			memset(g_fDDHeaderView, 0, sizeof(float)* 16);
@@ -158,6 +172,17 @@ bool HookGVRTools::LoadGVR()
 	}
 	return m_hGVR != NULL;
 }
+
+gvr_version HookGVRTools::HOOK_gvr_get_version()
+{
+    LOGE("HOOK_gvr_get_version");
+	gvr_version version;
+	memset(&version, 0, sizeof(gvr_version));
+//	if( m_fp_gvr_get_version)
+//		version = m_fp_gvr_get_version();
+	return version;
+}
+
 #if 0
 gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time)
 {
@@ -208,6 +233,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 	{
 		Ret = m_fp_gvr_get_head_space_from_start_space_rotation(gvr, time);
 	}
+	return Ret;
 	/************************************************************************/
 	/* ���´������������ӿ��ṩ��ǰ����ʹ�õľ�Ƭ                         */
 	/************************************************************************/
@@ -359,9 +385,11 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 }
 #endif
 
+extern int rendertid;
 void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space)
 {
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
+    rendertid = gettid();
 	if (m_fp_gvr_frame_submit)
 	{
 		m_fp_gvr_frame_submit(frame, list, head_space_from_start_space);
@@ -395,10 +423,10 @@ int HookGVRTools::HOOK_gvr_on_surface_created_reprojection_thread(const gvr_cont
 extern int needswapbuffer;
 int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
 {
-    LOGE("HOOK_gvr_render_reprojection_thread");
+    LOGE("HOOK_gvr_render_reprojection_thread, tid=%d", gettid());
     int re = 0;
     if( m_fp_gvr_render_reprojection_thread) {
-        needswapbuffer = 1;
+//        needswapbuffer = 1;
 		re = m_fp_gvr_render_reprojection_thread(gvr);
 	}
     return re;
