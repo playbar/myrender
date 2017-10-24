@@ -107,7 +107,7 @@ void mj_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *in
     {
 //        glFinish();
         old_eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
-        LOGE("mj_glDrawElements, old_eglSwapBuffers, tid=%d", gettid());
+//        LOGE("mj_glDrawElements, old_eglSwapBuffers, tid=%d", gettid());
         needswapbuffer = 0;
     }
     return;
@@ -131,11 +131,12 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
         old_glViewport = (Fn_glViewport)pfun;
         pfun = (__eglMustCastToProperFunctionPointerType)mj_glViewport;
     }
-    if(strcmp( procname, "glDrawElements") == 0 )
-    {
-        old_glDrawElements = (Fn_glDrawElements)pfun;
-        pfun = (__eglMustCastToProperFunctionPointerType)mj_glDrawElements;
-    }
+    if(gvrmajorversion >= 1 && gvrminorversion > 40 ) {
+            if (strcmp(procname, "glDrawElements") == 0) {
+                old_glDrawElements = (Fn_glDrawElements) pfun;
+                pfun = (__eglMustCastToProperFunctionPointerType) mj_glDrawElements;
+            }
+        }
 
     if(strcmp(procname, "eglCreateImageKHR") == 0)
     {
@@ -156,7 +157,9 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 void hookEglGetProcAddress()
 {
     LOGE("hookEglGetProcAddress");
-    hook((uint32_t) glDrawElements, (uint32_t)mj_glDrawElements, (uint32_t **) &old_glDrawElements);
+    if(   gvrmajorversion >= 1 && gvrminorversion <= 40 ) {
+        hook((uint32_t) glDrawElements, (uint32_t) mj_glDrawElements, (uint32_t **) &old_glDrawElements);
+    }
     __hooker.phrase_proc_maps();
     __hooker.dump_module_list();
 
