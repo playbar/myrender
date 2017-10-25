@@ -12,6 +12,7 @@
 #include <EGL/eglext.h>
 #include <Base/MojingLog.h>
 #include <Hook/Global/detour.h>
+#include <sys/system_properties.h>
 #include "elf_eglhook.h"
 
 static elf_hooker __hooker;
@@ -187,7 +188,7 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 
     LOGE("mj_eglGetProcAddress, procname=%s", procname);
     const char *glrender = (const char *)glGetString(GL_RENDERER);
-    if( gbfirst &&gvrminorversion>= 40 && glrender && strstr(glrender, "Mali") != NULL ){
+    if( gbfirst /*&&gvrminorversion>= 40 && glrender && strstr(glrender, "Mali") != NULL */ ){
         LOGE("mj_eglGetProcAddress, hook mj_eglSwapBuffers", procname);
         gismaligpu = true;
         gbfirst = false;
@@ -195,6 +196,10 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
         if( gvrmajorversion == 1 && gvrminorversion == 40 ) {
 //            hook((uint32_t) glDrawElements, (uint32_t) mj_glDrawElements, (uint32_t **) &old_glDrawElements);
             hookbase(0x71FE8, (void*)mj_sub_71FE8, (void**)&old_sub_71FE8);
+        }
+        if( gvrmajorversion == 1 && gvrminorversion == 20 ) {
+//            hook((uint32_t) glDrawElements, (uint32_t) mj_glDrawElements, (uint32_t **) &old_glDrawElements);
+            hookbase(0x80018, (void*)mj_sub_71FE8, (void**)&old_sub_71FE8);
         }
 
     }
@@ -205,7 +210,7 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 //        old_glViewport = (Fn_glViewport)pfun;
 //        pfun = (__eglMustCastToProperFunctionPointerType)mj_glViewport;
 //    }
-    if(gismaligpu && gvrmajorversion >= 1 && gvrminorversion > 40 ) {
+    if(gismaligpu && old_glDrawElements == NULL && gvrminorversion != 20 && gvrminorversion != 40 ) {
         if (strcmp(procname, "glDrawElements") == 0) {
             old_glDrawElements = (Fn_glDrawElements) pfun;
             pfun = (__eglMustCastToProperFunctionPointerType) mj_glDrawElements;
@@ -227,10 +232,28 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     return pfun;
 }
 
+char*  (*old_strncpy)(char* __restrict, const char* __restrict, size_t);
+/*
+ * daydream unity游戏，以cardboard模式运行，就替换一下string
+ */
+char*  my_strncpy(char* __restrict dest, const char* __restrict src, size_t s){
+    if(strcmp("cardboard",src)==0){
+        LOGI("my_strncpy,src:cardboard,new src daydream");
+        return old_strncpy(dest,"daydream",s);
+    }
+    return old_strncpy(dest,src,s);
+}
 
 void hookEglGetProcAddress()
 {
     LOGE("hookEglGetProcAddress");
+    char sdkIntStr[PROP_VALUE_MAX];
+    memset(sdkIntStr,'\0',PROP_VALUE_MAX);
+    __system_property_get("ro.build.version.sdk", sdkIntStr);
+    int sdkInt=atoi(sdkIntStr);
+    if(sdkInt>=24){
+
+    }
 //    if(   gvrmajorversion >= 1 && gvrminorversion <= 40 )
 //    {
 //        hook((uint32_t) glDrawElements, (uint32_t) mj_glDrawElements, (uint32_t **) &old_glDrawElements);
@@ -243,6 +266,7 @@ void hookEglGetProcAddress()
 //    __hooker.hook_module("libgvr.so", "glViewport", (void*)mj_glViewport, (void**)&old_glViewport);
 //    __hooker.hook_module("libgvr.so", "glDrawElements", (void*)mj_glDrawElements, (void**)&old_glDrawElements);
 //    __hooker.hook_module("libgvr.so", "eglSwapBuffers", (void*)mj_eglSwapBuffers, (void**)&old_eglSwapBuffers);
+//    __hooker.hook_module("libunity.so", "strncpy", (void*)my_strncpy, (void**)&old_strncpy);
 }
 
 

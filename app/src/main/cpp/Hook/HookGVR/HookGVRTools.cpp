@@ -394,6 +394,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 	{
 		m_fp_gvr_frame_submit(frame, list, head_space_from_start_space);
 	}
+    return;
 
 	static int iBeginTime = Baofeng::Mojing::Timer::GetSeconds();
 	static int iFreamCount = 0;
@@ -437,12 +438,12 @@ void HookGVRTools::HOOK_gvr_reset_tracking( gvr_context *gvr)
 #ifdef _DEBUG
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
-	bool bIsMJ5 = MojingSDK_IsHDMWorking();
-	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
-	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
-	{
-		MojingSDK_ResetSensorOrientation();
-	}
+//	bool bIsMJ5 = MojingSDK_IsHDMWorking();
+//	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+//	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
+//	{
+//		MojingSDK_ResetSensorOrientation();
+//	}
 	m_fp_gvr_reset_tracking(gvr);
 }
 
@@ -451,11 +452,11 @@ void HookGVRTools::HOOK_gvr_recenter_tracking(gvr_context *gvr)
 #ifdef _DEBUG
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
-	bool bIsMJ5 = MojingSDK_IsHDMWorking();
-	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
-	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
-	{
-		MojingSDK_ResetSensorOrientation();
-	}
+//	bool bIsMJ5 = MojingSDK_IsHDMWorking();
+//	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+//	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
+//	{
+//		MojingSDK_ResetSensorOrientation();
+//	}
 	m_fp_gvr_recenter_tracking(gvr);
 }
