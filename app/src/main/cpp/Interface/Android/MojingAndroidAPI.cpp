@@ -157,11 +157,16 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 #endif
 }
 
-JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookFun(JNIEnv *jEnv, jclass)
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookGvrFun(JNIEnv *jEnv, jclass)
 {
     HookGVRTools::Init();
-    hookEglGetProcAddress();
 }
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookReprojectionFun(JNIEnv *jEnv, jclass)
+{
+	hookEglGetProcAddress();
+}
+
 
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, jclass jClass, jstring merchantID, jstring appID, jstring appKey, jstring appName, jstring packageName,
 					jstring userID, jstring channelID, jint nWidth, jint nHeight, jfloat xdpi, jfloat ydpi, jstring ProfilePath)

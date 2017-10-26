@@ -23,7 +23,7 @@ public class MojingVrActivity extends Activity {
 		mMojingSurfaceView.requestFocus();
 		mMojingSurfaceView.setFocusableInTouchMode(true);
         setContentView(mMojingSurfaceView);
-             
+		MojingSDK.mContext = getApplicationContext();
 		try
 		{
 			Class<?> c = Class.forName("com.baofeng.mojing.check.MojingCheckService");     			    

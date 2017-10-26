@@ -17,8 +17,8 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclass, jint logLevel, jstring sInfo, jstring sFileName, jint line);
 
-	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookFun(JNIEnv *jEnv, jclass);
-
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookGvrFun(JNIEnv *jEnv, jclass);
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookReprojectionFun(JNIEnv *jEnv, jclass);
 	/*
 	* Class:     com_baofeng_mojing_MojingSDK
 	* Method:    Init

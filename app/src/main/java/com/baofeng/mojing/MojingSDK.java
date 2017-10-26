@@ -673,11 +673,12 @@ public class MojingSDK
 			}// end of run
 		}, 0, 5000);
 	}
+
+	public static native void hookGvrFun();
+	public static native void hookReprojectionFun();
 	
 	//////////////////////////////////////////////////////////////////////////////
 	private static native void Log(int logLevel, String sInfo, String sFileName, int line);
-
-	public static native void hookFun();
 
 	private static void Log(int logLevel, String sInfo)
 	{
@@ -709,6 +710,30 @@ public class MojingSDK
 	  {
 		Log(0, sInfo);
 	  }
+
+	  public static boolean isDDPhone()
+	  {
+		  if(mContext == null)
+		  	return false;
+		  return Build.VERSION.SDK_INT < 24 ? false : mContext.getPackageManager().hasSystemFeature("android.hardware.vr.high_performance");
+	  }
+
+	public static Context mContext = null;
+	public static int getSwapMode() {
+		 if(isDDPhone()){
+			return 1;
+		}else {
+			 return 0;
+		 }
+	}
+
+	public static void hookFun()
+	{
+		hookGvrFun();
+		if( ! isDDPhone()){
+			hookReprojectionFun();
+		}
+	}
 
 	public static void setsDaydreamPhoneOverrideForTesting() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

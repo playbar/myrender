@@ -120,6 +120,8 @@ public class MojingActivity extends MojingVrActivity{
 		MojingSDK.hookFun();
 		MojingSDK.setsDaydreamPhoneOverrideForTesting();
 		MojingSDK.setsFingerprint();
+		int mode = MojingSDK.getSwapMode();
+		Log.e("mode", "mode" + mode);
 		String strver = MojingSDK.GetSDKVersion();
         boolean b = MojingSDK.IsInMachine();
         mView = super.getSurfaceView();

@@ -220,14 +220,6 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseUnityForSVR(JN
 	return bRet;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsInMachine(JNIEnv *env, jclass)
-{
-	bool bRet = MojingSDK_IsInMachine();
-	MOJING_TRACE(g_APIlogger, "IsInMachine: " << bRet);
-
-	return bRet;
-}
-
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsUseForDayDream(JNIEnv *env, jclass)
 {
     bool bRet = MojingSDK_IsUseForDayDream();
@@ -815,7 +807,18 @@ JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetEliminateBuiltin(
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_GetInitSDK(JNIEnv *env, jclass)
 {
 	// USING_MINIDUMP;
-	return MojingSDK_GetInitSDK();
+        bool bRet = MojingSDK_IsInMachine();
+    MOJING_TRACE(g_APIlogger, "IsInMachine: " << bRet);
+    return bRet;
+//	return MojingSDK_GetInitSDK();
+}
+
+JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_GetInitSDKTest(JNIEnv *env, jclass)
+{
+    return MojingSDK_GetInitSDK();
+//    bool bRet = MojingSDK_IsInMachine();
+//    MOJING_TRACE(g_APIlogger, "IsInMachine: " << bRet);
+//    return bRet;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_GetStartTracker(JNIEnv *env, jclass)
@@ -834,6 +837,14 @@ JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetSDKVersion(JNIEnv
 {
 	// USING_MINIDUMP;
 	return env->NewStringUTF(MojingSDK_GetSDKVersion());
+}
+
+JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_IsMachine(JNIEnv *env, jclass)
+{
+    bool bRet = MojingSDK_IsInMachine();
+    MOJING_TRACE(g_APIlogger, "IsInMachine: " << bRet);
+
+    return bRet;
 }
 
 JNIEXPORT jstring JNICALL Java_com_baofeng_mojing_MojingSDK_GetGlasses(JNIEnv *env, jclass)
