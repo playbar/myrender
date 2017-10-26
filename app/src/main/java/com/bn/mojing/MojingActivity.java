@@ -118,6 +118,7 @@ public class MojingActivity extends MojingVrActivity{
         super.onCreate(icicle);
 		MojingSDK.Init(this);
 		MojingSDK.hookFun();
+		MojingSDK.hookUnityFun();
 		MojingSDK.setsDaydreamPhoneOverrideForTesting();
 		MojingSDK.setsFingerprint();
 		int mode = MojingSDK.getSwapMode();

@@ -7,6 +7,8 @@ extern "C" {
 #endif
 
 void hookEglGetProcAddress();
+void hookUnityFun();
+void startHookThread(bool isdd);
 
 #ifdef __cplusplus
 }

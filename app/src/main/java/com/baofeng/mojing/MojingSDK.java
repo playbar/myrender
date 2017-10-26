@@ -674,9 +674,10 @@ public class MojingSDK
 		}, 0, 5000);
 	}
 
-	public static native void hookGvrFun();
+	public static native void hookGvrFun(boolean isDD);
 	public static native void hookReprojectionFun();
-	
+	public static native void nativeHookUnityFun();
+
 	//////////////////////////////////////////////////////////////////////////////
 	private static native void Log(int logLevel, String sInfo, String sFileName, int line);
 
@@ -729,10 +730,16 @@ public class MojingSDK
 
 	public static void hookFun()
 	{
-		hookGvrFun();
+//		hookGvrFun(isDDPhone());
+		hookGvrFun(isDDPhone());
 		if( ! isDDPhone()){
 			hookReprojectionFun();
 		}
+	}
+
+	public static void hookUnityFun()
+	{
+		nativeHookUnityFun();
 	}
 
 	public static void setsDaydreamPhoneOverrideForTesting() {

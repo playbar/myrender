@@ -70,7 +70,7 @@ public class MojingVrActivity extends Activity {
     }
 
     @Override protected void onResume() {
-        super.onResume();   
+        super.onResume();
 
 		MojingSDKSensorManager.RegisterSensor(this);
         if(!MojingSDK.IsUseUnityForSVR())

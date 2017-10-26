@@ -190,6 +190,7 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 
     LOGE("mj_eglGetProcAddress, procname=%s", procname);
     const char *glrender = (const char *)glGetString(GL_RENDERER);
+    // 1.40(包括1.40) mali gpu 出现单眼问题
     if( gbfirst &&gvrminorversion>= 40 && glrender && strstr(glrender, "Mali") != NULL  ){
         LOGE("mj_eglGetProcAddress, hook mj_eglSwapBuffers", procname);
         gismaligpu = true;
@@ -232,17 +233,24 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     return pfun;
 }
 
-char*  (*old_strncpy)(char* __restrict, const char* __restrict, size_t);
+char*  (*old_strncpy)(char* __restrict, const char* __restrict, size_t) = NULL;
 /*
  * daydream unity游戏，以cardboard模式运行，就替换一下string
  */
 char*  my_strncpy(char* __restrict dest, const char* __restrict src, size_t s){
-    LOGE("my_strncpy");
+//    LOGE("my_strncpy, dest=%s, src=%s, size=%d", dest, src, s);
     if(strcmp("cardboard",src)==0){
         LOGI("my_strncpy,src:cardboard,new src daydream");
         return old_strncpy(dest,"daydream",s);
     }
+
     return old_strncpy(dest,src,s);
+}
+
+int (*old_strcmp)(const char *, const char *) = NULL;
+int mj_strcmp(const char *, const char *)
+{
+
 }
 
 void hookEglGetProcAddress()
@@ -257,23 +265,44 @@ void hookEglGetProcAddress()
 //    {
 //        hook((uint32_t) glDrawElements, (uint32_t) mj_glDrawElements, (uint32_t **) &old_glDrawElements);
 //    }
-    __hooker.phrase_proc_maps();
-    __hooker.dump_module_list();
-
+    if( sdkInt >= 20) {
+        __hooker.phrase_proc_maps();
+        __hooker.dump_module_list();
 //    __hooker.hook_module("libandroid_runtime.so", "eglSwapBuffers", (void *) mj_eglSwapBuffers, (void **) &old_eglSwapBuffers);
-    __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void*)mj_eglGetProcAddress, (void**)&old_eglGetProcAddress);
+        __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void *) mj_eglGetProcAddress, (void **) &old_eglGetProcAddress);
 //    __hooker.hook_module("libgvr.so", "glViewport", (void*)mj_glViewport, (void**)&old_glViewport);
 //    __hooker.hook_module("libgvr.so", "glDrawElements", (void*)mj_glDrawElements, (void**)&old_glDrawElements);
 //    __hooker.hook_module("libgvr.so", "eglSwapBuffers", (void*)mj_eglSwapBuffers, (void**)&old_eglSwapBuffers);
+    }
+//    if(sdkInt < 20) {
+//        __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
+//    }
+}
+
+void hookUnityFun()
+{
+    LOGE("hookUnityFun");
+    char sdkIntStr[PROP_VALUE_MAX];
+    memset(sdkIntStr,'\0',PROP_VALUE_MAX);
+    __system_property_get("ro.build.version.sdk", sdkIntStr);
+    int sdkInt=atoi(sdkIntStr);
     if(sdkInt < 20) {
+        __hooker.phrase_proc_maps();
         __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
     }
 }
 
 
-void waitLoadingHook(const char *file)
+void *waitLoadingHook(void *data)
 {
-    LOGE("waitLoadingHook");
+    LOGE("waitLoadingHook begin");
+    bool isdd = (bool*)data;
+    if( isdd) {
+        LOGE("waitLoadingHook is dd");
+    }
+    else {
+        LOGE("waitLoadingHook is not dd");
+    }
     char sdkIntStr[PROP_VALUE_MAX];
     memset(sdkIntStr,'\0',PROP_VALUE_MAX);
     __system_property_get("ro.build.version.sdk", sdkIntStr);
@@ -288,33 +317,42 @@ void waitLoadingHook(const char *file)
     long gvrimage = (long)getimagebase(pchgvr);
     long unityimage = (long)getimagebase(pchunity);
     while (gvrimage == -1 || unityimage == -1) {
-        LOGE("not found");
-        usleep(100000);
-        unityimage = (long)getimagebase(pchunity);
-        if( !bunity && unityimage != -1)
-        {
-            __hooker.phrase_proc_maps();
-            if(sdkInt < 20) {
-                __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
-            }
-            bunity = true;
-        }
-        gvrimage = (long)getimagebase(pchgvr);
+        usleep(5000);
+//        if( !bunity )
+//            unityimage = (long)getimagebase(pchunity);
+//        if( !bunity && unityimage != -1)
+//        {
+//            if(sdkInt < 20) {
+//                __hooker.phrase_proc_maps();
+//                __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
+//                LOGE("hook libunity strncpy");
+//            }
+//            bunity = true;
+//        }
+        if(!bgvr)
+            gvrimage = (long)getimagebase(pchgvr);
         if( !bgvr && gvrimage != -1 )
         {
             HookGVRTools::Init();
-            __hooker.phrase_proc_maps();
-            __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void*)mj_eglGetProcAddress, (void**)&old_eglGetProcAddress);
+            if( !isdd && sdkInt >= 20 ) {
+                __hooker.phrase_proc_maps();
+                __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void *) mj_eglGetProcAddress, (void **) &old_eglGetProcAddress);
+                LOGE("hook libgvr eglGetProcAddress");
+            }
+
+            LOGE("hook libgvr mojing");
             bgvr = true;
+            break;
         }
 
     }
-    LOGE("waiting end");
+    LOGE("waitLoadingHook end");
+    return (void*)0;
 }
 
-void startHookThread()
+void startHookThread(bool isdd)
 {
     pthread_t   pthread_id;
-    pthread_create(&pthread_id, NULL, waitLoadingHook, NULL);
+    pthread_create(&pthread_id, NULL, waitLoadingHook, (void*)isdd);
     return;
 }
