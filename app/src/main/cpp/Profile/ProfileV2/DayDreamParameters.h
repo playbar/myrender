@@ -13,7 +13,8 @@ namespace Baofeng
 		}ScreenVerticalAlignment;
 		class CDayDreamParameters
 		{
-
+		private: 
+			 float * m_pK;
 		public:
 			CDayDreamParameters();
 			virtual ~CDayDreamParameters();
@@ -22,7 +23,8 @@ namespace Baofeng
 
 			static CDayDreamParameters FromDayDreamURL(const char* szDayDreamURL);
 			String GetDayDreamURL();
-
+	
+			bool IsNoDistortion()const;
 			CLASS_MEMBER_STR(String, m_sz, CompanyName);// 公司名
 			CLASS_MEMBER_STR(String, m_sz, ViewerName);// 眼镜名
 			// Primary button type??
@@ -36,9 +38,13 @@ namespace Baofeng
 			// Screen vertical alignment
 			CLASS_MEMBER(ScreenVerticalAlignment, m_, ScreenVerticalAlignmentType);
 			CLASS_MEMBER(float, m_f, ScreenVerticalAlignment);//Tray to lens-center distance (mm)
-			// Distortion coefficients [K1 , K2]
-			CLASS_MEMBER(float, m_f, K1);
-			CLASS_MEMBER(float, m_f, K2);
+			// Distortion coefficients 
+			CLASS_MEMBER(int, m_i, NumK);
+			
+			float& operator[](int i) const
+			{
+				return m_pK[i];
+			}
 		};
 
 

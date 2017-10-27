@@ -38,6 +38,9 @@ void * HookGVRTools::m_hGVR = NULL;
 CSVRApi HookGVRTools::m_SVRApi;
 #endif
 
+extern int gvrmajorversion;
+extern int gvrminorversion;
+
 bool	HookGVRTools::m_bSVREnable = false;
 
 FP_gvr_get_head_space_from_start_space_rotation HookGVRTools::m_fp_gvr_get_head_space_from_start_space_rotation = NULL;
@@ -59,10 +62,12 @@ HookGVRTools::HookGVRTools()
 
 HookGVRTools::~HookGVRTools()
 {
+	if (m_hGVR)
+	{
+		dlclose(m_hGVR);
+	}
+	m_hGVR = NULL;
 }
-
-extern int gvrmajorversion;
-extern int gvrminorversion;
 
 #define HOOK_PARAMET(PP , __GVR_FUNCTION_NAME__) {strcpy(PP.szFunctionName , FN_##__GVR_FUNCTION_NAME__) ; PP.fpHookToFunction= (void*)HookGVRTools::HOOK_##__GVR_FUNCTION_NAME__;PP.fpRealFunction=NULL;}
 #define HOOK_FUNCTION(__GVR_FUNCTION_NAME__) HookBase::HookToFunction(m_hGVR, FN_##__GVR_FUNCTION_NAME__, (void*)HookGVRTools::HOOK_##__GVR_FUNCTION_NAME__, (void**)&m_fp_##__GVR_FUNCTION_NAME__)
@@ -77,15 +82,11 @@ bool HookGVRTools::Init()
 		HOOK_PARAMET(HP[1], gvr_reset_tracking);
 		HOOK_PARAMET(HP[2], gvr_recenter_tracking);
 		HOOK_PARAMET(HP[3], gvr_frame_submit);
-//        HOOK_PARAMET(HP[4], gvr_render_reprojection_thread);
-//		HOOK_PARAMET(HP[5], gvr_get_version);
-//		HOOK_PARAMET(HP[4], gvr_on_surface_created_reprojection_thread);
 
 		if (HookBase::HookToFunctions(m_hGVR, HP, 6) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_model)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_vendor)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version_string))&&
-//			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_render_reprojection_thread)) &&
             NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version)))
 		{
 			// Get Function pointer HOOKed
@@ -93,13 +94,9 @@ bool HookGVRTools::Init()
 			m_fp_gvr_reset_tracking = (FP_gvr_reset_tracking)HP[1].fpRealFunction;
 			m_fp_gvr_recenter_tracking = (FP_gvr_recenter_tracking)HP[2].fpRealFunction;
 			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
-//            m_fp_gvr_render_reprojection_thread = (FP_gvr_render_reprojection_thread)HP[4].fpRealFunction;
-//			m_fp_gvr_get_version = (FP_gvr_get_version)HP[5].fpRealFunction;
-//			m_fp_gvr_on_surface_created_reprojection_thread = (FP_gvr_on_surface_created_reprojection_thread)HP[4].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
-            const char *pver = m_fp_gvr_get_version_string();
-			sEngenVersion += pver;
+			sEngenVersion += m_fp_gvr_get_version_string();
 			MOJING_TRACE(g_APIlogger, "GVR version: " << sEngenVersion.ToCStr());
 			MojingSDK_SetEngineVersion(sEngenVersion);
 
@@ -190,12 +187,12 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 	memset(&Ret, 0, sizeof(gvr_mat4f));
 	Ret.m[0][0] = Ret.m[1][1] = Ret.m[2][2] = Ret.m[3][3] = 1;
 	static double timeBase = Baofeng::Mojing::Timer::GetSeconds();
-	static double dSpeed = 10 * PI / 180;// Ã¿ï¿½ï¿½1ï¿½Èµï¿½ï¿½Ë¶ï¿½ï¿½Ù¶ï¿½,ï¿½Ô»ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½
+	static double dSpeed = 10 * PI / 180;// Ã¿Ãë1¶ÈµÄÔË¶¯ËÙ¶È,ÒÔ»¡¶È/Ãë±íÊö
 
 	double timeNow = Baofeng::Mojing::Timer::GetSeconds();
 	
-	double lTimeOffsetInMS = (timeNow - timeBase);// ï¿½Ë´ï¿½Îªï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Î»ï¿½ï¿½Ê±ï¿½ï¿½ï¿½
-	// ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½200Hzï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	double lTimeOffsetInMS = (timeNow - timeBase);// ´Ë´¦ÎªÒÔÃëÎªµ¥Î»µÄÊ±¼ä²î
+	// ÒÔÏÂ´úÂëÓÃÓÚÄ£Äâ200HzµÄ ÍÓÂÝÒÇ
 	{
 		long long lTT = lTimeOffsetInMS * 200.0f;
 		lTimeOffsetInMS = lTT;
@@ -233,16 +230,15 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 	{
 		Ret = m_fp_gvr_get_head_space_from_start_space_rotation(gvr, time);
 	}
-	return Ret;
 	/************************************************************************/
-	/* ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½á¹©ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ÃµÄ¾ï¿½Æ¬                         */
+	/* ÒÔÏÂ´úÂëÓÃÓÚÏò±¨Êý½Ó¿ÚÌá¹©µ±Ç°ÕýÔÚÊ¹ÓÃµÄ¾µÆ¬                         */
 	/************************************************************************/
 	static int CheckCount = 0;
 	static int LastReportThreadID = 0;
 	static String LastReport;
 	if (CheckCount++ % 18000 == 0)
-	{	// Ã¿Ò»Ö¡ï¿½ï¿½ï¿½ï¿½3ï¿½Î£ï¿½18000ï¿½ï¿½ï¿½ï¿½6000Ö¡ï¿½ï¿½6000 / 60(fps) = 100ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
-		// ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Martixï¿½Ï£ï¿½6000 / 90(fps) = 66.666ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Â£ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	{	// Ã¿Ò»Ö¡µ÷ÓÃ3´Î£¬18000´ÎÊÇ6000Ö¡¡£6000 / 60(fps) = 100Ãë¼ì²éÒ»ÏÂ
+		// ÔÚÒ»Ìå»úMartixÉÏ£¬6000 / 90(fps) = 66.666Ãë¼ì²éÒ»ÏÂ£¬Ò»·ÖÖÓ×óÓÒ
 		CheckCount = 1;
 		int iThdID = gettid();
 		if (LastReportThreadID != iThdID)
@@ -253,7 +249,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 			String sReportString = sVendor + "@" + sModel;
 
 
-			// GVR Ä£Ê½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½DefaultGlass
+			// GVR Ä£Ê½ÏÂÒ»¶¨ÊÇDefaultGlass
 			String sGlass = MojingSDK_GetMojingWorldKey(MOJING_WORLDKEY_DEFAULT);
 			if (sGlass != "")
 			{
@@ -285,12 +281,12 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		}
 	}
 	/************************************************************************/
-	/* ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½á¹©ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ÃµÄ¾ï¿½Æ¬                         */
+	/* ÒÔÉÏ´úÂëÓÃÓÚÏò±¨Êý½Ó¿ÚÌá¹©µ±Ç°ÕýÔÚÊ¹ÓÃµÄ¾µÆ¬                         */
 	/************************************************************************/
 
 	if (!m_bSVREnable)
-	{// ï¿½ï¿½Í¨Ä£Ê½
-		//MATRIXï¿½ï¿½Î´ï¿½ï¿½ï¿½ï¿½svrï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½APPï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´
+	{// ÆÕÍ¨Ä£Ê½
+		//MATRIXÉÏÎ´ÆôÓÃsvrÍÓÂÝÒÇµÄAPP£¬²»ÐÞ¸ÄÍÓÂÝÒÇÀ´Ô´
 		MojingDeviceParameters* pDeviceParameters = Manager::GetMojingManager()->GetParameters()->GetDeviceParameters();
 		if (pDeviceParameters && pDeviceParameters->GetIsMachine())
 		{
@@ -308,11 +304,11 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 			MOJING_TRACE(g_APIlogger, "HOOK_gvr_get_head_space_from_start_space_rotation IsMJ5: " << bIsMJ5 << " SensorDataFromMJSDK: " << bSensorDataFromMJSDK);
 	#endif
 			if (bIsMJ5 || bSensorDataFromMJSDK)
-			{// Ê¹ï¿½ï¿½Mojing ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			{// Ê¹ÓÃMojing ÍÓÂÝÒÇ
 				static float fTemp[16];
 				if (0 == MojingSDK_getPredictionHeadView(fTemp, 0/*time.monotonic_system_time_nanos * 1e-9*/))
 				{
-					// ï¿½Ð¾ï¿½ï¿½ï¿½×ªï¿½Ð¾ï¿½ï¿½ï¿½
+					// ÁÐ¾ØÕó×ªÐÐ¾ØÕó
 					for (int iX = 0; iX < 4; iX++)
 					{
 						for (int iY = 0; iY < 4; iY++)
@@ -329,7 +325,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 			// else !bIsMJ5 && !bSensorDataFromMJSDK
 
 			if (!g_bEnableDDTracker)
-			{// DDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹Ø±ï¿½
+			{// DDÍÓÂÝÒÇÒÑ¹Ø±Õ
 				memcpy(g_fDDHeaderView, Ret.m[0], 16 * sizeof(float));
 
 				memset(&Ret, 0, sizeof(gvr_mat4f));
@@ -354,7 +350,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		svrHeadPoseState  HPS = m_SVRApi.GetPredictedHeadPose(fmax(dTimeMS, 0));
 		Quatf Q(HPS.pose.rotation.x, HPS.pose.rotation.y, HPS.pose.rotation.z, HPS.pose.rotation.w);
 		Matrix4f M4(Q);
-		// ï¿½Ð¾ï¿½ï¿½ï¿½×ªï¿½Ð¾ï¿½ï¿½ï¿½
+		// ÁÐ¾ØÕó×ªÐÐ¾ØÕó
 		for (int iX = 0; iX < 4; iX++)
 		{
 			for (int iY = 0; iY < 4; iY++)
@@ -366,7 +362,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		static float fTemp[16];
 		if (0 == MojingSDK_getPredictionHeadView(fTemp, time.monotonic_system_time_nanos * 1e-9))
 		{
-			// ï¿½Ð¾ï¿½ï¿½ï¿½×ªï¿½Ð¾ï¿½ï¿½ï¿½
+			// ÁÐ¾ØÕó×ªÐÐ¾ØÕó
 			for (int iX = 0; iX < 4; iX++)
 			{
 				for (int iY = 0; iY < 4; iY++)
@@ -394,7 +390,6 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 	{
 		m_fp_gvr_frame_submit(frame, list, head_space_from_start_space);
 	}
-    return;
 
 	static int iBeginTime = Baofeng::Mojing::Timer::GetSeconds();
 	static int iFreamCount = 0;
@@ -438,25 +433,25 @@ void HookGVRTools::HOOK_gvr_reset_tracking( gvr_context *gvr)
 #ifdef _DEBUG
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
-//	bool bIsMJ5 = MojingSDK_IsHDMWorking();
-//	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
-//	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
-//	{
-//		MojingSDK_ResetSensorOrientation();
-//	}
+	bool bIsMJ5 = MojingSDK_IsHDMWorking();
+	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
+	{
+		MojingSDK_ResetSensorOrientation();
+	}
 	m_fp_gvr_reset_tracking(gvr);
 }
 
 void HookGVRTools::HOOK_gvr_recenter_tracking(gvr_context *gvr)
-{// ×¢ï¿½â£ºï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ»» gvr_reset_tracking
+{// ×¢Òâ£º´Ëº¯Êý±»ÓÃÀ´Ìæ»» gvr_reset_tracking
 #ifdef _DEBUG
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
-//	bool bIsMJ5 = MojingSDK_IsHDMWorking();
-//	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
-//	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
-//	{
-//		MojingSDK_ResetSensorOrientation();
-//	}
+	bool bIsMJ5 = MojingSDK_IsHDMWorking();
+	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
+	{
+		MojingSDK_ResetSensorOrientation();
+	}
 	m_fp_gvr_recenter_tracking(gvr);
 }

@@ -1210,15 +1210,14 @@ namespace Baofeng
 
 						int iTestR = iTestX *iTestX + iTestY * iTestY;
 						int iTest = iTestR;
-// 						int iT = 1024;
-// 						if (iTest > iRt)
-// 							iTest %= iRt;
-//						iTest = abs(iTest - iRt);
+						int iT = 1024;
+						if (iTest > iRt)
+							iTest %= iRt;
+						iTest = abs(iTest - iRt);
 						if ((iLineWidth > (abs((iY + iLineWidth / 2) - (iImageHeight / 2)) % iCellWidth)) || // 1 Y轴判定横线
-							(iLineWidth > (abs((iX + iLineWidth / 2) - (iImageWidth / 2)) % iCellWidth))// 2 X轴判定纵线 
-//							iLineWidth / 2 > abs(abs(iX - iImageWidth / 2) - abs(iY - iImageHeight / 2)) // 3 对角线
-/*							|| iTest < iT*/
-							)
+							(iLineWidth > (abs((iX + iLineWidth / 2) - (iImageWidth / 2)) % iCellWidth)) ||// 2 X轴判定纵线 
+							iLineWidth / 2 > abs(abs(iX - iImageWidth / 2) - abs(iY - iImageHeight / 2)) // 3 对角线
+							|| iTest < iT)
 						{
 							lpLenBuffer[iX] = iLineCol | 0xFF000000;
 						}

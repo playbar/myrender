@@ -260,7 +260,7 @@ namespace Baofeng
 
 		bool GvrProfile::InitFromDayDreamParameters(const CDayDreamParameters &DDP)
 		{
-			if (DDP.GetK1() < 0 || DDP.GetK2() < 0)
+			if (DDP.GetNumK() <= 0)
 				return false;
 			ReleaseBuffers();
 			MOJING_TRACE(g_APIlogger , "Using Parmate : " << DDP.GetCompanyName() << " :: " << DDP.GetViewerName());
@@ -269,8 +269,11 @@ namespace Baofeng
 			/************************************************************************/
 			// Coef
 			DoubleArray DA;
-			DA.push_back(DDP.GetK1());
-			DA.push_back(DDP.GetK2());
+			for (int i = 0; i < DDP.GetNumK(); i++)
+			{
+				DA.push_back(DDP[i]);
+			}
+
 			m_Viewer.SetCoef(DA);
 
 			// Lenses

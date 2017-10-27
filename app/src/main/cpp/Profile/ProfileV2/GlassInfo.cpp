@@ -3,6 +3,7 @@
 #include "../../Parameters/MojingParameters.h"
 #include "../../Parameters/MojingDisplayParameters.h"
 #include "DayDreamParameters.h"
+
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
 #else
@@ -283,20 +284,36 @@ namespace Baofeng
 #endif
 						m_fDDScale = 1.0f;
 					}
-				}
+				}// if (fFixPPI > 1)
 				else
 				{
 #ifdef _DEBUG
 					MOJING_TRACE(g_APIlogger, "Check - 5  , fFixPPI = " << fFixPPI);
 #endif
 				}
-			}
-			else
+
+				// Modify no distortion 
+				CDayDreamParameters TempDURL = CDayDreamParameters::FromDayDreamURL(m_szDURL);
+
+				if (TempDURL.IsNoDistortion())
+				{
+					MojingDisplayParameters *pDisplayParameters = Manager::GetMojingManager()->GetParameters()->GetDisplayParameters();
+					float Heigth = pDisplayParameters->GetScreenHeightMeter();
+					float Width = pDisplayParameters->GetScreenWidthMeter() / 2.0f;
+					float Radius = fmin(Heigth, Width);				
+					float FixedScreenToLens = Radius / tan(TempDURL.GetOuterFOV()*PI/180.0);
+					TempDURL.SetScreenToLens(FixedScreenToLens);
+					m_szDURL = TempDURL.GetDayDreamURL();
+				}
+			} 
+			else // if (pDisplayParameters != NULL)
 			{
 #ifdef _DEBUG
 				MOJING_TRACE(g_APIlogger, "Check - 6  , Can not get display parmeat");
+				
 #endif
 			}
 		}
+
 	}
 }

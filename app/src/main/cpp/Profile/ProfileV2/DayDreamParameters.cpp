@@ -18,13 +18,16 @@ namespace Baofeng
 {
 	namespace Mojing
 	{
-		CDayDreamParameters::CDayDreamParameters()
+		CDayDreamParameters::CDayDreamParameters():
+			m_pK(NULL)
 		{
 		}
 
 
 		CDayDreamParameters::~CDayDreamParameters()
 		{
+			if (m_pK)
+				delete m_pK;
 		}
 
 		int CDayDreamParameters::UpdateDayDreamURL(const char* szDayDreamURL, char * szNewDayDreamURL, float fPPI_Scale)
@@ -128,7 +131,7 @@ namespace Baofeng
 			return iRet;
 		}
 		CDayDreamParameters CDayDreamParameters::FromDayDreamURL(const char* szDayDreamURL)
-		{
+		{			
 			CDayDreamParameters Ret;
 			int iRet = 0;
 			int iBufferSize = Base64ToBuffer(szDayDreamURL, NULL);
@@ -149,6 +152,7 @@ namespace Baofeng
 				{
 					int company_name_length = *pPos;
 					pPos++;// 越过公司名长度，公司名和眼镜名为utf-8，未完成
+					memset(pTempString, 0, iBufferSize + 16);
 					strncpy(pTempString, (const char *)pPos, company_name_length);
 					// memcpy(&company_name, pCompany_name, company_name_length);
 					Ret.SetCompanyName(pTempString);
@@ -158,7 +162,7 @@ namespace Baofeng
 					{
 						int viewer_name_length = *pPos;
 						pPos++;
-
+						memset(pTempString, 0, iBufferSize + 16);
 						strncpy(pTempString, (const char *)pPos, viewer_name_length);
 						Ret.SetViewerName(pTempString);
 
@@ -208,48 +212,30 @@ namespace Baofeng
 												memcpy(&TrayToLensCenterDistance, pTrayToLensCenterDistance, 4);
 												Ret.SetScreenVerticalAlignment(TrayToLensCenterDistance);
 												pPos += sizeof(float);
-												if (*pPos++ = 0x3a)
+												if (*pPos++ == 0x3a)
 												{
-													if (*pPos++ == 0x08)
+													Ret.SetNumK((*pPos++) / 4);
+													if (Ret.m_iNumK)
 													{
-														float DistortionCoefficientsK1, DistortionCoefficientsK2;
-														unsigned char* pDistortionCoefficientsK1 = pPos;
-														memcpy(&DistortionCoefficientsK1, pDistortionCoefficientsK1, 4);
-														pPos += 4;
-														unsigned char* pDistortionCoefficientsK2 = pPos;
-														memcpy(&DistortionCoefficientsK2, pDistortionCoefficientsK2, 4);
-														Ret.SetK1(DistortionCoefficientsK1);
-														Ret.SetK2(DistortionCoefficientsK2);
+														if (Ret.m_pK)
+															delete Ret.m_pK;
+														Ret.m_pK = new float[Ret.m_iNumK];
+														memset(Ret.m_pK, 0, sizeof(float)* Ret.m_iNumK);
+														memcpy(Ret.m_pK, pPos, sizeof(float)* Ret.m_iNumK);
+														pPos += sizeof(float)* Ret.m_iNumK;
 													}
 													else
-													{
+													{// ??
 														iRet = -11;
 													}
+												
 												}
 												else
 												{
 													iRet = -10;
 												}
 
-												/*float fFixC = (int)(TrayToLensCenterDistance * fPPI_Scale * 10000 + 5);
-												fFixC /= 10000;
-												#ifdef _DEBUG
-												char szScreenVerticalAlignment[3][8] = {
-												"BOTTOM",
-												"CENTER",
-												"TOP"
-												};
-
-												MOJING_TRACE(g_APIlogger, "Replace DURL Parm :  x" << fPPI_Scale);
-												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << screen_to_lens_distance << " --> " << fFixA);
-												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << inter_lens_distance << " --> " << fFixB);
-												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : ScreenVerticalAlignment = " << szScreenVerticalAlignment[(int)ScreenVerticalAlignment]);
-												MOJING_TRACE(g_APIlogger, "Replace DURL Parm : " << TrayToLensCenterDistance << " --> " << fFixC);
-												#endif
-												memcpy(pScreen_to_lens_distance, &fFixA, 4);
-												memcpy(pinter_lens_distance, &fFixB, 4);
-												memcpy(pTrayToLensCenterDistance, &fFixC, 4);
-												*/
+												
 											}
 											else
 											{// // 7 Tray to lens-center distance
@@ -303,9 +289,9 @@ namespace Baofeng
 			{
 				Ret.SetCompanyName("Wrong URL");
 				Ret.SetViewerName("Wrong URL");
-				Ret.SetK1(-1);
-				Ret.SetK2(-1);
-			}
+				Ret[0] = -1;
+				Ret[1] = -1;
+			}	
 			else
 			{
 			}
@@ -315,18 +301,20 @@ namespace Baofeng
 
 		String CDayDreamParameters::GetDayDreamURL()
 		{
-			String sRet;
-			unsigned char* pBufferToURL = new unsigned char[80];
+			String sRet;		
+			unsigned char company_name_length = strlen(GetCompanyName());
+			unsigned char view_name_length = strlen(GetViewerName());
+			int iBufferToURLLength = company_name_length + view_name_length + 4 * m_iNumK + 80;
+			unsigned char* pBufferToURL = new unsigned char[iBufferToURLLength];
+			memset(pBufferToURL, 0, iBufferToURLLength);
 			unsigned char* pPos = pBufferToURL;
 
 			*pPos++ = 0x0A;//1 公司名,需要转utf 8
-			unsigned char company_name_length = strlen(GetCompanyName());
 			*pPos++ = company_name_length;
 			memcpy(pPos, GetCompanyName(), company_name_length);
 			pPos += company_name_length;
 
 			*pPos++ = 0x12;//2 镜片名，需要转utf 8
-			char view_name_length = strlen(GetViewerName());
 			*pPos++ = view_name_length;
 			memcpy(pPos, GetViewerName(), view_name_length);
 			pPos += view_name_length;
@@ -366,23 +354,41 @@ namespace Baofeng
 			pPos += sizeof(float);
 
 			*pPos++ = 0x3A;
-			*pPos++ = 0x08;
-			float fDistortionCoefficientsK1 = GetK1();
-			float fDistortionCoefficientsK2 = GetK2();
-			memcpy(pPos, &fDistortionCoefficientsK1, sizeof(float));
-			pPos += 4;
-			memcpy(pPos, &fDistortionCoefficientsK2, sizeof(float));
-			pPos += 4;
+			*pPos++ = 4 * m_iNumK;
+			if (m_iNumK)
+			{
+				memcpy(pPos, m_pK, sizeof(float)* m_iNumK);
+				pPos += sizeof(float)* m_iNumK;
+			}
 			*pPos++ = 0x50;
 			*pPos++ = 0x00;
 			*pPos++ = 0x60;
 			*pPos = 0x00;
+
 			int index = pPos - pBufferToURL + 1;
-			//cout << index << endl;
-			char* tempsRet = new char[index];
-			int Length = BufferToBase64(pBufferToURL, index, tempsRet);
+
+			
+			int Length = BufferToBase64(pBufferToURL, index, NULL);
+			char* tempsRet = new char[Length + 1];
+			memset(tempsRet, 0, Length + 1);
+			BufferToBase64(pBufferToURL, index, tempsRet);
 			sRet = tempsRet;
 			return sRet;
+
 		}
+
+		bool CDayDreamParameters::IsNoDistortion()const
+		{
+			if (m_iNumK)
+			{
+				for (int i = 0; i < m_iNumK; i++)
+				{
+					if (m_pK[i] != 0)
+						return false;
+				}
+			}
+			return true;
+		}
+		
 	}
 }

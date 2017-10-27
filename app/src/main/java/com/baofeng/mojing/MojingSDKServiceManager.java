@@ -42,7 +42,10 @@ public class MojingSDKServiceManager {
         @Override
         public void onServiceDisconnected(ComponentName name) {
         	Log.d(TAG, "Service '" + name + "' Disconnected");
-        	mService = null;
+			synchronized (g_SocketHBTimerSync)
+			{
+        		mService = null;
+			}
         }
 
         @Override
@@ -91,8 +94,15 @@ public class MojingSDKServiceManager {
 									if (g_SocketHBTimer != null)
 									{
 										try {
-											mService.socketHeartbeat(com.baofeng.mojing.MojingSDK.GetSocketPort());
-											Log.w(TAG, "socketHeartbeat ok");
+											if(mService != null)
+											{
+												mService.socketHeartbeat(com.baofeng.mojing.MojingSDK.GetSocketPort());
+												Log.d(TAG, "socketHeartbeat ok");
+											}
+											else
+											{
+												Log.d(TAG, "socketHeartbeat failed, Service is disconnected.");
+											}
 										} catch (RemoteException e) {
 											e.printStackTrace();
 										}

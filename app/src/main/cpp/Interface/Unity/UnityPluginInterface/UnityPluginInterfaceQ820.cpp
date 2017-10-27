@@ -135,7 +135,7 @@ namespace Baofeng
 				fclose(pDURL);
 				MOJING_TRACE(g_APIlogger , "Find DURL FILE ， DURL = " << szTemp);
 				CDayDreamParameters DD = DD.FromDayDreamURL(szTemp);
-				if (DD.GetK1() >= 0 && DD.GetK2() >= 0)
+				if (DD.GetNumK() >= 2)
 				{
 					MOJING_TRACE(g_APIlogger, "Set DURL to Distortion");
 					pDistortion->SetDURL(szTemp);

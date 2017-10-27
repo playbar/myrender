@@ -17,7 +17,11 @@
 extern MojingLogger g_APIlogger;
 extern MojingLogger g_Sensorlogger;
 #endif
-
+#ifdef _DEBUG
+#define CALIBRATION_STAUES_DEBUG 0
+#else
+#define CALIBRATION_STAUES_DEBUG 0
+#endif
 namespace Baofeng
 {
 	namespace Mojing
@@ -179,7 +183,7 @@ namespace Baofeng
 			// Make sure it is close enough to the current average that it is probably noise and not motion
 			float fAvg = avg.Length();
 			float fFilterOffset = (avg - GyroFilter.Mean()).Length();
-#ifdef _DEBUG
+#ifdef CALIBRATION_STAUES_DEBUG
 			static enum{
 				CALIBRATION_NONE,
 				CALIBRATION_START,
@@ -193,7 +197,7 @@ namespace Baofeng
 			if (fAvg >= absLimit || fFilterOffset >= noiseLimit)
 			{
 				//SetCalibrationResetCount(m_iCalibrationResetCount + 1);
-#ifdef _DEBUG
+#ifdef CALIBRATION_STAUES_DEBUG
 				if (sCalibration != CALIBRATION_CANCEL)
 				{
 					sCalibration = CALIBRATION_CANCEL;
@@ -203,7 +207,7 @@ namespace Baofeng
 				GyroFilter.Clear();
 				m_nAutoSaveGap = 0;
 			}
-#ifdef _DEBUG
+#ifdef CALIBRATION_STAUES_DEBUG
 			else if (sCalibration != CALIBRATION_START && sCalibration != CALIBRATION_HALF && sCalibration != CALIBRATION_DONE)
 			{
 				sCalibration = CALIBRATION_START;
@@ -227,7 +231,7 @@ namespace Baofeng
 			if (GyroFilter.GetSize() > GyroFilter.GetCapacity() / 2)
 			{
 				// MOJING_TRACE(g_APIlogger, "GyroFilter.GetSize = " << GyroFilter.GetSize() << " / " << GyroFilter.GetCapacity());
-#ifdef _DEBUG
+#ifdef CALIBRATION_STAUES_DEBUG
 				if (sCalibration != CALIBRATION_HALF && sCalibration != CALIBRATION_DONE)
 				{
 					sCalibration = CALIBRATION_HALF;
@@ -249,7 +253,7 @@ namespace Baofeng
 				if (GyroFilter.IsFull())
 				{
 					// 增加发送时间间隔保护，超过10分钟才会发下一次
-#ifdef _DEBUG
+#ifdef CALIBRATION_STAUES_DEBUG
 					if (sCalibration != CALIBRATION_DONE)
 					{
 						sCalibration = CALIBRATION_DONE;

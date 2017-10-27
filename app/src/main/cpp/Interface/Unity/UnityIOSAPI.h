@@ -117,17 +117,20 @@ extern "C"
     
     //for 体感手柄（如mojing-motion）
    	int Unity_Device_GetKeymask(int iID, int *pKeyMask);
+   	// 获取设备（如体感手柄）的姿态信息和其他传感器信息,返回值为采样的时间。
     float Unity_Device_GetInfo(int iID/*设备ID*/,
                                             float *pQuart/*四元数表示的旋转，依次为XYZW*/,
                                             float *pAngularAccel/*角加速度，依次为XYZ*/,
                                             float *pLinearAccel/*线加速度，依次为XYZ*/,
                                             float *pPosition,/*设备的空间位置，以米为单位，默认是0,0,0。*/
                                unsigned int *pKeystatus/*设备上的按键状态，默认是0表示没有按键被按下*/);
+    // 获取设备（如体感手柄）复位时的姿态信息和其他传感器信息,返回值为Reset的时间。
     float Unity_Device_GetFixInfo(int iID/*设备ID*/,
                                                float *pQuart/*四元数表示的旋转，依次为XYZW*/,
                                                float *pAngularAccel/*角加速度，依次为XYZ*/,
                                                float *pLinearAccel/*线加速度，依次为XYZ*/,
                                   float *pPosition/*设备的空间位置，以米为单位，默认是0,0,0。*/);
+    // 获取设备（如体感手柄）复位后的姿态信息和其他传感器信息,返回值为采样的时间。
     float Unity_Device_GetFixCurrentInfo(int iID/*设备ID*/,
                                                       float *pQuart/*四元数表示的旋转，依次为XYZW*/,
                                                       float *pAngularAccel/*角加速度，依次为XYZ*/,

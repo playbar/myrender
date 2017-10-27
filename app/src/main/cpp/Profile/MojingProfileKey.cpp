@@ -177,7 +177,7 @@ namespace Baofeng
 			int iBufferSize = Base32ToBuffer(pKeyBuffer, NULL);
 			if (iBufferSize == 18)// 解码后应该是18字节
 			{
-				unsigned char *pBuffer = new unsigned char[iBufferSize];
+				unsigned char *pBuffer = new unsigned char[iBufferSize + 1];
 				Base32ToBuffer(pKeyBuffer, pBuffer);
 				// CRC 检查
 				if (0 == GetCrc16(0, pBuffer, iBufferSize))

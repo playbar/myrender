@@ -210,21 +210,24 @@ public class MojingSDK
 	    String serial = "0000000000000000"; 
 
 	    try { 
-
-	    Class<?> c =Class.forName("android.os.SystemProperties"); 
-
-	       Method get =c.getMethod("get", String.class); 
-
-	       serial = (String)get.invoke(c, "ro.serialno"); 
-
+			if(Build.VERSION.SDK_INT>=26)//android 8.0 api 26
+			{
+				Class<?> c =Class.forName("android.os.Build");
+				Method getSerial =c.getMethod("getSerial");
+				serial = (String)getSerial.invoke(null);
+			}
+			else
+			{
+				Class<?> c =Class.forName("android.os.SystemProperties"); 
+				Method get =c.getMethod("get", String.class); 
+				serial = (String)get.invoke(c, "ro.serialno"); 
+				//serial= Build.SERIAL;
+			}
 	    } catch (Exception e) { 
-
 	       e.printStackTrace(); 
-
 	    } 
 
 	    return serial; 
-
 	} 
 
 	public static String getUserID(Context context) {	

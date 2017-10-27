@@ -1,6 +1,5 @@
 ﻿#include <dirent.h>
 #include <unistd.h>
-#include <Hook/eglhook/elf_eglhook.h>
 #include "MojingAPI.h"
 #include "Base/MojingTypes.h"
 #include "MojingManager.h"
@@ -192,7 +191,6 @@ bool MojingSDK_Init(int nWidth, int nHeight, float xdpi, float ydpi, const char*
 //#ifdef MJ_OS_ANDROID
 //		// 注意： 因为下面的代码会开辟很多的线程，有可能会导致下HOOK的时候卡死
 //		HookGVRTools::Init();
-//		hookEglGetProcAddress();
 //#endif // MJ_OS_ANDROID
 
 		//if (strcmp(szAppID, "UNKNOWN") != 0)
@@ -2290,7 +2288,7 @@ void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType , float fLeft
 			Vector3f v3LeftEyeNear = PointInNear(fNear, fLeftEye, v3Center);
 			float fX = trunc((v3LeftEyeNear.x - fWidth / 2) * FIX_COUNT) / FIX_COUNT;
 			float fY = trunc((v3LeftEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT;
-			Vector4f OverlayRectLeft = Vector4f(fX, fY + fYOffset / 2.0f, fWidth, fHeight);
+			Vector4f OverlayRectLeft = Vector4f(fX, fY - fYOffset / 2.0f, fWidth, fHeight);
 
 #if 0
 			MOJING_TRACE(g_APIlogger, "Left Eye =( " << fLeftEye.x << " , " << fLeftEye.y << " , " << fLeftEye.z << " ) , Near = " << fNear << " Size = ( " << fWidthInNear << " , " << fHeightInNear << " ) , "
@@ -2332,7 +2330,7 @@ void MojingSDK_SetOverlayPosition3D_V2(unsigned int eyeTextureType , float fLeft
 			
 			float fX = trunc((v3RightEyeNear.x - fWidth / 2) * FIX_COUNT) / FIX_COUNT;
 			float fY = trunc((v3RightEyeNear.y - fHeight / 2) * FIX_COUNT) / FIX_COUNT;
-			Vector4f OverlayRectRight = Vector4f(fX, fY + fYOffset / 2.0f, fWidth, fHeight);
+			Vector4f OverlayRectRight = Vector4f(fX, fY - fYOffset / 2.0f, fWidth, fHeight);
 #if 0
 			MOJING_TRACE(g_APIlogger, "Right Eye =( " << fRightEye.x << " , " << fRightEye.y << " , " << fRightEye.z << " ) , Near = " << fNear << " Size = ( " << fWidthInNear << " , " << fHeightInNear << " ) , "
 				<< " Center Point = ( " << v3Center.x << " , " << v3Center.y << " , " << v3Center.z << " )  "
