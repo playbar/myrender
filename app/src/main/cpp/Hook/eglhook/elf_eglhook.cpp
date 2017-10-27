@@ -250,7 +250,7 @@ char*  my_strncpy(char* __restrict dest, const char* __restrict src, size_t s){
 int (*old_strcmp)(const char *, const char *) = NULL;
 int mj_strcmp(const char *, const char *)
 {
-
+    return 0;
 }
 
 void hookEglGetProcAddress()
