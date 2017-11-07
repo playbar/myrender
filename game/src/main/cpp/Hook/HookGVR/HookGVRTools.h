@@ -3,9 +3,6 @@
 #ifdef MJ_OS_ANDROID
 // from gvrtyprs.h
 typedef struct gvr_context_ gvr_context;
-struct gvr_frame;
-struct gvr_buffer_viewport_list;
-
 typedef struct gvr_clock_time_point 
 {
 	int64_t monotonic_system_time_nanos;
@@ -42,29 +39,12 @@ typedef const char *(*FP_gvr_get_viewer_vendor)(const gvr_context *gvr);
 #define FN_gvr_get_version_string "gvr_get_version_string"
 typedef const char * (*FP_gvr_get_version_string)();
 
-#define FN_gvr_on_surface_created_reprojection_thread "gvr_on_surface_created_reprojection_thread"
-typedef int (*FP_gvr_on_surface_created_reprojection_thread)(const gvr_context *gvr);
-
-#define FN_gvr_render_reprojection_thread "gvr_render_reprojection_thread"
-typedef int (*FP_gvr_render_reprojection_thread)(const gvr_context *gvr);
-
 #define FN_gvr_get_version "gvr_get_version"
 typedef gvr_version (*FP_gvr_get_version)();
 
-#define FN_gvr_initialize_gl "gvr_initialize_gl"
-typedef void (*FP_gvr_initialize_gl)(gvr_context* gvr);
-
-#define FN_gvr_frame_bind_buffer "gvr_frame_bind_buffer"
-typedef void (*FP_gvr_frame_bind_buffer)(gvr_frame* frame, int32_t index);
-
-#define FN_gvr_frame_unbind "gvr_frame_unbind"
-typedef void (*FP_gvr_frame_unbind)(gvr_frame* frame);
-
-#define FN_gvr_is_feature_supported "gvr_is_feature_supported"
-typedef bool (*FP_gvr_is_feature_supported)(const gvr_context* gvr, int32_t feature);
-
 #define FN_gvr_frame_submit "gvr_frame_submit"
-
+struct gvr_frame;
+struct gvr_buffer_viewport_list;
 typedef void(*FP_gvr_frame_submit)(	gvr_frame **frame,	const gvr_buffer_viewport_list *list,	gvr_mat4f head_space_from_start_space);
 #define  USING_SVR_SENSOR 0
 class HookGVRTools
@@ -74,7 +54,6 @@ public:
 	virtual ~HookGVRTools();
 	static bool Init();
 
-//	static gvr_version HOOK_gvr_get_version();
 private:
 #if USING_SVR_SENSOR
 	static class CSVRApi m_SVRApi;
@@ -84,13 +63,9 @@ private:
 #endif
 	
 	static bool LoadGVR();
+	static void ReportCurrentGlasses(const gvr_context *gvr);
 	static gvr_mat4f HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time);
 	static void HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space);
-//	static int HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr);
-//	static int HOOK_gvr_render_reprojection_thread(const gvr_context *gvr);
-	static void HOOK_gvr_initialize_gl(gvr_context* gvr);
-	static bool HOOK_gvr_is_feature_supported(const gvr_context* gvr, int32_t feature);
-    static void HOOK_gvr_frame_unbind(gvr_frame* frame);
 
 	static void HOOK_gvr_reset_tracking(gvr_context *gvr); // Deprecated
 	static void HOOK_gvr_recenter_tracking(gvr_context *gvr);
@@ -103,13 +78,7 @@ private:
 	static FP_gvr_get_viewer_model m_fp_gvr_get_viewer_model;
 	static FP_gvr_get_viewer_vendor m_fp_gvr_get_viewer_vendor;
 	static FP_gvr_get_version_string m_fp_gvr_get_version_string;
-//	static FP_gvr_on_surface_created_reprojection_thread m_fp_gvr_on_surface_created_reprojection_thread;
-//	static FP_gvr_render_reprojection_thread m_fp_gvr_render_reprojection_thread;
 	static FP_gvr_get_version m_fp_gvr_get_version;
-	static FP_gvr_initialize_gl m_fp_gvr_initialize_gl;
-	static FP_gvr_frame_bind_buffer m_fp_gvr_frame_bind_buffer;
-	static FP_gvr_frame_unbind m_fp_gvr_frame_unbind;
-	static FP_gvr_is_feature_supported m_fp_gvr_is_feature_supported;
 
 };
 extern bool g_bEnableDDTracker;

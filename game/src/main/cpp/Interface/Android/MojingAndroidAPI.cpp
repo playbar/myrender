@@ -157,19 +157,18 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 #endif
 }
 
-JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookGvrFun(JNIEnv *jEnv, jclass, jboolean isdd)
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_VrFuncInit(JNIEnv *jEnv, jclass, jboolean isdd)
 {
     HookGVRTools::Init();
-	hookGLFun();
 //    startHookThread(isdd);
 }
 
-JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_hookReprojectionFun(JNIEnv *jEnv, jclass)
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_ReprojFuncInit(JNIEnv *jEnv, jclass)
 {
 	hookEglGetProcAddress();
 }
 
-JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_nativeHookUnityFun(JNIEnv *jEnv, jclass)
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_NativeUnityFuncInit(JNIEnv *jEnv, jclass)
 {
     hookUnityFun();
 }
@@ -221,6 +220,17 @@ JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, j
 	env->ReleaseStringUTFChars(userID, szUserID);
 	env->ReleaseStringUTFChars(channelID, szChannelID);
 	return bRet;
+}
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_CheckPackage(JNIEnv *env, jclass, jstring jstrAppName, jstring jstrCaseCode)
+{
+	const char * szAppName = env->GetStringUTFChars(jstrAppName, 0);
+	const char * szCaseCode = env->GetStringUTFChars(jstrCaseCode, 0);
+
+	MojingSDK_CheckPackage(szAppName, szCaseCode);
+
+	env->ReleaseStringUTFChars(jstrAppName, szAppName);
+	env->ReleaseStringUTFChars(jstrCaseCode, szCaseCode);
 }
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_SetEngineVersion(JNIEnv *env, jclass, jstring jstrEngineVersion)

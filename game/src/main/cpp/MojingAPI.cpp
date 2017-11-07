@@ -459,6 +459,27 @@ void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const cha
 	}
 }
 
+void MojingSDK_CheckPackage(const char* szAppName, const char* szCaseCode)
+{
+	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();
+	//Please init first!
+	if (pStatus->GetInitStatus() == INIT_NO)
+	{
+		MOJING_WARN(g_APIlogger, "Please init Mojing SDK first.");
+		return;
+	}
+
+	Manager* pManager = Manager::GetMojingManager();
+	if (pManager)
+	{
+		MOJING_TRACE(g_APIlogger, "Mojing SDK check package name. App Name: " << szAppName << ", szCaseCode: " << szCaseCode);
+#ifdef MJ_OS_ANDROID
+		MojingMerchantVerify::GetMojingMerchantVerify()->AppCheckPackage(szAppName, szCaseCode);
+#endif
+	}
+}
+
+
 void MojingSDK_SetGlassesSerialNumber(const char* lpszSN)
 {
 	MojingSDKStatus *pStatus = MojingSDKStatus::GetSDKStatus();

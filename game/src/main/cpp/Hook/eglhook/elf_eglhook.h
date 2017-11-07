@@ -7,7 +7,6 @@ extern "C" {
 #endif
 
 void hookEglGetProcAddress();
-void hookGLFun();
 void hookUnityFun();
 void startHookThread(bool isdd);
 

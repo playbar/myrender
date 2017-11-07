@@ -15,8 +15,9 @@ namespace Baofeng
 		enum SDK_VERIFY
 		{
 			VERIFY_OK = 0, 
-			VERIFY_INVALID,
-			VERIFY_VERSION_LOW	// SDK 版本过低
+			VERIFY_INVALID,			//商户、APPID验证失败 
+			VERIFY_VERSION_LOW,		//SDK 版本过低
+			VERIFY_PACKAGE_INVALID	//程序包名不匹配
 		};
 		enum TRACKER_STATUS
 		{

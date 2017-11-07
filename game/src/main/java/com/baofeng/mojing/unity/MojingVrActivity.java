@@ -417,12 +417,12 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
        // ZeemoteActivityManager.setActivity(this);
 
         Log.i(TAG, "onResume: joystick connect");
-        joystick.SetSendVolumeKeyEventStatus(_mojing_send_volume_key_event_status);
-        if (isUseCustomerInputMap && inputMapfilepath != null && (inputMapfilepath.isEmpty() == false)) {
-            joystick.Connect(this, inputMapfilepath);
-        } else {
-            joystick.Connect(this, null);
-        }
+//        joystick.SetSendVolumeKeyEventStatus(_mojing_send_volume_key_event_status);
+//        if (isUseCustomerInputMap && inputMapfilepath != null && (inputMapfilepath.isEmpty() == false)) {
+//            joystick.Connect(this, inputMapfilepath);
+//        } else {
+//            joystick.Connect(this, null);
+//        }
 
         // Code from UnityPlayerNativeActivity
         Log.i(TAG, "onResume: super.onResume");

@@ -45,15 +45,15 @@ extern "C" {
 
 // Avoid conflict with BSD-based definition of ElfXX_Nhdr.
 // Unfortunately, their field member names do not use a 'n_' prefix.
-#define Elf32_Nhdr   __bsd_Elf32_Nhdr
-#define Elf64_Nhdr   __bsd_Elf64_Nhdr
+#define Elf32_Nhdr_bp   __bsd_Elf32_Nhdr
+#define Elf64_Nhdr_bp   __bsd_Elf64_Nhdr
 
 // In case they are defined by the NDK version
-#define Elf32_auxv_t  __bionic_Elf32_auxv_t
-#define Elf64_auxv_t  __bionic_Elf64_auxv_t
+#define Elf32_bp_auxv_t  __bionic_Elf32_auxv_t
+#define Elf64_bp_auxv_t  __bionic_Elf64_auxv_t
 
-#define Elf32_Dyn     __bionic_Elf32_Dyn
-#define Elf64_Dyn     __bionic_Elf64_Dyn
+#define Elf32_bp_Dyn     __bionic_Elf32_Dyn
+#define Elf64_bp_Dyn     __bionic_Elf64_Dyn
 
 #include_next <elf.h>
 
@@ -64,13 +64,13 @@ typedef struct {
   Elf32_Word n_namesz;
   Elf32_Word n_descsz;
   Elf32_Word n_type;
-} Elf32_Nhdr;
+} Elf32_Nhdr_bp;
 
 typedef struct {
   Elf64_Word n_namesz;
   Elf64_Word n_descsz;
   Elf64_Word n_type;
-} Elf64_Nhdr;
+} Elf64_Nhdr_bp;
 
 #undef Elf32_auxv_t
 #undef Elf64_auxv_t
@@ -80,14 +80,14 @@ typedef struct {
     union {
       uint32_t a_val;
     } a_un;
-} Elf32_auxv_t;
+} Elf32_bp_auxv_t;
 
 typedef struct {
     uint64_t a_type;
     union {
       uint64_t a_val;
     } a_un;
-} Elf64_auxv_t;
+} Elf64_bp_auxv_t;
 
 #undef Elf32_Dyn
 #undef Elf64_Dyn
@@ -98,7 +98,7 @@ typedef struct {
     Elf32_Word  d_val;
     Elf32_Addr  d_ptr;
   } d_un;
-} Elf32_Dyn;
+} Elf32_bp_Dyn;
 
 typedef struct {
   Elf64_Sxword   d_tag;
@@ -106,7 +106,7 @@ typedef struct {
     Elf64_Xword  d_val;
     Elf64_Addr   d_ptr;
   } d_un;
-} Elf64_Dyn;
+} Elf64_bp_Dyn;
 
 
 // __WORDSIZE is GLibc-specific and used by Google Breakpad on Linux.

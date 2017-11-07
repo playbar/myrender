@@ -50,6 +50,7 @@ add_library(mojing SHARED
             3rdPart/minizip/zip.c
             3rdPart/log4cplus/LogInterface.cpp
             Base/Base32.cpp
+            Base/Base64.cpp
 			Base/CRC.cpp
 			Base/GlUtils.cpp
 			Base/MojingAlg.cpp

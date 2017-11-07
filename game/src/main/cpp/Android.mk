@@ -136,6 +136,7 @@ MOJING_SRC_FILES += 3rdPart/log4cplus/LogInterface.cpp
 
 # Base
 MOJING_SRC_FILES += Base/Base32.cpp \
+					Base/Base64.cpp \
 					Base/CRC.cpp \
 					Base/GlUtils.cpp \
 					Base/MojingAlg.cpp \
@@ -169,7 +170,12 @@ MOJING_SRC_FILES += Distortion/MojingDistortion.cpp \
 MOJING_SRC_FILES += Hook/Global/detour.cpp \
 					Hook/Global/instruction.cpp \
 					Hook/Global/HookBase.cpp \
-					Hook/HookGVR/HookGVRTools.cpp
+					Hook/HookGVR/HookGVRTools.cpp \
+					Hook/eglhook/elf_common.cpp \
+					Hook/eglhook/elf_hooker.cpp \
+					Hook/eglhook/elf_eglhook.cpp \
+					Hook/eglhook/elf_module.cpp \
+					Hook/waithook.cpp \
 
 # Interface
 MOJING_SRC_FILES += Interface/Android/MojingAndroidAPI.cpp \

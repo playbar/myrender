@@ -44,6 +44,7 @@ bool MojingSDK_Init(int nWidth,
 void MojingSDK_SetGlassesSerialNumber(const char* lpszSN);
 bool MojingSDK_SetEngineVersion(const char* lpszEngine);
 void MojingSDK_Validate(const char* szMerchantID, const char* szAppID, const char* szAppKey, const char* szChannelID);
+void MojingSDK_CheckPackage(const char* szAppName, const char* szCaseCode);
 
 //for report
 bool MojingSDK_ReportReInit();
