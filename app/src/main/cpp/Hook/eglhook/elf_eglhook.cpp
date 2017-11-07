@@ -148,8 +148,10 @@ Fn_glViewport old_glViewport = NULL;
 void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 {
     LOGE("mj_glViewport, x=%d, y=%d, w=%d, h=%d, tid=%d", x, y, width, height, gettid());
-    gwidth = width;
-    gheight = height;
+//    gwidth = width;
+//    gheight = height;
+    gwidth = 1295;
+    gheight = 1528;
     return old_glViewport(x, y, width, height);
 }
 

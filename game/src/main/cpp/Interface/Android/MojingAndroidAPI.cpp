@@ -146,14 +146,14 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 {
 	// USING_MINIDUMP;
 #ifdef ENABLE_LOGGER
-//	if (g_APIlogger.m_nLogLevel <= logLevel)
-//	{
-//		const char* jInfo = jEnv->GetStringUTFChars(sInfo, 0);
-//		const char* jFileName = jEnv->GetStringUTFChars(sFileName, 0);
-//		g_APIlogger.Log(logLevel, jInfo, jFileName, line);
-//		jEnv->ReleaseStringUTFChars(sInfo, jInfo);
-//		jEnv->ReleaseStringUTFChars(sFileName, jFileName);
-//	}
+	if (g_APIlogger.m_nLogLevel <= logLevel) 
+	{
+		const char* jInfo = jEnv->GetStringUTFChars(sInfo, 0);
+		const char* jFileName = jEnv->GetStringUTFChars(sFileName, 0);
+		g_APIlogger.Log(logLevel, jInfo, jFileName, line);
+		jEnv->ReleaseStringUTFChars(sInfo, jInfo);
+		jEnv->ReleaseStringUTFChars(sFileName, jFileName);
+	}
 #endif
 }
 

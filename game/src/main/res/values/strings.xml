@@ -1,29 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Fruit Slicer VR</string>
-    <string name="return_to_vr">Return to VR</string>
-    <string name="back_button_content_description">back</string>
-    <string name="cancel_button">Cancel</string>
-    <string name="dialog_button_got_it">取消</string>
-    <string name="dialog_button_open_help_center">查看帮助</string>
-    <string name="dialog_message_incompatible_phone">未找到手柄或可用服务，点击「查看帮助」可获得解决方法</string>
-    <string name="dialog_message_no_cardboard">Get the Cardboard app in order to configure your viewer.</string>
-    <string name="dialog_message_setup">Set up your viewer for the best experience.</string>
-    <string name="dialog_title">Configure</string>
-    <string name="dialog_title_incompatible_phone">提示</string>
-    <string name="dialog_title_vr_core_not_enabled">Setup required</string>
-    <string name="dialog_title_vr_core_not_installed">Install required</string>
-    <string name="dialog_title_warning">Warning</string>
-    <string name="dialog_vr_core_not_enabled">This application may not work properly without enabling Google VR Services, please enable this in phone Settings before continuing.</string>
-    <string name="dialog_vr_core_not_installed">This application may not work properly without Google VR Services. Please install Google VR Services from the Play Store before continuing.</string>
-    <string name="go_to_playstore_button">Go to the Play Store</string>
-    <string name="go_to_vr_listeners_settings_button">Go to Settings</string>
-    <string name="gvr_vr_mode_component">com.google.vr.vrcore/com.google.vr.vrcore.common.VrCoreListenerService</string>
-    <string name="no_browser_text">No browser to open website</string>
-    <string name="place_your_phone_into_cardboard">Place your phone into your Cardboard viewer</string>
-    <string name="place_your_viewer_into_viewer_format">Place your phone into your %s viewer</string>
-    <string name="settings_button_content_description">settings</string>
-    <string name="setup_button">Setup</string>
-    <string name="switch_viewer_action">Switch</string>
-    <string name="switch_viewer_prompt">Using a different viewer?</string>
+  <string name="app_name">Daydream201702f3Controller</string>
 </resources>

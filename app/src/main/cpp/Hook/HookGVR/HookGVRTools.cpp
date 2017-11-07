@@ -402,18 +402,32 @@ extern int gheight;
 void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space)
 {
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
-//    m_fp_gvr_frame_bind_buffer(*frame, 0);
+    m_fp_gvr_frame_bind_buffer(*frame, 1);
 //    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
 //    glClear ( GL_COLOR_BUFFER_BIT );
-//    if(gmultiview_enabled) {
+    glViewport(960, 0, 960, 1080);
+    DrawTex(&gUserData);
+	m_fp_gvr_frame_unbind(*frame);
+
+	m_fp_gvr_frame_bind_buffer(*frame, 0);
+//	glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//	glClear ( GL_COLOR_BUFFER_BIT );
+    glViewport(0, 0, 960, 1080);
+    DrawTex(&gUserData);
+	m_fp_gvr_frame_unbind(*frame);
+////    if(gmultiview_enabled) {
 //        DrawTex(&gUserData);
-//    } else{
+////    } else{
 //        glViewport(gwidth, 0, gwidth, gheight);
-//        DrawTex(&gUserData);
+//	glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//	glClear ( GL_COLOR_BUFFER_BIT );
+////        DrawTex(&gUserData);
 //        glViewport(0, 0, gwidth, gheight);
-//        DrawTex(&gUserData);
-//    }
-//	m_fp_gvr_frame_unbind(*frame);
+//	glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//	glClear ( GL_COLOR_BUFFER_BIT );
+////        DrawTex(&gUserData);
+////    }
+	m_fp_gvr_frame_unbind(*frame);
     rendertid = gettid();
 	if (m_fp_gvr_frame_submit)
 	{
@@ -491,6 +505,8 @@ void HookGVRTools::HOOK_gvr_frame_unbind(gvr_frame* frame)
 //		DrawTex(&gUserData);
 //	}
 
+//	glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//	glClear ( GL_COLOR_BUFFER_BIT );
 
 	if( m_fp_gvr_frame_unbind)
 		m_fp_gvr_frame_unbind(frame);
