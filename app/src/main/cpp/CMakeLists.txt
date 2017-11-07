@@ -81,6 +81,7 @@ add_library(mojing SHARED
             Hook/eglhook/elf_hooker.cpp
             Hook/eglhook/elf_eglhook.cpp
             Hook/eglhook/elf_module.cpp
+            Hook/drawtex.cpp
             Hook/waithook.cpp
             Interface/Android/MojingAndroidAPI.cpp
 			Interface/Android/MojingNativeInput.cpp

@@ -26,6 +26,9 @@ int rendertid = 0;
 int gvrmajorversion = 0;
 int gvrminorversion = 0;
 
+int gwidth = 0;
+int gheight = 0;
+
 
 void* get_module_base(pid_t pid,const char* module_name)
 {
@@ -145,10 +148,10 @@ Fn_glViewport old_glViewport = NULL;
 void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 {
     LOGE("mj_glViewport, x=%d, tid=%d", x, gettid());
+    gwidth = width;
+    gheight = height;
     return old_glViewport(x, y, width, height);
-
 }
-
 
 typedef void (*Fn_glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
 Fn_glDrawElements old_glDrawElements = NULL;
@@ -277,6 +280,7 @@ void hookEglGetProcAddress()
 //    if(sdkInt < 20) {
 //        __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
 //    }
+    hook((uint32_t) glViewport, (uint32_t)mj_glViewport, (uint32_t **) &old_glViewport);
 }
 
 void hookUnityFun()
