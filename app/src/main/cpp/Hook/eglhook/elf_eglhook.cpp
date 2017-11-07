@@ -147,7 +147,7 @@ typedef void (*Fn_glViewport)(GLint x, GLint y, GLsizei width, GLsizei height);
 Fn_glViewport old_glViewport = NULL;
 void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 {
-    LOGE("mj_glViewport, x=%d, tid=%d", x, gettid());
+    LOGE("mj_glViewport, x=%d, y=%d, w=%d, h=%d, tid=%d", x, y, width, height, gettid());
     gwidth = width;
     gheight = height;
     return old_glViewport(x, y, width, height);
@@ -280,6 +280,11 @@ void hookEglGetProcAddress()
 //    if(sdkInt < 20) {
 //        __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
 //    }
+
+}
+
+void hookGLFun()
+{
     hook((uint32_t) glViewport, (uint32_t)mj_glViewport, (uint32_t **) &old_glViewport);
 }
 

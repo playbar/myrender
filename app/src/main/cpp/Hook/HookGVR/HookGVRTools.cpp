@@ -52,8 +52,8 @@ FP_gvr_frame_submit HookGVRTools::m_fp_gvr_frame_submit = NULL;
 FP_gvr_get_viewer_model HookGVRTools::m_fp_gvr_get_viewer_model = NULL;
 FP_gvr_get_viewer_vendor HookGVRTools::m_fp_gvr_get_viewer_vendor = NULL;
 FP_gvr_get_version_string HookGVRTools::m_fp_gvr_get_version_string = NULL;
-FP_gvr_on_surface_created_reprojection_thread HookGVRTools::m_fp_gvr_on_surface_created_reprojection_thread = NULL;
-FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
+//FP_gvr_on_surface_created_reprojection_thread HookGVRTools::m_fp_gvr_on_surface_created_reprojection_thread = NULL;
+//FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
 FP_gvr_get_version HookGVRTools::m_fp_gvr_get_version = NULL;
 FP_gvr_initialize_gl HookGVRTools::m_fp_gvr_initialize_gl = NULL;
 FP_gvr_frame_bind_buffer HookGVRTools::m_fp_gvr_frame_bind_buffer = NULL;
@@ -83,21 +83,22 @@ bool HookGVRTools::Init()
 	bool bRet = false;
 	if (LoadGVR())
 	{
-		HookParamet HP[6];
+		HookParamet HP[7];
 		HOOK_PARAMET(HP[0], gvr_get_head_space_from_start_space_rotation);
 		HOOK_PARAMET(HP[1], gvr_reset_tracking);
 		HOOK_PARAMET(HP[2], gvr_recenter_tracking);
 		HOOK_PARAMET(HP[3], gvr_frame_submit);
 		HOOK_PARAMET(HP[4], gvr_initialize_gl);
 		HOOK_PARAMET(HP[5], gvr_is_feature_supported);
+//		HOOK_PARAMET(HP[6], gvr_frame_unbind);
 
-		if (HookBase::HookToFunctions(m_hGVR, HP, 6) &&
+		if (HookBase::HookToFunctions(m_hGVR, HP, 7) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_model)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_vendor)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version_string))&&
             NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version)) &&
-			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_bind_buffer)) &&
-			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_unbind)))
+			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_bind_buffer))
+			&& NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_unbind)))
 		{
 			// Get Function pointer HOOKed
 			m_fp_gvr_get_head_space_from_start_space_rotation = (FP_gvr_get_head_space_from_start_space_rotation)HP[0].fpRealFunction;
@@ -106,6 +107,7 @@ bool HookGVRTools::Init()
 			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
 			m_fp_gvr_initialize_gl = (FP_gvr_initialize_gl)HP[4].fpRealFunction;
 			m_fp_gvr_is_feature_supported = (FP_gvr_is_feature_supported)HP[5].fpRealFunction;
+//			m_fp_gvr_frame_unbind = (FP_gvr_frame_unbind)HP[6].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
 			sEngenVersion += m_fp_gvr_get_version_string();
@@ -182,15 +184,15 @@ bool HookGVRTools::LoadGVR()
 	return m_hGVR != NULL;
 }
 
-gvr_version HookGVRTools::HOOK_gvr_get_version()
-{
-    LOGE("HOOK_gvr_get_version");
-	gvr_version version;
-	memset(&version, 0, sizeof(gvr_version));
-//	if( m_fp_gvr_get_version)
-//		version = m_fp_gvr_get_version();
-	return version;
-}
+//gvr_version HookGVRTools::HOOK_gvr_get_version()
+//{
+//    LOGE("HOOK_gvr_get_version");
+//	gvr_version version;
+//	memset(&version, 0, sizeof(gvr_version));
+////	if( m_fp_gvr_get_version)
+////		version = m_fp_gvr_get_version();
+//	return version;
+//}
 
 #if 0
 gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time)
@@ -242,6 +244,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 	{
 		Ret = m_fp_gvr_get_head_space_from_start_space_rotation(gvr, time);
 	}
+    return Ret;
 	/************************************************************************/
 	/* ���´������������ӿ��ṩ��ǰ����ʹ�õľ�Ƭ                         */
 	/************************************************************************/
@@ -399,16 +402,18 @@ extern int gheight;
 void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space)
 {
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
-    m_fp_gvr_frame_bind_buffer(*frame, 0);
-    if(gmultiview_enabled) {
-        DrawTex(&gUserData);
-    } else{
-        glViewport(gwidth, 0, gwidth, gheight);
-        DrawTex(&gUserData);
-        glViewport(0, 0, gwidth, gheight);
-        DrawTex(&gUserData);
-    }
-	m_fp_gvr_frame_unbind(*frame);
+//    m_fp_gvr_frame_bind_buffer(*frame, 0);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+//    if(gmultiview_enabled) {
+//        DrawTex(&gUserData);
+//    } else{
+//        glViewport(gwidth, 0, gwidth, gheight);
+//        DrawTex(&gUserData);
+//        glViewport(0, 0, gwidth, gheight);
+//        DrawTex(&gUserData);
+//    }
+//	m_fp_gvr_frame_unbind(*frame);
     rendertid = gettid();
 	if (m_fp_gvr_frame_submit)
 	{
@@ -431,29 +436,30 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 }
 
 
-int HookGVRTools::HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr)
-{
-    LOGE("HOOK_gvr_on_surface_created_reprojection_thread");
-	int re = 0;
-	if(m_fp_gvr_on_surface_created_reprojection_thread)
-		re = m_fp_gvr_on_surface_created_reprojection_thread(gvr);
-	return re;
-}
+//int HookGVRTools::HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr)
+//{
+//    LOGE("HOOK_gvr_on_surface_created_reprojection_thread");
+//	int re = 0;
+//	if(m_fp_gvr_on_surface_created_reprojection_thread)
+//		re = m_fp_gvr_on_surface_created_reprojection_thread(gvr);
+//	return re;
+//}
 
-extern int needswapbuffer;
-int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
-{
-    LOGE("HOOK_gvr_render_reprojection_thread, tid=%d", gettid());
-    int re = 0;
-    if( m_fp_gvr_render_reprojection_thread) {
-//        needswapbuffer = 1;
-		re = m_fp_gvr_render_reprojection_thread(gvr);
-	}
-    return re;
-}
+//extern int needswapbuffer;
+//int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
+//{
+//    LOGE("HOOK_gvr_render_reprojection_thread, tid=%d", gettid());
+//    int re = 0;
+//    if( m_fp_gvr_render_reprojection_thread) {
+////        needswapbuffer = 1;
+//		re = m_fp_gvr_render_reprojection_thread(gvr);
+//	}
+//    return re;
+//}
 
 void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
 {
+    LOGE("HOOK_gvr_initialize_gl");
 	if( m_fp_gvr_initialize_gl)
 		m_fp_gvr_initialize_gl(gvr);
 	InitTex(&gUserData, 1);
@@ -462,6 +468,7 @@ void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
 
 bool HookGVRTools::HOOK_gvr_is_feature_supported(const gvr_context* gvr, int32_t feature)
 {
+	LOGE("HOOK_gvr_is_feature_supported");
 	bool re = false;
 	if( m_fp_gvr_is_feature_supported)
 		re = m_fp_gvr_is_feature_supported(gvr, feature);
@@ -470,6 +477,26 @@ bool HookGVRTools::HOOK_gvr_is_feature_supported(const gvr_context* gvr, int32_t
 	}
 	return re;
 }
+
+void HookGVRTools::HOOK_gvr_frame_unbind(gvr_frame* frame)
+{
+	LOGE("Hook_gvr_frame_unbind");
+//	m_fp_gvr_frame_bind_buffer(*frame, 0);
+//	if(gmultiview_enabled) {
+//		DrawTex(&gUserData);
+//	} else{
+//		glViewport(gwidth, 0, gwidth, gheight);
+//		DrawTex(&gUserData);
+//		glViewport(0, 0, gwidth, gheight);
+//		DrawTex(&gUserData);
+//	}
+
+
+	if( m_fp_gvr_frame_unbind)
+		m_fp_gvr_frame_unbind(frame);
+    return;
+}
+
 
 void HookGVRTools::HOOK_gvr_reset_tracking( gvr_context *gvr)
 {// ע�⣺�˺�����DD����������HOOK_gvr_recenter_tracking
@@ -490,11 +517,11 @@ void HookGVRTools::HOOK_gvr_recenter_tracking(gvr_context *gvr)
 #ifdef _DEBUG
 	MOJING_FUNC_TRACE(g_APIlogger);
 #endif
-	bool bIsMJ5 = MojingSDK_IsHDMWorking();
-	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
-	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
-	{
-		MojingSDK_ResetSensorOrientation();
-	}
+//	bool bIsMJ5 = MojingSDK_IsHDMWorking();
+//	bool bSensorDataFromMJSDK = Manager::GetMojingManager()->GetParameters()->GetUserSettingProfile()->GetSensorDataFromMJSDK();
+//	if (bIsMJ5 || bSensorDataFromMJSDK || m_bSVREnable)
+//	{
+//		MojingSDK_ResetSensorOrientation();
+//	}
 	m_fp_gvr_recenter_tracking(gvr);
 }
