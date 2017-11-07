@@ -18,7 +18,7 @@
         android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
         android:enableVrMode="@string/gvr_vr_mode_component"
         android:resizeableActivity="false"
-        android:name="com.vr.test.UnityPlayerActivity">
+        android:name="com.baofeng.mojing.unity.MojingVrActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
