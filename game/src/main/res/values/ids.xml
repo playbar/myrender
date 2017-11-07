@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="return_button">false</item>
+    <item type="id" name="transition_frame">false</item>
+    <item type="id" name="back_button">false</item>
+    <item type="id" name="transition_top_frame">false</item>
+    <item type="id" name="transition_icon">false</item>
+    <item type="id" name="transition_text">false</item>
+    <item type="id" name="transition_bottom_frame">false</item>
+    <item type="id" name="transition_question_text">false</item>
+    <item type="id" name="divider">false</item>
+    <item type="id" name="transition_switch_action">false</item>
+    <item type="id" name="ui_back_button">false</item>
+    <item type="id" name="ui_alignment_marker">false</item>
+    <item type="id" name="ui_settings_button">false</item>
+</resources>

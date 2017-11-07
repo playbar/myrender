@@ -374,13 +374,15 @@ namespace Baofeng
 		/*以下是对外提供的响应*/
 		bool UnityPluginInterfaceBase::IsInMojingWorld(const char * szGlassesName)
 		{
-			//MOJING_FUNC_TRACE(g_APIlogger); 
+			//MOJING_FUNC_TRACE(g_APIlogger);
+			return false;
 			const char* pGlassesNow = MojingSDK_GetGlasses();
 			bool bRet = (strcmp(pGlassesNow, szGlassesName) == 0);
 #ifdef _DEBUG
 			MOJING_TRACE(g_APIlogger , "IsInMojingWorld = " << bRet);
 #endif
 			return  bRet && GetIsInMojingWorld();
+
 		}
 
 		bool UnityPluginInterfaceBase::IsGlassesNeedDistortion()

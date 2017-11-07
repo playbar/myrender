@@ -52,7 +52,7 @@ dependencies {
     compile files('libs/ZControllerLib-android-1.9.2.jar')
     compile files('libs/ZControllerLib-android-ui-1.9.2.jar')
     compile files('libs/ZControllerLib-common-1.9.2.jar')
-//    compile files('libs/gvr.jar')
+    compile files('libs/gvr.jar')
 //    compile files('libs/unitygvr.jar')
 
     compile(name: 'gvr', ext:'aar')

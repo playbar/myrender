@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@id/transition_frame" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageButton android:id="@id/back_button" android:src="@drawable/quantum_ic_close_white_24" android:layout_alignParentTop="true" android:layout_alignParentStart="true" style="@style/UiButton"
+      xmlns:android="http://schemas.android.com/apk/res/android" />
+    <RelativeLayout android:id="@id/transition_top_frame" android:paddingBottom="48.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true">
+        <ImageView android:id="@id/transition_icon" android:padding="4.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/transition" android:scaleType="center" android:layout_centerHorizontal="true" />
+        <TextView android:textSize="16.0sp" android:textColor="#ffffffff" android:gravity="center" android:id="@id/transition_text" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="32.0dip" android:text="@string/place_your_phone_into_cardboard" android:layout_below="@id/transition_icon" />
+    </RelativeLayout>
+    <LinearLayout android:orientation="horizontal" android:id="@id/transition_bottom_frame" android:background="#ff546e7a" android:layout_width="fill_parent" android:layout_height="@dimen/transition_bottom_bar_height" android:layout_alignParentBottom="true">
+        <TextView android:textSize="16.0sp" android:textColor="#ffffffff" android:gravity="start|center" android:id="@id/transition_question_text" android:layout_width="wrap_content" android:layout_height="fill_parent" android:text="@string/switch_viewer_prompt" android:layout_below="@id/transition_icon" android:paddingEnd="20.0dip" android:layout_marginStart="24.0dip" />
+        <View android:layout_width="0.0dip" android:layout_height="0.0dip" android:layout_weight="1.0" />
+        <View android:id="@id/divider" android:background="#1f000000" android:layout_width="1.0dip" android:layout_height="fill_parent" android:layout_marginTop="10.0dip" android:layout_marginBottom="10.0dip" />
+        <TextView android:textSize="16.0sp" android:textColor="#ffffffff" android:gravity="end|center" android:id="@id/transition_switch_action" android:background="?android:selectableItemBackground" android:layout_width="wrap_content" android:layout_height="fill_parent" android:text="@string/switch_viewer_action" android:textAllCaps="true" android:paddingStart="20.0dip" android:paddingEnd="24.0dip" />
+    </LinearLayout>
+</RelativeLayout>
