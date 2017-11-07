@@ -1,4 +1,0 @@
-D:/MyWorks/myrender/game/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/mojing.dir
-D:/MyWorks/myrender/game/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/mojingvrrom.dir
-D:/MyWorks/myrender/game/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/edit_cache.dir
-D:/MyWorks/myrender/game/.externalNativeBuild/cmake/debug/armeabi-v7a/CMakeFiles/rebuild_cache.dir
