@@ -16,7 +16,7 @@ static void CheckGLError(const char* label) {
     if (gl_error != GL_NO_ERROR) {
         LOGE("GL error @ %s: %d", label, gl_error);
         // Crash immediately to make OpenGL errors obvious.
-//        abort();
+        abort();
     }
 }
 
@@ -174,7 +174,32 @@ GLuint createTexture( )
 
 }
 
+void InitData()
+{
+    static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
+                                   0.0f,  0.0f,        // TexCoord 0
+                                   -0.5f, -0.5f, 0.0f,  // Position 1
+                                   0.0f,  1.0f,        // TexCoord 1
+                                   0.5f, -0.5f, 0.0f,  // Position 2
+                                   1.0f,  1.0f,        // TexCoord 2
+                                   0.5f,  0.5f, 0.0f,  // Position 3
+                                   1.0f,  0.0f         // TexCoord 3
+    };
+    static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
+    glGenBuffers(1, &gUserData.vboID);
+    glBindBuffer(GL_ARRAY_BUFFER, gUserData.vboID);
+    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(GLfloat), vVertices, GL_STATIC_DRAW);
+    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+
+    glGenBuffers(1, &gUserData.iboID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gUserData.iboID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), indices, GL_STATIC_DRAW);
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+
+    return;
+
+}
 
 ///
 // Initialize the shader and program object
@@ -241,8 +266,11 @@ int InitTex( UserData *userData, int index)
     userData->textureId = createTexture ();
     CheckGLError("InitTex");
 
+    InitData();
+
     return true;
 }
+
 
 
 void DrawTex( UserData *userData)
@@ -271,12 +299,14 @@ void DrawTex( UserData *userData)
 //    glClear ( GL_COLOR_BUFFER_BIT );
 
     // Load the vertex position
+    glBindBuffer(GL_ARRAY_BUFFER, gUserData.vboID);
     glEnableVertexAttribArray ( 0 );
-    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
-    // Load the texture coordinate
-
     glEnableVertexAttribArray ( 1 );
-    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
+//    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
+//    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
+
+    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), 0 );
+    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), (void*)(3 * sizeof(GLfloat)) );
 
 
     // Bind the texture
@@ -285,13 +315,17 @@ void DrawTex( UserData *userData)
     glBindTexture ( GL_TEXTURE_2D, userData->textureId );
 
     glUniform1i ( userData->samplerLoc, 0 );
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gUserData.iboID);
+    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0 );
+//    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
 
-    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
 
     glDisableVertexAttribArray ( 0 );
     glDisableVertexAttribArray ( 1 );
 
     CheckGLError("drawtex");
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 //    glDrawArrays ( GL_POINTS, 0, 6 );
 }
 

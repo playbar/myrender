@@ -50,6 +50,7 @@ add_library(mojing SHARED
             3rdPart/minizip/zip.c
             3rdPart/log4cplus/LogInterface.cpp
             Base/Base32.cpp
+            Base/Base64.cpp
 			Base/CRC.cpp
 			Base/GlUtils.cpp
 			Base/MojingAlg.cpp
@@ -200,5 +201,5 @@ target_include_directories(mojingvrrom PRIVATE
                            ${CMAKE_SOURCE_DIR}/Render/Model)
 
 target_link_libraries(mojingvrrom
-                      GLESv3
+                      GLESv2
                       mojing)

@@ -59,15 +59,14 @@ public class MojingSDK
 		System.loadLibrary("curl");
 		System.loadLibrary("sqlite3");
 		System.loadLibrary("mojing");
-		//System.loadLibrary("hookgvr");
     }
 
 	public static native int GetSystemIntProperty(String property, int defaultValue);
 	private static boolean m_bVrServiceDisabled = false;
-	// FOR HOOK DD
-	//private static native boolean hookGvrInit();
+
 	private static boolean m_inited = false;
 	private static native boolean Init(String MerchantID, String AppID, String AppKey, String AppName, String packageName, String userID, String channelID, int nWidth, int nHeight, float xdpi, float ydpi, String ProfilePath);
+	private  static native void CheckPackage(String jstrAppName, String jstrCaseCode);
 	public  static native void SetEngineVersion(String jstrEngineVersion);
 	public static boolean Init(Context context)
 	{	
@@ -84,11 +83,12 @@ public class MojingSDK
 			android.util.DisplayMetrics dm = context.getResources().getDisplayMetrics();	
 			m_inited = true;
 			Init(merchantID, appID, appKey, appName, packageName, userID, channelID, dm.widthPixels,dm.heightPixels,  dm.xdpi , dm.ydpi, path);
+			String appNameMain = getAppMainName(context);
+			String strCaseCode = getCustomMetaData(context, "DEVELOPER_CASE_CODE");
+			CheckPackage(appNameMain, strCaseCode);
 			//GetJoystickFileName();  //Done in Parameters::Init()
 		}
-		//LogTrace("Befor call hookGvrInit");
-		//hookGvrInit();
-		//LogTrace("After call hookGvrInit");
+
 		return true;
 	}
    
@@ -296,6 +296,20 @@ public class MojingSDK
 
         return packageName;  
     }
+
+	private static String getAppMainName(Context context) {  
+		String applicationName = "UNKNOWN";
+        PackageManager packageManager = null;  
+        ApplicationInfo applicationInfo = null;  
+        try {  
+            packageManager = context.getPackageManager();
+            applicationInfo = packageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);  
+			applicationName = (String) packageManager.getApplicationLabel(applicationInfo); 
+        } catch (PackageManager.NameNotFoundException e) {  
+            applicationInfo = null;  
+        }  
+        return applicationName;   
+    } 
 
 	public static String getApplicationName(Context context) {  
 		String applicationName = "UNKNOWN";
@@ -677,9 +691,9 @@ public class MojingSDK
 		}, 0, 5000);
 	}
 
-	public static native void hookGvrFun(boolean isDD);
-	public static native void hookReprojectionFun();
-	public static native void nativeHookUnityFun();
+	public static native void VrFuncInit(boolean isDD);
+	public static native void ReprojFuncInit();
+	public static native void NativeUnityFuncInit();
 
 	//////////////////////////////////////////////////////////////////////////////
 	private static native void Log(int logLevel, String sInfo, String sFileName, int line);
@@ -733,16 +747,15 @@ public class MojingSDK
 
 	public static void hookFun()
 	{
-//		hookGvrFun(isDDPhone());
-		hookGvrFun(isDDPhone());
+		VrFuncInit(isDDPhone());
 		if( ! isDDPhone()){
-			hookReprojectionFun();
+			ReprojFuncInit();
 		}
 	}
 
 	public static void hookUnityFun()
 	{
-		nativeHookUnityFun();
+		NativeUnityFuncInit();
 	}
 
 	public static void setsDaydreamPhoneOverrideForTesting() {

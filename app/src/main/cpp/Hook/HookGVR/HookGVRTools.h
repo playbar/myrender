@@ -23,6 +23,11 @@ typedef struct gvr_version_ {
     int32_t patch;
 } gvr_version;
 
+typedef struct gvr_sizei {
+	int32_t width;
+	int32_t height;
+} gvr_sizei;
+
 #define FN_gvr_get_head_space_from_start_space_rotation "gvr_get_head_space_from_start_space_rotation"
 typedef gvr_mat4f (*FP_gvr_get_head_space_from_start_space_rotation)(const gvr_context *gvr, const gvr_clock_time_point time);
 
@@ -64,8 +69,11 @@ typedef void (*FP_gvr_frame_unbind)(gvr_frame* frame);
 typedef bool (*FP_gvr_is_feature_supported)(const gvr_context* gvr, int32_t feature);
 
 #define FN_gvr_frame_submit "gvr_frame_submit"
+typedef void(*FP_gvr_frame_submit)(gvr_frame **frame,	const gvr_buffer_viewport_list *list,	gvr_mat4f head_space_from_start_space);
 
-typedef void(*FP_gvr_frame_submit)(	gvr_frame **frame,	const gvr_buffer_viewport_list *list,	gvr_mat4f head_space_from_start_space);
+#define FN_gvr_get_maximum_effective_render_target_size "gvr_get_maximum_effective_render_target_size"
+typedef gvr_sizei (*FP_gvr_get_maximum_effective_render_target_size)(const gvr_context* gvr);
+
 #define  USING_SVR_SENSOR 0
 class HookGVRTools
 {
@@ -84,6 +92,7 @@ private:
 #endif
 	
 	static bool LoadGVR();
+	static void ReportCurrentGlasses(const gvr_context *gvr);
 	static gvr_mat4f HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time);
 	static void HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space);
 //	static int HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr);
@@ -110,6 +119,7 @@ private:
 	static FP_gvr_frame_bind_buffer m_fp_gvr_frame_bind_buffer;
 	static FP_gvr_frame_unbind m_fp_gvr_frame_unbind;
 	static FP_gvr_is_feature_supported m_fp_gvr_is_feature_supported;
+	static FP_gvr_get_maximum_effective_render_target_size m_fp_gvr_get_maximum_effective_render_target_size;
 
 };
 extern bool g_bEnableDDTracker;

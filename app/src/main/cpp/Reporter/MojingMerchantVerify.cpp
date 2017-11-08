@@ -2,10 +2,11 @@
 #include "../3rdPart/MD5/MD5.h"
 #include "../Reporter/DatabaseInfoReporter.h"
 #include "../Base/MojingTypes.h"
+#include "../Base/Base64.h"
 #include "../Profile/ProfileThreadMGR.h"
 #include "../MojingSDKStatus.h"
 #include "../MojingManager.h"
-
+#include "../Base/MojingJSON.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -251,6 +252,164 @@ namespace Baofeng
 			{
 				VerifyFromServer();
 			}
+		}
+		
+		void MojingMerchantVerify::AppCheckPackage(const char* szAppName, const char* szCaseCode)
+		{
+			if (szAppName == NULL || szCaseCode == NULL)
+			{
+				return;
+			}
+			if (strcmp(szAppName, "UNKNOWN") == 0 || strcmp(szCaseCode, "UNKNOWN") == 0)
+			{
+				return;
+			}
+
+			String szPackageName = "";
+
+			szPackageName = GetPackageNameFromCaseCode(szAppName, szCaseCode);
+
+			if (szPackageName.GetLength() == 0)
+			{
+				MOJING_WARN(g_APIlogger, "AppCheckPackage, failed. Case code is wrong.");
+				MojingSDKStatus::GetSDKStatus()->SetVerfiyStatus(VERIFY_PACKAGE_INVALID);
+			}
+			else
+			{
+				if (strcmp(szPackageName, GetPackageName()) != 0)
+				{
+					MOJING_WARN(g_APIlogger, "AppCheckPackage, failed. Package is invalid.");
+					MojingSDKStatus::GetSDKStatus()->SetVerfiyStatus(VERIFY_PACKAGE_INVALID);
+				}				
+#ifdef _DEBUG
+				else
+				{
+					MOJING_TRACE(g_APIlogger, "MojingMerchantVerify::AppCheckPackage alrealy verify ok.");
+				}
+#endif // DEBUG
+
+			}
+		}
+
+		bool MojingMerchantVerify::AESKeyInit(const char* szAppName)
+		{
+			if (szAppName == NULL)
+				return false;
+			int appNameLength = strlen(szAppName);
+			if (appNameLength > 0)
+			{
+				unsigned char* applicationData = new unsigned char[appNameLength + 1];
+				applicationData[appNameLength] = '\0';
+				memcpy(applicationData, szAppName, appNameLength);
+
+				int keyDataLength = appNameLength < 8 ? 8 : appNameLength;
+				char* keyData = new char[keyDataLength + 1];
+				keyData[keyDataLength] = 0;
+				char* chainData = new char[keyDataLength + 1];
+				chainData[keyDataLength] = 0;
+
+				int keyLength = 0;
+				int chainLength = 0;
+				for (int i = 0; i < appNameLength; i++) {
+					if (i % 2 == 0)
+					{
+						keyData[keyLength] = applicationData[i];
+						keyLength++;
+					}
+					if (i % 2 == 1)
+					{
+						chainData[chainLength] = applicationData[i];
+						chainLength++;
+					}
+				}
+				int append = 0;
+				while (keyLength < 8)
+				{
+					keyData[keyLength++] = keyData[append++];
+				}
+				append = 0;
+				while (chainLength < 8)
+				{
+					chainData[chainLength++] = chainData[append++];
+				}
+
+
+				int aesKeyLength = keyLength + strlen(MOJING_KEY);
+				int aesChainLength = chainLength + strlen(MOJING_CHAIN);
+
+				unsigned char* key = new unsigned char[aesKeyLength + 1];
+				unsigned char* chain = new unsigned char[aesChainLength + 1];
+
+				memset(key, 0, aesKeyLength + 1);
+				memcpy(key, MOJING_KEY, strlen(MOJING_KEY));
+				memcpy(key + strlen(MOJING_KEY), keyData, keyLength);
+
+				memset(chain, 0, aesChainLength + 1);
+				memcpy(chain, chainData, chainLength);
+				memcpy(chain + chainLength, MOJING_CHAIN, strlen(MOJING_CHAIN));
+
+				byte KeyMD5[16], ChainMD5[16];
+				MD5 MD5Key, MD5Chain;
+				MD5Key.update((const void*)key, aesKeyLength);
+				MD5Chain.update((const void*)chain, aesChainLength);
+
+				memcpy(KeyMD5, MD5Key.digest(), 16);
+				memcpy(ChainMD5, MD5Chain.digest(), 16);
+				
+
+				m_cAesProHandle.MakeKey((const char *)KeyMD5, (const char *)ChainMD5);
+				delete[] applicationData;
+				delete[] key;
+				delete[] chain;
+				delete[] keyData;
+				delete[] chainData;
+				return true;
+			}
+			return false;
+		}
+
+		String MojingMerchantVerify::AESDecrypt(const char* szCaseCode)
+		{
+			String sRet = "";
+			if (szCaseCode == NULL)
+				return sRet;
+			Base64 *base = new Base64();
+			int length = strlen(szCaseCode) * 3 / 4 + 1;
+			char* decode = new char[length + 1];
+			memset(decode, 0, length + 1);
+			int decodeLength = base->Decode(szCaseCode, decode);
+			if (decodeLength <= length)
+			{
+				char *pDecBuffer = new char[length + 16];
+				memset(pDecBuffer, 0, length + 16);
+				m_cAesProHandle.Decrypt(decode, pDecBuffer, length, m_cAesProHandle.CBC);
+				sRet = pDecBuffer;
+				delete[] pDecBuffer;		
+			}
+			else
+			{
+				//解析Base64错误
+				MOJING_ERROR(g_APIlogger, "MojingMerchantVerify::AESDecrypt decode base64 error");
+			}
+			delete[] decode;
+			delete base;
+			return sRet;
+		}
+
+		String MojingMerchantVerify::GetPackageNameFromCaseCode(const char* szAppName, const char* szCaseCode)
+		{
+			String sRet = "";
+			if (AESKeyInit(szAppName))
+			{
+				String decode = AESDecrypt(szCaseCode);
+				JSON *pJson = JSON::Parse(decode);
+				if (pJson)
+				{
+					JSON *pPackageNameJson = pJson->GetItemByName(MOJING_PACKAGE_NAME_JSON_NODE);
+					sRet = pPackageNameJson->GetStringValue();
+				}
+			}
+			return sRet;
 		}
 	}
 }

@@ -1,7 +1,7 @@
 #if !defined(__ELFHOOK_H__)
 #define __ELFHOOK_H__
 
-#include "elf.h"
+#include "elf_define.h"
 #include <string>
 #include "elf_common.h"
 

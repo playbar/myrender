@@ -44,7 +44,7 @@ namespace google_breakpad {
 struct ElfClass32 {
   typedef Elf32_Addr Addr;
   typedef Elf32_Ehdr Ehdr;
-  typedef Elf32_Nhdr Nhdr;
+  typedef Elf32_Nhdr_bp Nhdr;
   typedef Elf32_Phdr Phdr;
   typedef Elf32_Shdr Shdr;
   typedef Elf32_Half Half;
@@ -57,7 +57,7 @@ struct ElfClass32 {
 struct ElfClass64 {
   typedef Elf64_Addr Addr;
   typedef Elf64_Ehdr Ehdr;
-  typedef Elf64_Nhdr Nhdr;
+  typedef Elf64_Nhdr_bp Nhdr;
   typedef Elf64_Phdr Phdr;
   typedef Elf64_Shdr Shdr;
   typedef Elf64_Half Half;

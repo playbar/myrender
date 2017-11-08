@@ -163,6 +163,8 @@ static void processThreadPC( pid_t tid, struct inlineHookItem *item, int action 
 
 static pid_t freeze( struct inlineHookItem *item, int action )
 {
+	return -1;
+
     int count;
     pid_t tids[1024];
     pid_t pid;
