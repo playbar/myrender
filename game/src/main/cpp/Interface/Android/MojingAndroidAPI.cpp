@@ -160,6 +160,7 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_VrFuncInit(JNIEnv *jEnv, jclass, jboolean isdd)
 {
     HookGVRTools::Init();
+    hookGLFun();
 //    startHookThread(isdd);
 }
 

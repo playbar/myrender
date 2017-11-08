@@ -200,5 +200,5 @@ target_include_directories(mojingvrrom PRIVATE
                            ${CMAKE_SOURCE_DIR}/Render/Model)
 
 target_link_libraries(mojingvrrom
-                      GLESv2
+                      GLESv3
                       mojing)

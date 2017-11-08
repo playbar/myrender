@@ -53,10 +53,14 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile(name: 'gvr-keyboard', ext:'aar')
-    compile(name: 'gvr-keyboardsupport-release', ext:'aar')
-    compile(name: 'gvr-permissionsupport-release', ext:'aar')
-    compile(name: 'gvr', ext:'aar')
-    compile(name: 'unitygvr', ext:'aar')
+    //    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile(name: 'gvr-keyboard', ext: 'aar')
+    compile(name: 'gvr-keyboardsupport-release', ext: 'aar')
+    compile(name: 'gvr-permissionsupport-release', ext: 'aar')
+    compile(name: 'gvr', ext: 'aar')
+    compile(name: 'unitygvr', ext: 'aar')
+    implementation files('libs/libprotobuf-java-nano.jar')
+    implementation files('libs/MojingSDK.jar')
+    implementation files('libs/unity-classes.jar')
+    implementation files('libs/gvrbase.jar')
 }

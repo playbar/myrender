@@ -147,12 +147,25 @@ typedef void (*Fn_glViewport)(GLint x, GLint y, GLsizei width, GLsizei height);
 Fn_glViewport old_glViewport = NULL;
 void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 {
+    static int count = 0;
+    if( count < 20 )
     LOGE("mj_glViewport, x=%d, y=%d, w=%d, h=%d, tid=%d", x, y, width, height, gettid());
+    ++count;
 //    gwidth = width;
 //    gheight = height;
     gwidth = 1295;
     gheight = 1528;
     return old_glViewport(x, y, width, height);
+}
+
+void  (*old_glBindBuffer) (GLenum target, GLuint buffer) = NULL;
+void mj_glBindBuffer (GLenum target, GLuint buffer)
+{
+    static int count = 0;
+    if( count < 20)
+    LOGE("mj_glBindBuffer, target=%d, bufferid=%d, tid=%d", target, buffer, gettid());
+    ++count;
+    return old_glBindBuffer(target, buffer);
 }
 
 typedef void (*Fn_glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
@@ -288,6 +301,8 @@ void hookEglGetProcAddress()
 void hookGLFun()
 {
     hook((uint32_t) glViewport, (uint32_t)mj_glViewport, (uint32_t **) &old_glViewport);
+    hook((uint32_t) glBindBuffer, (uint32_t)mj_glBindBuffer, (uint32_t **)&old_glBindBuffer);
+    return;
 }
 
 void hookUnityFun()

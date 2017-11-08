@@ -42,6 +42,7 @@ CSVRApi HookGVRTools::m_SVRApi;
 extern int gvrmajorversion;
 extern int gvrminorversion;
 static bool gmultiview_enabled = false;
+static int gvpwidth = 0;
 
 bool	HookGVRTools::m_bSVREnable = false;
 
@@ -59,6 +60,7 @@ FP_gvr_initialize_gl HookGVRTools::m_fp_gvr_initialize_gl = NULL;
 FP_gvr_frame_bind_buffer HookGVRTools::m_fp_gvr_frame_bind_buffer = NULL;
 FP_gvr_frame_unbind HookGVRTools::m_fp_gvr_frame_unbind = NULL;
 FP_gvr_is_feature_supported HookGVRTools::m_fp_gvr_is_feature_supported = NULL;
+FP_gvr_get_maximum_effective_render_target_size HookGVRTools::m_fp_gvr_get_maximum_effective_render_target_size = NULL;
 
 extern String ParseGlassKey(String sJson);
 HookGVRTools::HookGVRTools()
@@ -98,7 +100,8 @@ bool HookGVRTools::Init()
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version_string))&&
             NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_bind_buffer))
-			&& NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_unbind)))
+			&& NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_unbind))
+			&& NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_maximum_effective_render_target_size)))
 		{
 			// Get Function pointer HOOKed
 			m_fp_gvr_get_head_space_from_start_space_rotation = (FP_gvr_get_head_space_from_start_space_rotation)HP[0].fpRealFunction;
@@ -402,19 +405,28 @@ extern int gheight;
 void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space)
 {
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
-    m_fp_gvr_frame_bind_buffer(*frame, 1);
-	glViewport(960, 0, 960, 1080);
-    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
-    glClear ( GL_COLOR_BUFFER_BIT );
-//    DrawTex(&gUserData);
-	m_fp_gvr_frame_unbind(*frame);
 
-	m_fp_gvr_frame_bind_buffer(*frame, 0);
-	glViewport(0, 0, 960, 1080);
-	glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
-	glClear ( GL_COLOR_BUFFER_BIT );
-//    DrawTex(&gUserData);
+    //1295
+    glViewport(0, 0, gvpwidth, gvpwidth );
+    m_fp_gvr_frame_bind_buffer(*frame, 0);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+    DrawTex(&gUserData);
+    m_fp_gvr_frame_unbind(*frame);
+
+    m_fp_gvr_frame_bind_buffer(*frame, 1);
+//	glViewport(0, 0, 960, 1080);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+    DrawTex(&gUserData);
 	m_fp_gvr_frame_unbind(*frame);
+//
+//	m_fp_gvr_frame_bind_buffer(*frame, 0);
+//	glViewport(0, 0, 960, 1080);
+//	glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//	glClear ( GL_COLOR_BUFFER_BIT );
+////    DrawTex(&gUserData);
+//	m_fp_gvr_frame_unbind(*frame);
 ////    if(gmultiview_enabled) {
 //        DrawTex(&gUserData);
 ////    } else{
@@ -427,7 +439,8 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 //	glClear ( GL_COLOR_BUFFER_BIT );
 ////        DrawTex(&gUserData);
 ////    }
-	m_fp_gvr_frame_unbind(*frame);
+//	m_fp_gvr_frame_unbind(*frame);
+
     rendertid = gettid();
 	if (m_fp_gvr_frame_submit)
 	{
@@ -477,6 +490,9 @@ void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
 	if( m_fp_gvr_initialize_gl)
 		m_fp_gvr_initialize_gl(gvr);
 	InitTex(&gUserData, 1);
+	gvr_sizei size = m_fp_gvr_get_maximum_effective_render_target_size(gvr);
+    gvpwidth = (7 * size.width) / 20;
+    LOGE("w=%d, h=%d, wid=%d", size.width, size.height, gvpwidth);
 	return;
 }
 
