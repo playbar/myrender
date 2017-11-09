@@ -15,7 +15,7 @@ static void CheckGLError(const char* label) {
     if (gl_error != GL_NO_ERROR) {
         LOGE("GL error @ %s: %d", label, gl_error);
         // Crash immediately to make OpenGL errors obvious.
-        abort();
+//        abort();
     }
 }
 

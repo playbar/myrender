@@ -38,7 +38,7 @@ import java.io.File;
 public class MojingVrActivity extends Activity implements MojingInputCallback {
     private final static String TAG = MojingVrActivity.class.getSimpleName();
     private UnityPlayer mUnityPlayer = null;
-    private MojingInputManager joystick = MojingInputManager.getMojingInputManager();
+//    private MojingInputManager joystick = MojingInputManager.getMojingInputManager();
     private static String inputMapfilepath = null;
     private static int _mojing_send_volume_key_event_status = MojingInputManager.MOJING_SEND_VOLUME_KEY_EVENT;
     private static boolean isUseCustomerInputMap = false;
@@ -248,7 +248,7 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
         // init mojing sdk
         MojingSDK.Init(this);
         // Add joystick support
-        joystick.AddProtocal(MojingInputManager.Protocol_Bluetooth);
+//        joystick.AddProtocal(MojingInputManager.Protocol_Bluetooth);
         //joystick.AddProtocal(MojingInputManager.Protocol_Bluetooth_BLE);
 
         isUseCustomerInputMap = checkIsUseUserConfig();
@@ -316,7 +316,7 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
         com.baofeng.mojing.MojingVrLib.stopVsync(this);
 
        // ZeemoteActivityManager.setActivity(null);
-        joystick.Disconnect();
+//        joystick.Disconnect();
         // Code from UnityPlayerNativeActivity
         Log.i(TAG, "onPause: super.onPause");
         super.onPause();
@@ -485,17 +485,17 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
             return mUnityPlayer.injectEvent(event);
         // End code from UnityPlayerNativeActivity
 
-        if (joystick.dispatchKeyEvent(event))
-            return true;
-        else
+//        if (joystick.dispatchKeyEvent(event))
+//            return true;
+//        else
             return super.dispatchKeyEvent(event);
     }
 
     @Override
     public boolean dispatchGenericMotionEvent(MotionEvent event) {
-        if (joystick.dispatchGenericMotionEvent(event))
-            return true;
-        else
+//        if (joystick.dispatchGenericMotionEvent(event))
+//            return true;
+//        else
             return injectUnityEvent(event);
     }
 
@@ -584,9 +584,9 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
     }
     private void setSendVolumeKeyEventStatus()
     {
-        if (joystick != null)
-        {
-            joystick.SetSendVolumeKeyEventStatus(_mojing_send_volume_key_event_status);
-        }
+//        if (joystick != null)
+//        {
+//            joystick.SetSendVolumeKeyEventStatus(_mojing_send_volume_key_event_status);
+//        }
     }
 }
