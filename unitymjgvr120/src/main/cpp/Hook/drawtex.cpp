@@ -1,4 +1,3 @@
-#include <GLES2/gl2.h>
 #include <malloc.h>
 #include <cstdlib>
 #include <android/log.h>
@@ -277,17 +276,6 @@ void DrawTex( UserData *userData)
 {
     CheckGLError("drawtex begin");
 
-    static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
-                            0.0f,  0.0f,        // TexCoord 0
-                            -0.5f, -0.5f, 0.0f,  // Position 1
-                            0.0f,  1.0f,        // TexCoord 1
-                            0.5f, -0.5f, 0.0f,  // Position 2
-                            1.0f,  1.0f,        // TexCoord 2
-                            0.5f,  0.5f, 0.0f,  // Position 3
-                            1.0f,  0.0f         // TexCoord 3
-    };
-    static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
-
     // Use the program object
     glUseProgram ( userData->programObject );
 
@@ -299,33 +287,44 @@ void DrawTex( UserData *userData)
 //    glClear ( GL_COLOR_BUFFER_BIT );
 
     // Load the vertex position
-    glBindBuffer(GL_ARRAY_BUFFER, gUserData.vboID);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     glEnableVertexAttribArray ( 0 );
     glEnableVertexAttribArray ( 1 );
-//    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
-//    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
-
-    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), 0 );
-    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), (void*)(3 * sizeof(GLfloat)) );
-
-
-    // Bind the texture
-//    glEnable(GL_TEXTURE_2D);
     glActiveTexture ( GL_TEXTURE0 );
     glBindTexture ( GL_TEXTURE_2D, userData->textureId );
-
     glUniform1i ( userData->samplerLoc, 0 );
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gUserData.iboID);
-    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0 );
-//    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
+
+    static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
+                                   0.0f,  0.0f,        // TexCoord 0
+                                   -0.5f, -0.5f, 0.0f,  // Position 1
+                                   0.0f,  1.0f,        // TexCoord 1
+                                   0.5f, -0.5f, 0.0f,  // Position 2
+                                   1.0f,  1.0f,        // TexCoord 2
+                                   0.5f,  0.5f, 0.0f,  // Position 3
+                                   1.0f,  0.0f         // TexCoord 3
+    };
+    static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
+    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
+    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
+
+//    glBindBuffer(GL_ARRAY_BUFFER, gUserData.vboID);
+//    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), 0 );
+//    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), (void*)(3 * sizeof(GLfloat)) );
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gUserData.iboID);
+//    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0 );
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
     glDisableVertexAttribArray ( 0 );
     glDisableVertexAttribArray ( 1 );
 
     CheckGLError("drawtex");
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 //    glDrawArrays ( GL_POINTS, 0, 6 );
 }
 

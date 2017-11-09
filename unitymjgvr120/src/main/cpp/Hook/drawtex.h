@@ -1,7 +1,8 @@
 #ifndef __DRAWTEX_H__
 #define __DRAWTEX_H__
 
-#include "GLES2/gl2.h"
+#include <GLES3/gl3.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
