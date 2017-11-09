@@ -395,14 +395,14 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 {
     //LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
 
- //   glViewport(0, 0, gvpwidth, gvpwidth );
- //   m_fp_gvr_frame_bind_buffer(*frame, 0);
- //   DrawTex(&gUserData);
- //   m_fp_gvr_frame_unbind(*frame);
+    glViewport(0, 0, gvpwidth, gvpwidth );
+    m_fp_gvr_frame_bind_buffer(*frame, 0);
+    DrawTex(&gUserData);
+    m_fp_gvr_frame_unbind(*frame);
 
- //   m_fp_gvr_frame_bind_buffer(*frame, 1);
- //   DrawTex(&gUserData);
-	//m_fp_gvr_frame_unbind(*frame);
+    m_fp_gvr_frame_bind_buffer(*frame, 1);
+    DrawTex(&gUserData);
+	m_fp_gvr_frame_unbind(*frame);
 
     rendertid = gettid();
 	if (m_fp_gvr_frame_submit)

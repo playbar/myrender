@@ -1,5 +1,5 @@
-include ':app'
-//include ':game'
+//include ':app'
+include ':unitymjgvr180'
 //include ':appall'
 //include ':renderall'
 //include ':utest'
