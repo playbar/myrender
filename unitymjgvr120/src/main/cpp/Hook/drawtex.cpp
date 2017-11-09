@@ -276,6 +276,10 @@ void DrawTex( UserData *userData)
 {
     CheckGLError("drawtex begin");
 
+//    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+//    glDisable(GL_BLEND);
+//    glDisable(GL_SCISSOR_TEST);
     // Use the program object
     glUseProgram ( userData->programObject );
 
@@ -297,14 +301,11 @@ void DrawTex( UserData *userData)
     glBindTexture ( GL_TEXTURE_2D, userData->textureId );
     glUniform1i ( userData->samplerLoc, 0 );
 
-    static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
-                                   0.0f,  0.0f,        // TexCoord 0
-                                   -0.5f, -0.5f, 0.0f,  // Position 1
-                                   0.0f,  1.0f,        // TexCoord 1
-                                   0.5f, -0.5f, 0.0f,  // Position 2
-                                   1.0f,  1.0f,        // TexCoord 2
-                                   0.5f,  0.5f, 0.0f,  // Position 3
-                                   1.0f,  0.0f         // TexCoord 3
+    static GLfloat vVertices[] = {
+            -0.5f,  0.5f, -0.5f, 0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f,  1.0f,
+            0.5f,  0.5f, -0.5f, 1.0f,  0.0f
     };
     static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
     glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
@@ -322,6 +323,8 @@ void DrawTex( UserData *userData)
 
     glDisableVertexAttribArray ( 0 );
     glDisableVertexAttribArray ( 1 );
+
+    glEnable(GL_CULL_FACE);
 
     CheckGLError("drawtex");
 

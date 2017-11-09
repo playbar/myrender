@@ -123,6 +123,11 @@ bool HookGVRTools::Init()
             gvrminorversion = version.minor;
 			LOGE("gvr_version major=%d, minor=%d", gvrmajorversion, gvrminorversion);
 
+//
+//			gvr_sizei size = m_fp_gvr_get_maximum_effective_render_target_size(gvr);
+//			gvpwidth = (7 * size.width) / 20;
+//			LOGE("w=%d, h=%d, wid=%d", size.width, size.height, gvpwidth);
+
 			g_bEnableDDTracker = true;
 			memset(g_fDDHeaderView, 0, sizeof(float)* 16);
 			g_fDDHeaderView[0] = g_fDDHeaderView[5] = g_fDDHeaderView[10] = g_fDDHeaderView[15] = 1;
@@ -407,19 +412,23 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
 
     //1295
+//    if( gUserData.programObject == 0) {
+//        InitTex(&gUserData, 1);
+//        gvpwidth = 1000;
+//    }
 
     glViewport(0, 0, gvpwidth, gvpwidth );
     m_fp_gvr_frame_bind_buffer(*frame, 0);
-    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
-    glClear ( GL_COLOR_BUFFER_BIT );
-//    DrawTex(&gUserData);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+    DrawTex(&gUserData);
     m_fp_gvr_frame_unbind(*frame);
 
     m_fp_gvr_frame_bind_buffer(*frame, 1);
 //	glViewport(0, 0, 960, 1080);
-    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
-    glClear ( GL_COLOR_BUFFER_BIT );
-//    DrawTex(&gUserData);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+    DrawTex(&gUserData);
 	m_fp_gvr_frame_unbind(*frame);
 //
 //	m_fp_gvr_frame_bind_buffer(*frame, 0);
@@ -490,7 +499,7 @@ void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
     LOGE("HOOK_gvr_initialize_gl");
 	if( m_fp_gvr_initialize_gl)
 		m_fp_gvr_initialize_gl(gvr);
-	InitTex(&gUserData, 1);
+	InitTex(&gUserData, 0);
 	gvr_sizei size = m_fp_gvr_get_maximum_effective_render_target_size(gvr);
     gvpwidth = (7 * size.width) / 20;
     LOGE("w=%d, h=%d, wid=%d", size.width, size.height, gvpwidth);
