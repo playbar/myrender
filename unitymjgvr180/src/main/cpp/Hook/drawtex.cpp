@@ -288,6 +288,7 @@ void DrawTex( UserData *userData)
     };
     static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
+    glDisable(GL_CULL_FACE);
     // Use the program object
     glUseProgram ( userData->programObject );
 
@@ -323,9 +324,12 @@ void DrawTex( UserData *userData)
     glDisableVertexAttribArray ( 0 );
     glDisableVertexAttribArray ( 1 );
 
-    CheckGLError("drawtex");
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glEnable(GL_CULL_FACE);
+
+    CheckGLError("drawtex");
+
 //    glDrawArrays ( GL_POINTS, 0, 6 );
 }
 
