@@ -116,7 +116,7 @@ public class GvrLayout extends FrameLayout {
 
         try {
             var2 = var2 != null?var2:GvrApi.createDefaultDisplaySynchronizer(this.getContext());
-            MojingSDK.hookFun();
+//            MojingSDK.hookFun();
             var3 = var3 != null?var3:new EglReadyListener();
             var1 = var1 != null?var1:new GvrApi(this.getContext(), var2);
             var5 = var5 != null?var5:new DaydreamUtilsWrapper();
@@ -199,7 +199,7 @@ public class GvrLayout extends FrameLayout {
 
     public void onResume() {
         TraceCompat.beginSection("GvrLayout.onResume");
-
+//        MojingSDK.hookFun();
         try {
             this.gvrApi.resume();
             if(this.daydreamTouchListener != null) {
@@ -382,7 +382,7 @@ public class GvrLayout extends FrameLayout {
 
             this.scanlineRacingRenderer.setSurfaceView(this.scanlineRacingView);
             this.scanlineRacingView.setRenderer(this.scanlineRacingRenderer);
-            this.scanlineRacingView.setSwapMode(0);
+            this.scanlineRacingView.setSwapMode(1);
             this.presentationLayout.addView(this.scanlineRacingView, 0);
         }
     }

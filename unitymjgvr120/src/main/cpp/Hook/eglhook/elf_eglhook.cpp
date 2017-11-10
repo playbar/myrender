@@ -20,7 +20,6 @@
 static elf_hooker __hooker;
 
 static int gismaligpu = false;
-static bool gbfirst = true;
 int needswapbuffer = 0;
 int rendertid = 0;
 int gvrmajorversion = 0;
@@ -105,7 +104,7 @@ FP_eglCreateImageKHR pfun_eglCreateImageKHR = NULL;
 EGLImageKHR mjeglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
 {
     LOGE("mjeglCreateImageKHR");
-    EGLint eglImgAttrs[] = { EGL_IMAGE_PRESERVED_KHR, EGL_TRUE, EGL_NONE, EGL_NONE };
+    EGLint eglImgAttrs[] = { EGL_IMAGE_PRESERVED_KHR, EGL_TRUE, EGL_NONE };
     EGLImageKHR img = pfun_eglCreateImageKHR(dpy, eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR, buffer, eglImgAttrs);
     return img;
 }
@@ -122,7 +121,7 @@ EGLClientBuffer mjeglCreateNativeClientBufferANDROID (const EGLint *attrib_list)
     int height = attrib_list[3];
     glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-    glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL );
+    glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL );
     return (EGLClientBuffer)textureId;
 }
 
@@ -209,7 +208,8 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     LOGE("mj_eglGetProcAddress, procname=%s", procname);
     const char *glrender = (const char *)glGetString(GL_RENDERER);
     // 1.40(包括1.40) mali gpu 出现单眼问题
-    if( gbfirst &&gvrminorversion>= 40 && glrender && strstr(glrender, "Mali") != NULL  ){
+    static bool gbfirst = true;
+    if( gbfirst &&gvrminorversion>= 80 && glrender && strstr(glrender, "Mali") != NULL  ){
         LOGE("mj_eglGetProcAddress, hook mj_eglSwapBuffers", procname);
         gismaligpu = true;
         gbfirst = false;
@@ -223,6 +223,7 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 
     }
     __eglMustCastToProperFunctionPointerType pfun = old_eglGetProcAddress(procname);
+    return pfun;
 
 //    if(strcmp(procname, "glViewport") == 0 )
 //    {
@@ -285,7 +286,6 @@ void hookEglGetProcAddress()
 //    }
     if( sdkInt >= 20) {
         __hooker.phrase_proc_maps();
-        __hooker.dump_module_list();
 //    __hooker.hook_module("libandroid_runtime.so", "eglSwapBuffers", (void *) mj_eglSwapBuffers, (void **) &old_eglSwapBuffers);
         __hooker.hook_module("libgvr.so", "eglGetProcAddress", (void *) mj_eglGetProcAddress, (void **) &old_eglGetProcAddress);
 //    __hooker.hook_module("libgvr.so", "glViewport", (void*)mj_glViewport, (void**)&old_glViewport);
