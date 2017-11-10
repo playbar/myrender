@@ -90,6 +90,8 @@ private:
 #else
 	static bool	m_bSVREnable;
 #endif
+
+	static double m_dRotateSpeed;
 	
 	static bool LoadGVR();
 	static gvr_mat4f HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time);

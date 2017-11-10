@@ -223,7 +223,6 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
 
     }
     __eglMustCastToProperFunctionPointerType pfun = old_eglGetProcAddress(procname);
-    return pfun;
 
 //    if(strcmp(procname, "glViewport") == 0 )
 //    {

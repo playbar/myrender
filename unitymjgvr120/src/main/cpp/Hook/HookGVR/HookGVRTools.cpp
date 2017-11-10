@@ -46,6 +46,9 @@ static int gvpwidth = 0;
 
 bool	HookGVRTools::m_bSVREnable = false;
 
+#define TEST_WARP 1
+double HookGVRTools::m_dRotateSpeed = 0;
+
 FP_gvr_get_head_space_from_start_space_rotation HookGVRTools::m_fp_gvr_get_head_space_from_start_space_rotation = NULL;
 FP_gvr_reset_tracking HookGVRTools::m_fp_gvr_reset_tracking = NULL;
 FP_gvr_recenter_tracking HookGVRTools::m_fp_gvr_recenter_tracking = NULL;
@@ -252,7 +255,47 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 	{
 		Ret = m_fp_gvr_get_head_space_from_start_space_rotation(gvr, time);
 	}
+
+#if TEST_WARP
+	static Quatd qLastRotate;
+	static int64_t i64LastTime = 0;
+	Matrix4d m4RotateSpeed;
+	for (int iX = 0; iX < 4; iX++)
+	{
+		for (int iY = 0; iY < 4; iY++)
+		{
+			m4RotateSpeed.M[iX][iY] = Ret.m[iY][iX];
+		}
+	}
+	Quatd qCurrentRotate(m4RotateSpeed);
+	qCurrentRotate.Normalize();
+
+	if (0 == i64LastTime)
+	{
+		qLastRotate = qCurrentRotate;
+		i64LastTime = time.monotonic_system_time_nanos;
+		m_dRotateSpeed = 0;
+	}
+	else
+	{
+		double d64TimeDiffSec = (time.monotonic_system_time_nanos - i64LastTime)*1e-9;
+		if (d64TimeDiffSec != 0)
+		{
+			// Á½¸öÏòÁ¿×ö¼õ·¨£¿
+			Quatd Rotated;
+			qCurrentRotate.Invert();
+			Rotated = qLastRotate * qCurrentRotate;
+			double dAngle = acos(Rotated.w) * 2 * 180 / PI;
+			// dSpeedÊÇ¶È/ÃëµÄ±ê¼Ç
+			m_dRotateSpeed = dAngle / d64TimeDiffSec;
+		}
+	}
+    LOGE("rotatespeed=%f", m_dRotateSpeed);
+
+#endif
+
     return Ret;
+
 	/************************************************************************/
 	/* ���´������������ӿ��ṩ��ǰ����ʹ�õľ�Ƭ                         */
 	/************************************************************************/
@@ -411,25 +454,36 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 {
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
 
-    //1295
-//    if( gUserData.programObject == 0) {
-//        InitTex(&gUserData, 1);
-//        gvpwidth = 1000;
-//    }
+#ifdef  TEST_WARP
+    if( m_dRotateSpeed > 2.0f )
+		glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
+	else
+		glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
 
-//    glViewport(0, 0, gvpwidth, gvpwidth );
-//    m_fp_gvr_frame_bind_buffer(*frame, 0);
-////    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
-////    glClear ( GL_COLOR_BUFFER_BIT );
-//    DrawTex(&gUserData);
-//    m_fp_gvr_frame_unbind(*frame);
-//
-//    m_fp_gvr_frame_bind_buffer(*frame, 1);
-////	glViewport(0, 0, 960, 1080);
-////    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
-////    glClear ( GL_COLOR_BUFFER_BIT );
-//    DrawTex(&gUserData);
-//	m_fp_gvr_frame_unbind(*frame);
+	m_fp_gvr_frame_bind_buffer(*frame, 0);
+    glClear ( GL_COLOR_BUFFER_BIT );
+	m_fp_gvr_frame_unbind(*frame);
+
+	m_fp_gvr_frame_bind_buffer(*frame, 1);
+    glClear ( GL_COLOR_BUFFER_BIT );
+	m_fp_gvr_frame_unbind(*frame);
+#else
+
+	glViewport(0, 0, gvpwidth, gvpwidth );
+	m_fp_gvr_frame_bind_buffer(*frame, 0);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+	DrawTex(&gUserData);
+	m_fp_gvr_frame_unbind(*frame);
+
+	m_fp_gvr_frame_bind_buffer(*frame, 1);
+//	glViewport(0, 0, 960, 1080);
+//    glClearColor ( 1.0f, 1.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+	DrawTex(&gUserData);
+	m_fp_gvr_frame_unbind(*frame);
+
+#endif
 
     rendertid = gettid();
 	if (m_fp_gvr_frame_submit)
