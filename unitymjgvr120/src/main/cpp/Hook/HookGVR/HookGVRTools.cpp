@@ -2,6 +2,7 @@
 #include <math.h>
 #include <Base/MojingLog.h>
 #include <Hook/drawtex.h>
+#include <EGL/egl.h>
 #include "../Global/HookBase.h" 
 #include "../../Base/MojingTimer.h"
 #include "../../3rdPart/Qualcomm/CSVRApi.h"
@@ -47,7 +48,9 @@ static int gvpwidth = 0;
 bool	HookGVRTools::m_bSVREnable = false;
 
 #define TEST_WARP 1
-double HookGVRTools::m_dRotateSpeed = 0;
+//#define TEST_WARP_RENDER 1
+#define TEST_WARP_REPROJECTION 1
+double m_dRotateSpeed = 0;
 
 FP_gvr_get_head_space_from_start_space_rotation HookGVRTools::m_fp_gvr_get_head_space_from_start_space_rotation = NULL;
 FP_gvr_reset_tracking HookGVRTools::m_fp_gvr_reset_tracking = NULL;
@@ -57,7 +60,7 @@ FP_gvr_get_viewer_model HookGVRTools::m_fp_gvr_get_viewer_model = NULL;
 FP_gvr_get_viewer_vendor HookGVRTools::m_fp_gvr_get_viewer_vendor = NULL;
 FP_gvr_get_version_string HookGVRTools::m_fp_gvr_get_version_string = NULL;
 //FP_gvr_on_surface_created_reprojection_thread HookGVRTools::m_fp_gvr_on_surface_created_reprojection_thread = NULL;
-//FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
+FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
 FP_gvr_get_version HookGVRTools::m_fp_gvr_get_version = NULL;
 FP_gvr_initialize_gl HookGVRTools::m_fp_gvr_initialize_gl = NULL;
 FP_gvr_frame_bind_buffer HookGVRTools::m_fp_gvr_frame_bind_buffer = NULL;
@@ -95,7 +98,7 @@ bool HookGVRTools::Init()
 		HOOK_PARAMET(HP[3], gvr_frame_submit);
 		HOOK_PARAMET(HP[4], gvr_initialize_gl);
 		HOOK_PARAMET(HP[5], gvr_is_feature_supported);
-//		HOOK_PARAMET(HP[6], gvr_frame_unbind);
+		HOOK_PARAMET(HP[6], gvr_render_reprojection_thread);
 
 		if (HookBase::HookToFunctions(m_hGVR, HP, 7) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_model)) &&
@@ -113,6 +116,7 @@ bool HookGVRTools::Init()
 			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
 			m_fp_gvr_initialize_gl = (FP_gvr_initialize_gl)HP[4].fpRealFunction;
 			m_fp_gvr_is_feature_supported = (FP_gvr_is_feature_supported)HP[5].fpRealFunction;
+            m_fp_gvr_render_reprojection_thread = (FP_gvr_render_reprojection_thread)HP[6].fpRealFunction;
 //			m_fp_gvr_frame_unbind = (FP_gvr_frame_unbind)HP[6].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
@@ -282,15 +286,14 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		if (d64TimeDiffSec != 0)
 		{
 			// Á½¸öÏòÁ¿×ö¼õ·¨£¿
-			Quatd Rotated;
-			qCurrentRotate.Invert();
-			Rotated = qLastRotate * qCurrentRotate;
+			Quatd Rotated = qLastRotate * qCurrentRotate.Inverted();
 			double dAngle = acos(Rotated.w) * 2 * 180 / PI;
 			// dSpeedÊÇ¶È/ÃëµÄ±ê¼Ç
-			m_dRotateSpeed = dAngle / d64TimeDiffSec;
+            qLastRotate = qCurrentRotate;
+            m_dRotateSpeed = dAngle / d64TimeDiffSec;
 		}
 	}
-    LOGE("rotatespeed=%f", m_dRotateSpeed);
+//    LOGE("rotatespeed=%f", m_dRotateSpeed);
 
 #endif
 
@@ -454,7 +457,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 {
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
 
-#ifdef  TEST_WARP
+#ifdef  TEST_WARP_RENDER
     if( m_dRotateSpeed > 2.0f )
 		glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
 	else
@@ -517,16 +520,28 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 //}
 
 //extern int needswapbuffer;
-//int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
-//{
-//    LOGE("HOOK_gvr_render_reprojection_thread, tid=%d", gettid());
-//    int re = 0;
-//    if( m_fp_gvr_render_reprojection_thread) {
-////        needswapbuffer = 1;
-//		re = m_fp_gvr_render_reprojection_thread(gvr);
-//	}
-//    return re;
-//}
+int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
+{
+    LOGE("HOOK_gvr_render_reprojection_thread begin, tid=%d", gettid());
+    int re = 0;
+#ifdef TEST_WARP_REPROJECTION
+	LOGE("rotatespeed=%f", m_dRotateSpeed);
+	if( m_dRotateSpeed > 0.1f )
+		glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
+	else
+		glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
+	glClear ( GL_COLOR_BUFFER_BIT );
+    eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
+#else
+    if( m_fp_gvr_render_reprojection_thread) {
+//        needswapbuffer = 1;
+		re = m_fp_gvr_render_reprojection_thread(gvr);
+	}
+#endif
+//	glFinish();
+    LOGE("HOOK_gvr_render_reprojection_thread end, tid=%d", gettid());
+    return re;
+}
 
 void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
 {

@@ -91,13 +91,13 @@ private:
 	static bool	m_bSVREnable;
 #endif
 
-	static double m_dRotateSpeed;
+//	static double m_dRotateSpeed;
 	
 	static bool LoadGVR();
 	static gvr_mat4f HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time);
 	static void HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space);
 //	static int HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr);
-//	static int HOOK_gvr_render_reprojection_thread(const gvr_context *gvr);
+	static int HOOK_gvr_render_reprojection_thread(const gvr_context *gvr);
 	static void HOOK_gvr_initialize_gl(gvr_context* gvr);
 	static bool HOOK_gvr_is_feature_supported(const gvr_context* gvr, int32_t feature);
     static void HOOK_gvr_frame_unbind(gvr_frame* frame);
@@ -114,7 +114,7 @@ private:
 	static FP_gvr_get_viewer_vendor m_fp_gvr_get_viewer_vendor;
 	static FP_gvr_get_version_string m_fp_gvr_get_version_string;
 //	static FP_gvr_on_surface_created_reprojection_thread m_fp_gvr_on_surface_created_reprojection_thread;
-//	static FP_gvr_render_reprojection_thread m_fp_gvr_render_reprojection_thread;
+	static FP_gvr_render_reprojection_thread m_fp_gvr_render_reprojection_thread;
 	static FP_gvr_get_version m_fp_gvr_get_version;
 	static FP_gvr_initialize_gl m_fp_gvr_initialize_gl;
 	static FP_gvr_frame_bind_buffer m_fp_gvr_frame_bind_buffer;

@@ -167,11 +167,18 @@ void mj_glBindBuffer (GLenum target, GLuint buffer)
     return old_glBindBuffer(target, buffer);
 }
 
+extern double m_dRotateSpeed;
 typedef void (*Fn_glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
 Fn_glDrawElements old_glDrawElements = NULL;
 void mj_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices)
 {
     LOGE("mj_glDrawElements, tid=%d", gettid());
+//    if( m_dRotateSpeed > 0.1f )
+//        glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
+//    else
+//        glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
+//    glClear ( GL_COLOR_BUFFER_BIT );
+//    LOGE("rotatespeed=%f", m_dRotateSpeed);
     old_glDrawElements(mode, count, type, indices);
     if( gismaligpu && needswapbuffer && rendertid != gettid())
     {
@@ -209,7 +216,7 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     const char *glrender = (const char *)glGetString(GL_RENDERER);
     // 1.40(包括1.40) mali gpu 出现单眼问题
     static bool gbfirst = true;
-    if( gbfirst &&gvrminorversion>= 80 && glrender && strstr(glrender, "Mali") != NULL  ){
+    if( gbfirst &&gvrminorversion>= 40 && glrender && strstr(glrender, "Mali") != NULL  ){
         LOGE("mj_eglGetProcAddress, hook mj_eglSwapBuffers", procname);
         gismaligpu = true;
         gbfirst = false;
