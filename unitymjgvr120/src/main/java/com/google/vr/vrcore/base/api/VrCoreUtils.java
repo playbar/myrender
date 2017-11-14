@@ -38,7 +38,7 @@ public final class VrCoreUtils {
     public static int getVrCoreClientApiVersion(Context var0) throws VrCoreNotAvailableException {
         try {
             ApplicationInfo var1;
-            if((var1 = var0.getPackageManager().getApplicationInfo("com.baofeng.mj", 128)).enabled) {
+            if((var1 = var0.getPackageManager().getApplicationInfo("com.vr.test", 128)).enabled) {
                 return var1.metaData != null?var1.metaData.getInt("com.google.vr.vrcore.ClientApiVersion", 0):0;
             } else {
                 throw new VrCoreNotAvailableException(2);
@@ -50,7 +50,7 @@ public final class VrCoreUtils {
 
     public static int getVrCoreVersionCode(Context var0) throws VrCoreNotAvailableException {
         try {
-            return var0.getPackageManager().getPackageInfo("com.baofeng.mj", 0).versionCode;
+            return var0.getPackageManager().getPackageInfo("com.vr.test", 0).versionCode;
         } catch (NameNotFoundException var2) {
             Log.e(TAG, "Could not find VrCore package", var2);
             throw new VrCoreNotAvailableException(checkVrCoreAvailability(var0));
@@ -59,7 +59,7 @@ public final class VrCoreUtils {
 
     public static String getVrCoreVersionName(Context var0) throws VrCoreNotAvailableException {
         try {
-            return var0.getPackageManager().getPackageInfo("com.baofeng.mj", 0).versionName;
+            return var0.getPackageManager().getPackageInfo("com.vr.test", 0).versionName;
         } catch (NameNotFoundException var2) {
             Log.e(TAG, "Could not find VrCore package", var2);
             throw new VrCoreNotAvailableException(checkVrCoreAvailability(var0));
@@ -69,7 +69,7 @@ public final class VrCoreUtils {
     public static String getVrCoreSdkLibraryVersion(Context var0) throws VrCoreNotAvailableException {
         ApplicationInfo var1;
         try {
-            var1 = var0.getPackageManager().getApplicationInfo("com.baofeng.mj", 128);
+            var1 = var0.getPackageManager().getApplicationInfo("com.vr.test", 128);
         } catch (NameNotFoundException var3) {
             throw new VrCoreNotAvailableException(checkVrCoreAvailability(var0));
         }
@@ -116,7 +116,7 @@ public final class VrCoreUtils {
     }
 
     public static boolean isVrCorePackage(String var0) {
-        return "com.baofeng.mj".equalsIgnoreCase(var0);
+        return "com.vr.test".equalsIgnoreCase(var0);
     }
 
     public static boolean isVrCoreComponent(ComponentName var0) {
@@ -124,18 +124,18 @@ public final class VrCoreUtils {
     }
 
     private static int checkVrCoreAvailabilityImpl(Context var0) {
-        if("com.baofeng.mj".equals(var0.getPackageName())) {
+        if("com.vr.test".equals(var0.getPackageName())) {
             return 0;
         } else {
             try {
-                return !var0.getPackageManager().getApplicationInfo("com.baofeng.mj", 0).enabled?2:(!verifyRemotePackageSignature(var0)?9:0);
+                return !var0.getPackageManager().getApplicationInfo("com.vr.test", 0).enabled?2:(!verifyRemotePackageSignature(var0)?9:0);
             } catch (NameNotFoundException var5) {
                 if(VERSION.SDK_INT >= 21) {
                     Iterator var2 = var0.getPackageManager().getPackageInstaller().getAllSessions().iterator();
 
                     while(var2.hasNext()) {
                         SessionInfo var3 = (SessionInfo)var2.next();
-                        if("com.baofeng.mj".equals(var3.getAppPackageName())) {
+                        if("com.vr.test".equals(var3.getAppPackageName())) {
                             return 3;
                         }
                     }
@@ -144,7 +144,7 @@ public final class VrCoreUtils {
                 PackageManager var1 = var0.getPackageManager();
 
                 try {
-                    if(var1.getApplicationInfo("com.baofeng.mj", 8192).enabled) {
+                    if(var1.getApplicationInfo("com.vr.test", 8192).enabled) {
                         return 3;
                     }
                 } catch (NameNotFoundException var4) {
@@ -158,7 +158,7 @@ public final class VrCoreUtils {
 
     private static boolean verifyRemotePackageSignature(Context var0) throws NameNotFoundException {
         PackageInfo var1;
-        return SignatureUtils.verifySignature(var1 = var0.getPackageManager().getPackageInfo("com.baofeng.mj", 64), new Signature[]{SignatureUtils.VRCORE_RELEASE_SIGNATURE})?true:(BuildUtils.isDebugBuild(var0)?SignatureUtils.verifySignature(var1, new Signature[]{SignatureUtils.VRCORE_DEBUG_SIGNATURE}):false);
+        return SignatureUtils.verifySignature(var1 = var0.getPackageManager().getPackageInfo("com.vr.test", 64), new Signature[]{SignatureUtils.VRCORE_RELEASE_SIGNATURE})?true:(BuildUtils.isDebugBuild(var0)?SignatureUtils.verifySignature(var1, new Signature[]{SignatureUtils.VRCORE_DEBUG_SIGNATURE}):false);
     }
 
     public static class ConnectionResult {

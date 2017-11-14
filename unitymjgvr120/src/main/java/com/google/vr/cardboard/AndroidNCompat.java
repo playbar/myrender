@@ -34,7 +34,7 @@ public class AndroidNCompat {
     private static final boolean DEBUG = false;
     public static final int N_SDK_LEVEL = 24;
     public static final int NMR1_SDK_LEVEL = 25;
-    private static final String DEFAULT_VR_MODE_PACKAGE = "com.baofeng.mj";
+    private static final String DEFAULT_VR_MODE_PACKAGE = "com.vr.test";
     private static final String DEFAULT_VR_MODE_CLASS = "com.google.vr.vrcore.common.VrCoreListenerService";
     private static final String ACTION_VR_LISTENER_SETTINGS = "android.settings.VR_LISTENER_SETTINGS";
     private static final String ENABLED_VR_LISTENERS = "enabled_vr_listeners";
@@ -56,7 +56,7 @@ public class AndroidNCompat {
 
             return false;
         } else {
-            ComponentName var3 = new ComponentName("com.baofeng.mj", "com.google.vr.vrcore.common.VrCoreListenerService");
+            ComponentName var3 = new ComponentName("com.vr.test", "com.google.vr.vrcore.common.VrCoreListenerService");
 
             String var10000;
             String var5;
@@ -151,7 +151,7 @@ public class AndroidNCompat {
         Iterator var3 = var1.iterator();
 
         while(var3.hasNext()) {
-            if(((ApplicationInfo)var3.next()).packageName.equals("com.baofeng.mj")) {
+            if(((ApplicationInfo)var3.next()).packageName.equals("com.vr.test")) {
                 var2 = true;
                 break;
             }
@@ -161,7 +161,7 @@ public class AndroidNCompat {
             return -1;
         } else {
             String var5 = Secure.getString(var0.getContentResolver(), "enabled_vr_listeners");
-            ComponentName var4 = new ComponentName("com.baofeng.mj", "com.google.vr.vrcore.common.VrCoreListenerService");
+            ComponentName var4 = new ComponentName("com.vr.test", "com.google.vr.vrcore.common.VrCoreListenerService");
             return var5 != null && var5.contains(var4.flattenToString())?0:-2;
         }
     }

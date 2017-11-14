@@ -76,7 +76,7 @@ public class ScanlineRacingRenderer implements Renderer {
     }
 
     public void onPause() {
-//        this.gvrApi.onPauseReprojectionThread();
+        this.gvrApi.onPauseReprojectionThread();
         this.surfaceManager.consumerDetachFromCurrentGLContext();
     }
 

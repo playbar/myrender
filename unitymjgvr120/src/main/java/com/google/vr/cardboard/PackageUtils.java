@@ -10,13 +10,13 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 public class PackageUtils {
-    private static final String GOOGLE_PACKAGE_PREFIX = "com.baofeng.";
+    private static final String GOOGLE_PACKAGE_PREFIX = "com.vr.";
 
     public PackageUtils() {
     }
 
     public static boolean isGooglePackage(String var0) {
-        return var0 != null && var0.startsWith("com.baofeng.");
+        return var0 != null && var0.startsWith("com.vr.");
     }
 
     public static boolean isSystemPackage(Context var0, String var1) {
