@@ -25,15 +25,15 @@ public class GoogleVR {
     private boolean mGvrLoaded = false;
     private boolean mIsDaydream = false;
 
-    public static native void HookInit();
+//    public static native void HookInit();
 
-    static {
-        try {
-            System.loadLibrary("gvrhook");
-        } catch (UnsatisfiedLinkError var0) {
-            ;
-        }
-    }
+//    static {
+//        try {
+//            System.loadLibrary("gvrhook");
+//        } catch (UnsatisfiedLinkError var0) {
+//            ;
+//        }
+//    }
 
     public GoogleVR() {
     }

@@ -212,6 +212,11 @@ public class GvrLayout extends FrameLayout {
             }
 
             if(this.scanlineRacingView != null) {
+                this.scanlineRacingView.queueEvent(new Runnable() {
+                    public void run() {
+                        GvrLayout.this.scanlineRacingRenderer.onResume();
+                    }
+                });
                 this.scanlineRacingView.onResume();
             }
 

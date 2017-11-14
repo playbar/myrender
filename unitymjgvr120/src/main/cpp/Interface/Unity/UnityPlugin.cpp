@@ -274,7 +274,7 @@ extern "C"
 	UNITY_EXPORT bool Unity_Init(const char* szEngineVersion, const char* szMerchantID, const char* szAppID, const char* szAppKey, const char* szChannelID, int nWidth, int nHeight, float xdpi, float ydpi, const char* szProfilePath , void * pOtherParmams)
 	{
 		__tagUnityInterfaceInitParams InitParams;
-		MOJING_TRACE(g_APIlogger, "EngineVersion = " << szEngineVersion);
+//		MOJING_TRACE(g_APIlogger, "EngineVersion = " << szEngineVersion);
 		InitParams.m_szEngineVersion = szEngineVersion;
 		InitParams.m_szMerchantID = szMerchantID;
 		InitParams.m_szAppID = szAppID;

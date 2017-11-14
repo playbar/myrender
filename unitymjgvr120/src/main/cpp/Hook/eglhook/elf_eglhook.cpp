@@ -22,8 +22,8 @@ static elf_hooker __hooker;
 static int gismaligpu = false;
 int needswapbuffer = 0;
 int rendertid = 0;
-int gvrmajorversion = 0;
-int gvrminorversion = 0;
+int gvrmajorversion = 1;
+int gvrminorversion = 20;
 
 int gwidth = 0;
 int gheight = 0;
@@ -168,21 +168,25 @@ void mj_glBindBuffer (GLenum target, GLuint buffer)
 }
 
 extern double m_dRotateSpeed;
+double dRotateSpeed = 0;
 typedef void (*Fn_glDrawElements)(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
 Fn_glDrawElements old_glDrawElements = NULL;
 void mj_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices)
 {
     LOGE("mj_glDrawElements, tid=%d", gettid());
-//    if( m_dRotateSpeed > 0.1f )
+    old_glDrawElements(mode, count, type, indices);
+
+//    if( dRotateSpeed > 0.1f )
 //        glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
 //    else
 //        glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
 //    glClear ( GL_COLOR_BUFFER_BIT );
-//    LOGE("rotatespeed=%f", m_dRotateSpeed);
-    old_glDrawElements(mode, count, type, indices);
+//    LOGE("rotatespeed=%f", dRotateSpeed);
+
     if( gismaligpu && needswapbuffer && rendertid != gettid())
     {
 //        glFinish();
+        dRotateSpeed = m_dRotateSpeed;
         old_eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
         LOGE("mj_glDrawElements, old_eglSwapBuffers, tid=%d", gettid());
         needswapbuffer = 0;
@@ -196,6 +200,7 @@ bool mj_sub_71FE8(int a1, int a2,  int a3)
     void *p = (void*)a1;
     void *p1 = *(void**)a1;
     char *pstr = *(char**)((char*)p + 4);
+    LOGE("fun name: %s", pstr);
     bool re = old_sub_71FE8(a1, a2, a3);
     void *pfun = *(void**)a1;
     if(strcmp(pstr, "DrawElements") == 0)
@@ -215,11 +220,13 @@ EGLAPI __eglMustCastToProperFunctionPointerType mj_eglGetProcAddress(const char 
     LOGE("mj_eglGetProcAddress, procname=%s", procname);
     const char *glrender = (const char *)glGetString(GL_RENDERER);
     // 1.40(包括1.40) mali gpu 出现单眼问题
-    static bool gbfirst = true;
-    if( gbfirst &&gvrminorversion>= 40 && glrender && strstr(glrender, "Mali") != NULL  ){
+    static bool gbfirst = false;
+    if( gbfirst /*&&gvrminorversion>= 20 && glrender && strstr(glrender, "Mali") != NULL */)
+    {
         LOGE("mj_eglGetProcAddress, hook mj_eglSwapBuffers", procname);
         gismaligpu = true;
         gbfirst = false;
+        __hooker.phrase_proc_maps();
         __hooker.hook_module("libandroid_runtime.so", "eglSwapBuffers", (void *) mj_eglSwapBuffers, (void **) &old_eglSwapBuffers);
         if( gvrmajorversion == 1 && gvrminorversion == 40 ) {
             hookbase(0x71FE8, (void*)mj_sub_71FE8, (void**)&old_sub_71FE8);

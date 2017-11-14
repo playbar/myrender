@@ -40,13 +40,20 @@ android {
 }
 
 dependencies {
-//    compile project(':gvrres120')
-    compile(name:'sdk-common-1.20.0', ext:'aar')
+    //    compile project(':gvrres120')
+    compile(name: 'sdk-common-1.20.0', ext: 'aar')
     compile files('libs/libprotobuf-java-nano.jar')
     compile files('libs/gvr.jar')
     compile files('libs/MojingSDK.jar')
-//    compile files('libs/unitygvr.jar')
-//    compile files('libs/unity-classes.jar')
-//    compile fileTree(dir: 'libs', include: ['*.jar'])
-//    compile(name:'unitygvr', ext:'aar')
+    //    compile files('libs/unitygvr.jar')
+    //    compile files('libs/unity-classes.jar')
+    //    compile fileTree(dir: 'libs', include: ['*.jar'])
+    //    compile(name:'unitygvr', ext:'aar')
+
+    compile(name: 'MjGvrService', ext: 'aar')
+    compile files('libs/MjGvrService.jar')
+    implementation files('libs/okhttp-3.0.0.jar')
+    implementation files('libs/okio-1.6.0.jar')
+    compile files('libs/SurfaceComposerLib.jar')
+
 }

@@ -622,8 +622,8 @@ public class MojingSDK {
     }
 
     public static void hookFun() {
-        VrFuncInit(isDDPhone());
-        if(!isDDPhone())
+//        VrFuncInit(isDDPhone());
+//        if(!isDDPhone())
         {
             ReprojFuncInit();
         }

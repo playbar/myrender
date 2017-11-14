@@ -49,7 +49,7 @@ bool	HookGVRTools::m_bSVREnable = false;
 
 #define TEST_WARP 1
 //#define TEST_WARP_RENDER 1
-#define TEST_WARP_REPROJECTION 1
+//#define TEST_WARP_REPROJECTION 1
 double m_dRotateSpeed = 0;
 
 FP_gvr_get_head_space_from_start_space_rotation HookGVRTools::m_fp_gvr_get_head_space_from_start_space_rotation = NULL;
@@ -287,6 +287,7 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		{
 			// Á½¸öÏòÁ¿×ö¼õ·¨£¿
 			Quatd Rotated = qLastRotate * qCurrentRotate.Inverted();
+//			double dAngle = abs(acos(Rotated.w) * 2 * 180 / PI - 180);
 			double dAngle = acos(Rotated.w) * 2 * 180 / PI;
 			// dSpeedÊÇ¶È/ÃëµÄ±ê¼Ç
             qLastRotate = qCurrentRotate;
@@ -458,7 +459,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
     LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
 
 #ifdef  TEST_WARP_RENDER
-    if( m_dRotateSpeed > 2.0f )
+    if( m_dRotateSpeed > 0.1f )
 		glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
 	else
 		glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -497,10 +498,11 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 	static int iBeginTime = Baofeng::Mojing::Timer::GetSeconds();
 	static int iFreamCount = 0;
 	int iTimeNow = Baofeng::Mojing::Timer::GetSeconds();
-#define FPS_TIME_INTERVAL 30
+#define FPS_TIME_INTERVAL 5
 	iFreamCount++;
 	if (iTimeNow >= iBeginTime + FPS_TIME_INTERVAL)
 	{
+        LOGE("FPS=%f", iFreamCount * 1.0 / FPS_TIME_INTERVAL);
 		MOJING_TRACE(g_APIlogger, "FPS = " << iFreamCount * 1.0 / FPS_TIME_INTERVAL);
 		iBeginTime = iTimeNow;
 		iFreamCount = 0;
@@ -526,20 +528,28 @@ int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
     int re = 0;
 #ifdef TEST_WARP_REPROJECTION
 	LOGE("rotatespeed=%f", m_dRotateSpeed);
-	if( m_dRotateSpeed > 0.1f )
-		glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
-	else
-		glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
-	glClear ( GL_COLOR_BUFFER_BIT );
-    eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
+//	re = m_fp_gvr_render_reprojection_thread(gvr);
+    if( m_dRotateSpeed > 0.1f )
+        glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
+    else
+        glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
+    glClear ( GL_COLOR_BUFFER_BIT );
+//    eglSwapBuffers(eglGetCurrentDisplay(), eglGetCurrentSurface(EGL_DRAW));
+    re = m_fp_gvr_render_reprojection_thread(gvr);
 #else
     if( m_fp_gvr_render_reprojection_thread) {
 //        needswapbuffer = 1;
+//        LOGE("rotatespeed=%f", m_dRotateSpeed);
+//        if( m_dRotateSpeed > 0.1f )
+//            glClearColor ( 1.0f, 1.0f, 1.0f, 1.0f );
+//        else
+//            glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
+//        glClear ( GL_COLOR_BUFFER_BIT );
 		re = m_fp_gvr_render_reprojection_thread(gvr);
 	}
 #endif
 //	glFinish();
-    LOGE("HOOK_gvr_render_reprojection_thread end, tid=%d", gettid());
+//    LOGE("HOOK_gvr_render_reprojection_thread end, tid=%d", gettid());
     return re;
 }
 
