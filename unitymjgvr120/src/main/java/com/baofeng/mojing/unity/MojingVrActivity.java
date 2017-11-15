@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.InputEvent;
@@ -15,6 +18,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
@@ -131,9 +136,32 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
         }
     }
 
+    private boolean isUnity560f3()
+    {
+        try {
+            AssetManager assetManager = this.getAssets();
+            InputStream stream = assetManager.open("bin/Data/globalgamemanagers");
+            int ilen = stream.available();
+            byte buf[] = new byte[ilen];
+            stream.read(buf);
+            stream.close();
+            //5.6.0f3
+            if( buf[0x14] == 0x35 && buf[0x15] == 0x2e && buf[0x16] == 0x36 && buf[0x17] == 0x2e
+                && buf[0x18] == 0x30 && buf[0x19] == 0x66 && buf[0x1a] == 0x33)
+                return true;
+            else
+                return false;
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private boolean isDDAPP()
     {
         try {
+            ApplicationInfo info = getApplicationInfo();
             File f = new File(getApplicationContext().getApplicationInfo().nativeLibraryDir+"/libgvr.so");
             if (!f.exists()) {
                 Log.d(TAG, "Check Daydream app return false.");
@@ -198,7 +226,9 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
         //mUnityPlayer = new UnityPlayer(this);
         if(isDDAPP())
         {
-            MojingSDK.hookUnityFun();
+           if(Build.VERSION.SDK_INT  < 20 || isUnity560f3()) {
+               MojingSDK.hookUnityFun();
+           }
         }
         if (mUnityPlayer.getSettings().getBoolean("hide_status_bar", true)) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);

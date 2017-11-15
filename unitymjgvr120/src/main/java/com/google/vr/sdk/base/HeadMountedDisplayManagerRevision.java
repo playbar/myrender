@@ -55,6 +55,8 @@ public class HeadMountedDisplayManagerRevision {
         if(gvrViewerParams != null && !gvrViewerParams.equals(this.hmd.getGvrViewerParams())) {
 //            gvrViewerParams.setModel("bfmj");
 //            gvrViewerParams.setVendor("bfmjs1");
+            String str = gvrViewerParams.toString();
+            Log.e("updateGvrViewerParams", gvrViewerParams.getModel() + ", " + str);
             this.paramsProvider.writeDeviceParams(gvrViewerParams.toProtobuf());
             this.hmd.setGvrViewerParams(gvrViewerParams);
 
