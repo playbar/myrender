@@ -524,7 +524,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 //extern int needswapbuffer;
 int HookGVRTools::HOOK_gvr_render_reprojection_thread(const gvr_context *gvr)
 {
-    LOGE("HOOK_gvr_render_reprojection_thread begin, tid=%d", gettid());
+//    LOGE("HOOK_gvr_render_reprojection_thread begin, tid=%d", gettid());
     int re = 0;
 #ifdef TEST_WARP_REPROJECTION
 	LOGE("rotatespeed=%f", m_dRotateSpeed);

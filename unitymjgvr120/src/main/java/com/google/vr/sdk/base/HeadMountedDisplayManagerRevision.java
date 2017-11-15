@@ -6,6 +6,7 @@
 package com.google.vr.sdk.base;
 
 import android.content.Context;
+import android.opengl.GLES20;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -52,12 +53,17 @@ public class HeadMountedDisplayManagerRevision {
 
     public boolean updateGvrViewerParams(GvrViewerParams gvrViewerParams) {
         if(gvrViewerParams != null && !gvrViewerParams.equals(this.hmd.getGvrViewerParams())) {
-            this.hmd.setGvrViewerParams(gvrViewerParams);
+//            gvrViewerParams.setModel("bfmj");
+//            gvrViewerParams.setVendor("bfmjs1");
             this.paramsProvider.writeDeviceParams(gvrViewerParams.toProtobuf());
+            this.hmd.setGvrViewerParams(gvrViewerParams);
+
+            GLES20.glFinish();
             return true;
         } else {
             return false;
         }
+//        return false;
     }
 
     public boolean updateScreenParams(ScreenParams screenParams) {

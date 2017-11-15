@@ -179,7 +179,7 @@ target_link_libraries(mojing
                       log
                       android
                       EGL
-                      GLESv3
+                      GLESv2
                       sqlite_lib
                       curl_lib
                       breakpad_client
