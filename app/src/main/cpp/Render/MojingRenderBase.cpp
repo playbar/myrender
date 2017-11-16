@@ -13,6 +13,7 @@
 #include "../Base/MojingTimer.h"
 #include "VerifyFailedInfo.h"
 #include "VersionLow.h"
+#include "PackageInvalid.h"
 #include "Vsync.h"
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -1051,7 +1052,7 @@ namespace Baofeng
 				m_dNextFrameDisplayTime = FramePointTimeInSeconds(m_ui64NextDisplayFrameIndex);
 			}
 			
-#ifdef _DEBUG
+#ifdef RENDER_DEBUG
 			static UInt64 ui64FrameCount = 0;
 			static double dStartDrawTime = Timer::GetSeconds();
 			ui64FrameCount++;
@@ -1066,9 +1067,7 @@ namespace Baofeng
 				}
 				dStartDrawTime = dDrawTime;
 			}
-
-			
-#endif
+#endif	
 			return true;
 		}
 
@@ -1166,6 +1165,12 @@ namespace Baofeng
 					width = INFO_VERIFYFAILED_WIDTH;
 					height = INFO_VERIFYFAILED_HEIGHT;
 					pInfo = VerifyFailedInfo;
+				}
+				else if(status == VERIFY_PACKAGE_INVALID)
+				{
+					width = INFO_PACKAGEINVALID_WIDTH;
+					height = INFO_PACKAGEINVALID_HEIGHT;
+					pInfo = PackageInvalidInfo;
 				}
 				else if (status == VERIFY_VERSION_LOW)
 				{

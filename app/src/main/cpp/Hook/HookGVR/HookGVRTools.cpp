@@ -1,12 +1,10 @@
 #include <dlfcn.h>
 #include <math.h>
-#include <Base/MojingLog.h>
-#include <Hook/drawtex.h>
+
 #include "../Global/HookBase.h" 
 #include "../../Base/MojingTimer.h"
+#include "../../Base/MojingLog.h"
 #include "../../3rdPart/Qualcomm/CSVRApi.h"
-
-#include "HookGVRTools.h"
 #include "../../MojingAPI.h"
 #include "../../MojingManager.h"
 #include "../../MojingSDKStatus.h"
@@ -14,6 +12,8 @@
 #include "../../Profile/MojingProfileKey.h"
 #include "../../Profile/UserSettingProfile.h"
 #include "../../Parameters/MojingParameters.h"
+#include "../drawtex.h"
+#include "HookGVRTools.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../../3rdPart/log4cplus/LogInterface.h"
@@ -53,13 +53,11 @@ FP_gvr_frame_submit HookGVRTools::m_fp_gvr_frame_submit = NULL;
 FP_gvr_get_viewer_model HookGVRTools::m_fp_gvr_get_viewer_model = NULL;
 FP_gvr_get_viewer_vendor HookGVRTools::m_fp_gvr_get_viewer_vendor = NULL;
 FP_gvr_get_version_string HookGVRTools::m_fp_gvr_get_version_string = NULL;
-//FP_gvr_on_surface_created_reprojection_thread HookGVRTools::m_fp_gvr_on_surface_created_reprojection_thread = NULL;
-//FP_gvr_render_reprojection_thread HookGVRTools::m_fp_gvr_render_reprojection_thread = NULL;
 FP_gvr_get_version HookGVRTools::m_fp_gvr_get_version = NULL;
 FP_gvr_initialize_gl HookGVRTools::m_fp_gvr_initialize_gl = NULL;
 FP_gvr_frame_bind_buffer HookGVRTools::m_fp_gvr_frame_bind_buffer = NULL;
 FP_gvr_frame_unbind HookGVRTools::m_fp_gvr_frame_unbind = NULL;
-FP_gvr_is_feature_supported HookGVRTools::m_fp_gvr_is_feature_supported = NULL;
+//FP_gvr_is_feature_supported HookGVRTools::m_fp_gvr_is_feature_supported = NULL;
 FP_gvr_get_maximum_effective_render_target_size HookGVRTools::m_fp_gvr_get_maximum_effective_render_target_size = NULL;
 
 extern String ParseGlassKey(String sJson);
@@ -85,32 +83,28 @@ bool HookGVRTools::Init()
 	bool bRet = false;
 	if (LoadGVR())
 	{
-		HookParamet HP[7];
+		HookParamet HP[5];
 		HOOK_PARAMET(HP[0], gvr_get_head_space_from_start_space_rotation);
-		HOOK_PARAMET(HP[1], gvr_reset_tracking);
-		HOOK_PARAMET(HP[2], gvr_recenter_tracking);
-		HOOK_PARAMET(HP[3], gvr_frame_submit);
+		HOOK_PARAMET(HP[1], gvr_frame_submit);
+		HOOK_PARAMET(HP[2], gvr_reset_tracking);
+		HOOK_PARAMET(HP[3], gvr_recenter_tracking);
 		HOOK_PARAMET(HP[4], gvr_initialize_gl);
-		//HOOK_PARAMET(HP[5], gvr_is_feature_supported);
-//		HOOK_PARAMET(HP[6], gvr_frame_unbind);
 
-		if (HookBase::HookToFunctions(m_hGVR, HP, 7) &&
+		if (HookBase::HookToFunctions(m_hGVR, HP, 5) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_model)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_viewer_vendor)) &&
 			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version_string))&&
             NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_version)) &&
-			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_bind_buffer))
-			&& NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_unbind))
-			&& NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_maximum_effective_render_target_size)))
+			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_bind_buffer)) &&
+			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_frame_unbind)) &&
+			NULL != (GET_DLL_FUNCION(m_hGVR, gvr_get_maximum_effective_render_target_size)))
 		{
 			// Get Function pointer HOOKed
 			m_fp_gvr_get_head_space_from_start_space_rotation = (FP_gvr_get_head_space_from_start_space_rotation)HP[0].fpRealFunction;
-			m_fp_gvr_reset_tracking = (FP_gvr_reset_tracking)HP[1].fpRealFunction;
-			m_fp_gvr_recenter_tracking = (FP_gvr_recenter_tracking)HP[2].fpRealFunction;
-			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[3].fpRealFunction;
+			m_fp_gvr_frame_submit = (FP_gvr_frame_submit)HP[1].fpRealFunction;
+			m_fp_gvr_reset_tracking = (FP_gvr_reset_tracking)HP[2].fpRealFunction;
+			m_fp_gvr_recenter_tracking = (FP_gvr_recenter_tracking)HP[3].fpRealFunction;
 			m_fp_gvr_initialize_gl = (FP_gvr_initialize_gl)HP[4].fpRealFunction;
-			//m_fp_gvr_is_feature_supported = (FP_gvr_is_feature_supported)HP[5].fpRealFunction;
-//			m_fp_gvr_frame_unbind = (FP_gvr_frame_unbind)HP[6].fpRealFunction;
 
 			String sEngenVersion = "GVR ";
 			sEngenVersion += m_fp_gvr_get_version_string();
@@ -291,6 +285,8 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 		Ret = m_fp_gvr_get_head_space_from_start_space_rotation(gvr, time);
 	}
 	
+	//return Ret;
+	
 	//向报数接口提供当前正在使用的镜片
 	ReportCurrentGlasses(gvr);
 
@@ -390,21 +386,41 @@ gvr_mat4f HookGVRTools::HOOK_gvr_get_head_space_from_start_space_rotation(const 
 }
 #endif
 
+SDK_VERIFY m_status = VERIFY_OK;
+GLuint m_InfoTextureID = 0;
+extern GLuint CreateInfoTexture();
 extern int rendertid;
 void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space)
 {
-    //LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
+	//LOGE("HOOK_gvr_frame_submit, tid=%d", gettid());
+	SDK_VERIFY  status = MojingSDKStatus::GetSDKStatus()->GetVerfiyStatus();
+	//status = VERIFY_PACKAGE_INVALID;
+	if (status != VERIFY_OK)
+	{
+		if (m_InfoTextureID == 0 || status != m_status)
+		{
+			m_status = status;
+			m_InfoTextureID = CreateInfoTexture();
+		}
+#ifdef HOOK_DEBUG
+		MOJING_TRACE(g_APIlogger, "HOOK_gvr_frame_submit Verify status: " << status << " TextureID : " << m_InfoTextureID);
+#endif
+		if (m_InfoTextureID != 0)
+		{
+			gUserData.textureId = m_InfoTextureID;
+		}
+		glViewport(0, 0, gvpwidth, gvpwidth );
+		m_fp_gvr_frame_bind_buffer(*frame, 0);
+		DrawTex(&gUserData);
+		m_fp_gvr_frame_unbind(*frame);
 
-    glViewport(0, 0, gvpwidth, gvpwidth );
-    m_fp_gvr_frame_bind_buffer(*frame, 0);
-    DrawTex(&gUserData);
-    m_fp_gvr_frame_unbind(*frame);
-
-    m_fp_gvr_frame_bind_buffer(*frame, 1);
-    DrawTex(&gUserData);
-	m_fp_gvr_frame_unbind(*frame);
+		m_fp_gvr_frame_bind_buffer(*frame, 1);
+		DrawTex(&gUserData);
+		m_fp_gvr_frame_unbind(*frame);
+	}
 
     rendertid = gettid();
+
 	if (m_fp_gvr_frame_submit)
 	{
 		m_fp_gvr_frame_submit(frame, list, head_space_from_start_space);
@@ -419,12 +435,9 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 	{
 		MOJING_TRACE(g_APIlogger, "FPS = " << iFreamCount * 1.0 / FPS_TIME_INTERVAL);
 		iBeginTime = iTimeNow;
-		iFreamCount = 0;
-		
+		iFreamCount = 0;	
 	}
-
 }
-
 
 
 void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)

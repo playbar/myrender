@@ -63,7 +63,6 @@ namespace Baofeng
 // 			LineDraw m_LineDraw;
 // 			QuadDraw m_QuadDraw;
 			static GLuint CreateCells(int iImageWidth, int iImageHeight, int iCellWidth, int iLineWidth, int iBKCol, int iLineCol, float fPPI, float fMetersPerTanAngleAtCenter);
-			GLuint CreateCellsImage();
 
 			static bool g_bIsModifyed;
 
@@ -95,7 +94,9 @@ namespace Baofeng
 
 			static MojingRenderBase *GetRender(int iID);
 			static void ReleaseRender(int iID);
-
+			
+			GLuint CreateCellsImage();
+			
 			virtual GLuint GetEyeTextureId(EyeTextureType ett,
 				unsigned int &iWidth, unsigned int &iHeight, GLenum &format);
 

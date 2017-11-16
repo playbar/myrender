@@ -286,7 +286,8 @@ void hookUnityFun()
     memset(sdkIntStr,'\0',PROP_VALUE_MAX);
     __system_property_get("ro.build.version.sdk", sdkIntStr);
     int sdkInt=atoi(sdkIntStr);
-    if(sdkInt < 20) {
+    //if(sdkInt < 20) 
+	{
         __hooker.phrase_proc_maps();
         __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
     }

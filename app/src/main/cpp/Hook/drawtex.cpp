@@ -16,7 +16,7 @@ static void CheckGLError(const char* label) {
     if (gl_error != GL_NO_ERROR) {
         LOGE("GL error @ %s: %d", label, gl_error);
         // Crash immediately to make OpenGL errors obvious.
-        abort();
+        // abort();
     }
 }
 
@@ -176,14 +176,14 @@ GLuint createTexture( )
 
 void InitData()
 {
-    static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
-                                   0.0f,  0.0f,        // TexCoord 0
-                                   -0.5f, -0.5f, 0.0f,  // Position 1
-                                   0.0f,  1.0f,        // TexCoord 1
-                                   0.5f, -0.5f, 0.0f,  // Position 2
-                                   1.0f,  1.0f,        // TexCoord 2
-                                   0.5f,  0.5f, 0.0f,  // Position 3
-                                   1.0f,  0.0f         // TexCoord 3
+    static GLfloat vVertices[] = { -1.0f,  1.0f, 0.0f,  // Position 0
+                                   0.0f,  1.0f,        // TexCoord 0
+                                   -1.0f, -1.0f, 0.0f,  // Position 1
+                                   0.0f,  0.0f,        // TexCoord 1
+                                   1.0f, -1.0f, 0.0f,  // Position 2
+                                   1.0f,  0.0f,        // TexCoord 2
+                                   1.0f,  1.0f, 0.0f,  // Position 3
+                                   1.0f,  1.0f         // TexCoord 3
     };
     static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
@@ -277,17 +277,21 @@ void DrawTex( UserData *userData)
 {
     CheckGLError("drawtex begin");
 
-    static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
-                            0.0f,  0.0f,        // TexCoord 0
-                            -0.5f, -0.5f, 0.0f,  // Position 1
-                            0.0f,  1.0f,        // TexCoord 1
-                            0.5f, -0.5f, 0.0f,  // Position 2
-                            1.0f,  1.0f,        // TexCoord 2
-                            0.5f,  0.5f, 0.0f,  // Position 3
-                            1.0f,  0.0f         // TexCoord 3
-    };
-    static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+//     static GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f,  // Position 0
+//                             0.0f,  0.0f,        // TexCoord 0
+//                             -0.5f, -0.5f, 0.0f,  // Position 1
+//                             0.0f,  1.0f,        // TexCoord 1
+//                             0.5f, -0.5f, 0.0f,  // Position 2
+//                             1.0f,  1.0f,        // TexCoord 2
+//                             0.5f,  0.5f, 0.0f,  // Position 3
+//                             1.0f,  0.0f         // TexCoord 3
+//     };
+//     static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_CULL_FACE);
     // Use the program object
     glUseProgram ( userData->programObject );
 
@@ -323,9 +327,10 @@ void DrawTex( UserData *userData)
     glDisableVertexAttribArray ( 0 );
     glDisableVertexAttribArray ( 1 );
 
-    CheckGLError("drawtex");
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glEnable(GL_CULL_FACE);
+     CheckGLError("drawtex");
 //    glDrawArrays ( GL_POINTS, 0, 6 );
 }
 

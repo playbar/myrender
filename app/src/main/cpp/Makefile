@@ -37,7 +37,7 @@ LFLAGS  += -lstdc++ -shared
 
 LOCAL_SRC_FILES = 3rdPart/AES/AES.cpp 3rdPart/AES/AESPro.cpp 3rdPart/MD5/MD5.cpp 3rdPart/sqlite3/sqlite3.c LogTraker/LogInterface.cpp MojingAPI.cpp MojingManager.cpp MojingSDKStatus.cpp \
 									3rdPart/minizip/ioapi.c 3rdPart/minizip/miniunz.c 3rdPart/minizip/minizip.c 3rdPart/minizip/mztools.c 3rdPart/minizip/unzip.c 3rdPart/minizip/zip.c \
-									Base/Base32.cpp Base/CRC.cpp Base/MojingAlg.cpp Base/MojingAllocator.cpp Base/MojingAtomic.cpp Base/MojingCompress.cpp Base/MojingFile.cpp Base/MojingFileFILE.cpp \
+									Base/Base32.cpp Base/Base64.cpp Base/CRC.cpp Base/MojingAlg.cpp Base/MojingAllocator.cpp Base/MojingAtomic.cpp Base/MojingCompress.cpp Base/MojingFile.cpp Base/MojingFileFILE.cpp \
 									Base/MojingJSON.cpp Base/MojingLog.cpp Base/MojingMath.cpp Base/MojingRefCount.cpp Base/MojingStd.cpp Base/MojingString.cpp Base/MojingString_FormatUtil.cpp Base/GlUtils.cpp\
 									Base/MojingSysFile.cpp Base/MojingSystem.cpp Base/MojingTimer.cpp Base/MojingUTF8Util.cpp Base/MojingThreadsPthread.cpp Distortion/MojingDistortion.cpp Distortion/GVR/GvrProfile.cpp\
 									Parameters/MojingDeviceParameters.cpp Parameters/MojingDisplayParameters.cpp Parameters/MojingFactoryCalibrationParameters.cpp Parameters/MojingGyroOffsetReport.cpp \
@@ -57,7 +57,7 @@ LOCAL_SRC_FILES = 3rdPart/AES/AES.cpp 3rdPart/AES/AESPro.cpp 3rdPart/MD5/MD5.cpp
 									
 													
 							
-LOCAL_OBJ_FILES = AES.o AESPro.o MD5.o ioapi.o miniunz.o minizip.o mztools.o unzip.o zip.o sqlite3.o Base32.o CRC.o GlUtils.o MojingAlg.o MojingAllocator.o MojingAtomic.o MojingCompress.o \
+LOCAL_OBJ_FILES = AES.o AESPro.o MD5.o ioapi.o miniunz.o minizip.o mztools.o unzip.o zip.o sqlite3.o Base32.o Base64.o CRC.o GlUtils.o MojingAlg.o MojingAllocator.o MojingAtomic.o MojingCompress.o \
 									MojingFile.o MojingFileFILE.o MojingJSON.o MojingLog.o MojingMath.o MojingRefCount.o MojingStd.o MojingString.o MojingString_FormatUtil.o MojingSysFile.o MojingSystem.o \
 									MojingThreadsPthread.o MojingTimer.o MojingUTF8Util.o MojingDistortion.o GvrProfile.o MojingAPI.o MojingManager.o MojingSDKStatus.o MojingDeviceParameters.o MojingDisplayParameters.o \
 									MojingFactoryCalibrationParameters.o MojingGyroOffsetReport.o MojingGyroOffsetReportSet.o MojingJsonElement.o MojingParameters.o MojingSensorParameters.o LogInterface.o \

@@ -7,6 +7,7 @@
 #include "../MojingSDKStatus.h"
 #include "../MojingManager.h"
 #include "../Base/MojingJSON.h"
+#include "../Render/MojingRenderBase.h"
 
 #ifdef LOG4CPLUS_IMPORT
 #include "../3rdPart/log4cplus/LogInterface.h"
@@ -287,7 +288,6 @@ namespace Baofeng
 					MOJING_TRACE(g_APIlogger, "MojingMerchantVerify::AppCheckPackage alrealy verify ok.");
 				}
 #endif // DEBUG
-
 			}
 		}
 
@@ -412,4 +412,20 @@ namespace Baofeng
 			return sRet;
 		}
 	}
+}
+
+GLuint CreateInfoTexture()
+{
+	GLuint  tid = 0;
+	if (MojingRenderBase::GetCurrentRender() == NULL)
+	{
+		MojingRenderBase::CreateCurrentRender(false, false);
+	}
+
+	if (MojingRenderBase::GetCurrentRender() != NULL)
+	{
+		tid = MojingRenderBase::GetCurrentRender()->CreateCellsImage();
+	}
+
+	return tid;
 }
