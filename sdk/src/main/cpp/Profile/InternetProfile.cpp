@@ -286,7 +286,9 @@ namespace Baofeng
 							curl_easy_setopt(curl, CURLOPT_URL, sUrl.ToCStr());
 							curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallbackString);
 							curl_easy_setopt(curl, CURLOPT_WRITEDATA, &pRespString);
-							//MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr()/*GetParametData()*/);
+#ifdef _DEBUG
+							MOJING_TRACE(g_APIlogger, "Get! url = " << sUrl.ToCStr()/*GetParametData()*/);
+#endif
 						}
 						//MOJING_TRACE(g_APIlogger, "Curl perform start...");
 						if (bSetOptSucc)
