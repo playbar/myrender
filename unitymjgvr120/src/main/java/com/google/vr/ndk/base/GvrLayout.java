@@ -116,7 +116,6 @@ public class GvrLayout extends FrameLayout {
 
         try {
             var2 = var2 != null?var2:GvrApi.createDefaultDisplaySynchronizer(this.getContext());
-            MojingSDK.hookFun();
             var3 = var3 != null?var3:new EglReadyListener();
             var1 = var1 != null?var1:new GvrApi(this.getContext(), var2);
             var5 = var5 != null?var5:new DaydreamUtilsWrapper();

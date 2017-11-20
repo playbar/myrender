@@ -1,6 +1,8 @@
-include ':app'
-//include ':unitymjgvr120'
+//include ':app'
+//include ':appsvr'
+include ':sdk'   // same as sdk
+include ':unitymjgvr120'
 //include ':unitymjgvr180'
-//include ':renderall'
 //include ':unityappsvr'
+//include ':viewcore'
 

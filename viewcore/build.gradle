@@ -31,7 +31,7 @@ android {
             path "src/main/cpp/CMakeLists.txt"
         }
     }
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.2'
 }
 
 dependencies {

@@ -9,6 +9,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.SurfaceView;
+
+import com.baofeng.mojing.MojingSDK;
 import com.google.vr.ndk.base.AndroidCompat;
 import com.google.vr.ndk.base.GvrApi;
 import com.google.vr.ndk.base.GvrLayout;
@@ -72,7 +74,7 @@ public class GoogleVR {
         if(this.mActivity != null && this.mContext != null) {
             if(this.mGvrLayout == null) {
                 this.mGvrLayout = new GvrLayout(this.mContext);
-//                GoogleVR.HookInit();
+                MojingSDK.hookFun();
                 this.mGvrLayout.setPresentationView(this.mGvrGlView);
                 if(enableAsynchronousProjection) {
                     if(!this.mGvrLayout.setAsyncReprojectionEnabled(true)) {
