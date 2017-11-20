@@ -1,6 +1,10 @@
 #pragma once
 #include "../../Base/MojingTypes.h"
 
+//#define HOOK_SENSORSUBS
+//#define FRAME_SHOW_INFO
+//#define NEW_PATCH
+
 using namespace Baofeng::Mojing;
 
 #ifdef MJ_OS_ANDROID
@@ -77,6 +81,9 @@ typedef int32_t(*FP_gvr_swap_chain_get_buffer_count)(const gvr_swap_chain* swap_
 typedef gvr_frame* (*FP_gvr_swap_chain_acquire_frame)(gvr_swap_chain* swap_chain);
 #endif
 
+#define FN_gvr_get_predicted_quar_impl "gvr_get_predicted_quar_impl"
+typedef float*(*FP_gvr_get_predicted_quar_impl)(float *a1, int a2, int64_t a3, int a5, u_int8_t a6);
+
 #define  USING_SVR_SENSOR 0
 class HookGVRTools
 {
@@ -106,6 +113,10 @@ private:
 	static void HOOK_gvr_initialize_gl(gvr_context* gvr);
     static void HOOK_gvr_frame_unbind(gvr_frame* frame);
 #endif
+#ifdef HOOK_SENSORSUBS
+	static float* HOOK_gvr_get_predicted_quar_impl(float *quatDest, int a2, int64_t absTimeNanoMonotonic, int a5, u_int8_t a6);
+	static bool  HOOK_GvrSensorSubs();
+#endif
 
 	static FP_gvr_get_head_space_from_start_space_rotation m_fp_gvr_get_head_space_from_start_space_rotation;
 	static FP_gvr_frame_submit m_fp_gvr_frame_submit;
@@ -126,6 +137,9 @@ private:
 	static FP_gvr_frame_unbind m_fp_gvr_frame_unbind;
 	static FP_gvr_get_maximum_effective_render_target_size m_fp_gvr_get_maximum_effective_render_target_size;
 	static FP_gvr_swap_chain_get_buffer_count m_fp_gvr_swap_chain_get_buffer_count;
+#endif
+#ifdef HOOK_SENSORSUBS
+	static FP_gvr_get_predicted_quar_impl m_fp_gvr_get_predicted_quar_impl;
 #endif
 };
 extern bool g_bEnableDDTracker;

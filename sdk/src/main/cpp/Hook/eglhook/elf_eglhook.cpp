@@ -25,7 +25,7 @@ int needswapbuffer = 0;
 int rendertid = 0;
 int gvrmajorversion = 0;
 int gvrminorversion = 0;
-
+int gvrpatchversion = 0;
 
 void* get_module_base(pid_t pid,const char* module_name)
 {
@@ -288,9 +288,9 @@ void hookUnityFun()
     int sdkInt=atoi(sdkIntStr);
     //if(sdkInt < 20) 
 	{
-        __hooker.phrase_proc_maps();
-        __hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
-    }
+		__hooker.phrase_proc_maps();
+		__hooker.hook_module("libunity.so", "strncpy", (void *) my_strncpy, (void **) &old_strncpy);
+	}
 }
 
 

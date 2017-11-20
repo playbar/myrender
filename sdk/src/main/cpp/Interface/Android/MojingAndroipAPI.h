@@ -17,10 +17,10 @@ extern "C" {
 
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclass, jint logLevel, jstring sInfo, jstring sFileName, jint line);
 
-	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_VrFuncInit(JNIEnv *jEnv, jclass, jboolean isdd);
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_VrFuncInit(JNIEnv *jEnv, jclass, jboolean isDD);
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_ReprojFuncInit(JNIEnv *jEnv, jclass);
     JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_NativeUnityFuncInit(JNIEnv *jEnv, jclass);
-	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_nativeEnableShowTip(JNIEnv *jEnv, jclass, jboolean benble);
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_NativeEnableShowTip(JNIEnv *jEnv, jclass, jboolean bEnble);
 	/*
 	* Class:     com_baofeng_mojing_MojingSDK
 	* Method:    Init

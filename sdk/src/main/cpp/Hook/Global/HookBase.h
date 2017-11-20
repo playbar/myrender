@@ -16,6 +16,7 @@ public:
 
 	static bool HookToFunctions(void * hDLL, HookParamet * pHookParamet, int iFunctionCount);
 	static bool HookToFunction(void * hDLL , const char * szFunctionName , void * fpReplactToFunction , void ** fpOutRealFunction);
+	static bool HookToSub(const char * szDLLName, uint32_t iOffset, void * fpReplactToFunction, void ** fpOutRealFunction);
 };
 #endif
 
