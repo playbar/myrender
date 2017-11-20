@@ -42,6 +42,7 @@ JavaVM* gJavaVM = NULL;
 char *g_pPacketName = NULL;
 char *g_pAPPName = NULL;
 char *g_pUserID = NULL;
+bool gEnableHook = false;
 //jobject gobject_MojingSDKServiceManager;
 
 //void initClassHelper(JNIEnv *env, const char *path, jobject *objptr) {
@@ -159,7 +160,7 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_Log(JNIEnv *jEnv, jclas
 
 JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_VrFuncInit(JNIEnv *jEnv, jclass, jboolean isdd)
 {
-	if (MojingSDK_GetInitSDK())
+	if (MojingSDK_GetInitSDK() )
 	{
 		HookGVRTools::Init();
 		//    startHookThread(isdd);
@@ -184,6 +185,11 @@ JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_NativeUnityFuncInit(JNI
 		hookUnityFun();
 	}
 #endif
+}
+
+JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_nativeEnableShowTip(JNIEnv *jEnv, jclass, jboolean benble)
+{
+	gEnableHook = benble;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_baofeng_mojing_MojingSDK_Init(JNIEnv *env, jclass jClass, jstring merchantID, jstring appID, jstring appKey, jstring appName, jstring packageName,

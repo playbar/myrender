@@ -41,6 +41,7 @@ CSVRApi HookGVRTools::m_SVRApi;
 
 extern int gvrmajorversion;
 extern int gvrminorversion;
+extern bool gEnableHook;
 #ifdef FRAME_SHOW_INFO
 static bool gmultiview_enabled = false;
 static int gvpwidth = 0;
@@ -428,7 +429,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 		{
 			gUserData.textureId = m_InfoTextureID;
 		}
-
+	if( gEnableHook) {
 		int32_t count = m_fp_gvr_swap_chain_get_buffer_count(gSwapChain);
 		LOGE("tid=%d, framecount=%d", rendertid, count);
 		glViewport(0, 0, gvpwidth, gvpwidth);
@@ -437,6 +438,7 @@ void HookGVRTools::HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_vie
 			DrawTex(&gUserData);
 			m_fp_gvr_frame_unbind(*frame);
 		}
+	}
 
 		LOGE("glbindbuffer end, vboID=%d, iboID=%d", gUserData.vboID, gUserData.textureId);
 	}
@@ -472,7 +474,9 @@ void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
     LOGE("HOOK_gvr_initialize_gl");
 	if( m_fp_gvr_initialize_gl)
 		m_fp_gvr_initialize_gl(gvr);
-	InitTex(&gUserData, 1);
+	if( gEnableHook) {
+		InitTex(&gUserData, 1);
+	}
 	gvr_sizei size = m_fp_gvr_get_maximum_effective_render_target_size(gvr);
     gvpwidth = (7 * size.width) / 20;
     LOGE("w=%d, h=%d, wid=%d", size.width, size.height, gvpwidth);

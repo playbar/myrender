@@ -694,6 +694,7 @@ public class MojingSDK
 	public static native void VrFuncInit(boolean isDD);
 	public static native void ReprojFuncInit();
 	public static native void NativeUnityFuncInit();
+	public static native void nativeEnableShowTip(boolean var0);
 
 	//////////////////////////////////////////////////////////////////////////////
 	private static native void Log(int logLevel, String sInfo, String sFileName, int line);
@@ -745,12 +746,18 @@ public class MojingSDK
 		 }
 	}
 
-	public static void hookFun()
+	public static void hookFun(boolean bunityapp)
 	{
+		nativeEnableShowTip(bunityapp);
 		VrFuncInit(isDDPhone());
 		if( ! isDDPhone()){
 			ReprojFuncInit();
 		}
+	}
+
+	public static void enableShowTip(boolean bable)
+	{
+		nativeEnableShowTip(bable);
 	}
 
 	public static void hookUnityFun()
