@@ -5,6 +5,8 @@
 typedef struct gvr_context_ gvr_context;
 struct gvr_frame;
 struct gvr_buffer_viewport_list;
+typedef struct gvr_swap_chain_ gvr_swap_chain;
+struct gvr_buffer_spec;
 
 typedef struct gvr_clock_time_point 
 {
@@ -74,6 +76,23 @@ typedef void(*FP_gvr_frame_submit)(gvr_frame **frame,	const gvr_buffer_viewport_
 #define FN_gvr_get_maximum_effective_render_target_size "gvr_get_maximum_effective_render_target_size"
 typedef gvr_sizei (*FP_gvr_get_maximum_effective_render_target_size)(const gvr_context* gvr);
 
+#define FN_gvr_swap_chain_create "gvr_swap_chain_create"
+typedef gvr_swap_chain* (*FP_gvr_swap_chain_create)(gvr_context* gvr,
+									  const gvr_buffer_spec** buffers,
+									  int32_t count);
+
+#define FN_gvr_swap_chain_get_buffer_count "gvr_swap_chain_get_buffer_count"
+typedef int32_t (*FP_gvr_swap_chain_get_buffer_count)(const gvr_swap_chain* swap_chain);
+
+#define FN_gvr_swap_chain_acquire_frame "gvr_swap_chain_acquire_frame"
+typedef gvr_frame* (*FP_gvr_swap_chain_acquire_frame)(gvr_swap_chain* swap_chain);
+
+#define FN_gvr_buffer_viewport_list_create "gvr_buffer_viewport_list_create"
+typedef gvr_buffer_viewport_list* (*FP_gvr_buffer_viewport_list_create)(const gvr_context* gvr);
+
+#define FN_gvr_buffer_viewport_list_destroy "gvr_buffer_viewport_list_destroy"
+typedef void (*FP_gvr_buffer_viewport_list_destroy)(gvr_buffer_viewport_list** viewport_list);
+
 #define  USING_SVR_SENSOR 0
 class HookGVRTools
 {
@@ -96,6 +115,14 @@ private:
 	static bool LoadGVR();
 	static gvr_mat4f HOOK_gvr_get_head_space_from_start_space_rotation(const gvr_context *gvr, const gvr_clock_time_point time);
 	static void HOOK_gvr_frame_submit(gvr_frame **frame, const gvr_buffer_viewport_list *list, gvr_mat4f head_space_from_start_space);
+	static gvr_swap_chain* HOOK_gvr_swap_chain_create(gvr_context* gvr,
+										   const gvr_buffer_spec** buffers,
+										   int32_t count);
+	static int32_t HOOK_gvr_swap_chain_get_buffer_count(const gvr_swap_chain* swap_chain);
+    static gvr_frame *HOOK_gvr_swap_chain_acquire_frame(gvr_swap_chain* swap_chain);
+    static gvr_buffer_viewport_list *HOOK_gvr_buffer_viewport_list_create(const gvr_context* gvr);
+    static void HOOK_gvr_buffer_viewport_list_destroy(gvr_buffer_viewport_list** viewport_list);
+
 //	static int HOOK_gvr_on_surface_created_reprojection_thread(const gvr_context *gvr);
 	static int HOOK_gvr_render_reprojection_thread(const gvr_context *gvr);
 	static void HOOK_gvr_initialize_gl(gvr_context* gvr);
@@ -107,6 +134,11 @@ private:
 	static void * m_hGVR;
 	static FP_gvr_get_head_space_from_start_space_rotation m_fp_gvr_get_head_space_from_start_space_rotation;
 	static FP_gvr_frame_submit m_fp_gvr_frame_submit;
+	static FP_gvr_swap_chain_create m_fp_gvr_swap_chain_create;
+	static FP_gvr_swap_chain_get_buffer_count m_fp_gvr_swap_chain_get_buffer_count;
+    static FP_gvr_swap_chain_acquire_frame m_fp_gvr_swap_chain_acquire_frame;
+    static FP_gvr_buffer_viewport_list_create m_fp_gvr_buffer_viewport_list_create;
+    static FP_gvr_buffer_viewport_list_destroy m_fp_gvr_buffer_viewport_list_destroy;
 	static FP_gvr_reset_tracking m_fp_gvr_reset_tracking;// Deprecated
 	static FP_gvr_recenter_tracking m_fp_gvr_recenter_tracking;
 

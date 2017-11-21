@@ -1,6 +1,7 @@
 #include <malloc.h>
 #include <cstdlib>
 #include <android/log.h>
+#include <EGL/egl.h>
 #include "drawtex.h"
 
 #define LOG_TAG "drawtex"
@@ -8,7 +9,11 @@
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-UserData gUserData;
+UserData gUserData = {0};
+
+EGLContext gShareContext = 0;
+EGLDisplay gDisplay = 0;
+EGLSurface gAuxSurface = 0;
 
 static void CheckGLError(const char* label) {
     int gl_error = glGetError();
@@ -63,6 +68,50 @@ GLuint  esLoadShader ( GLenum type, const char *shaderSrc )
 
 }
 
+
+
+void createSharedContext(){
+    EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+    EGLint numConfigs = 0;
+    EGLConfig config;
+
+    const EGLint attribList[] = {
+            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+            EGL_BLUE_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_RED_SIZE, 8,
+            EGL_ALPHA_SIZE, 8,
+            EGL_RENDERABLE_TYPE, 64,
+            EGL_DEPTH_SIZE, 0,
+            EGL_STENCIL_SIZE, 0,
+            EGL_NONE
+    };
+
+    EGLint pbufferAttribs[] = {
+            EGL_WIDTH, 1,
+            EGL_HEIGHT, 1,
+            EGL_TEXTURE_TARGET, EGL_NO_TEXTURE,
+            EGL_TEXTURE_FORMAT, EGL_NO_TEXTURE,
+            EGL_NONE
+    };
+
+    // Choose config
+    EGLDisplay display = eglGetCurrentDisplay( );
+    EGLContext context = eglGetCurrentContext();
+    if ( !eglChooseConfig ( display, attribList, &config, 1, &numConfigs ) )
+    {
+        return;
+    }
+
+    gAuxSurface = eglCreatePbufferSurface(display, config, pbufferAttribs);
+    if(gAuxSurface == NULL) {
+        return;
+    }
+
+    gShareContext = eglCreateContext( display, config, context, contextAttribs );
+    return;
+
+}
 
 //
 ///
@@ -205,6 +254,20 @@ void InitData()
 //
 int InitTex( UserData *userData, int index)
 {
+    if( userData->programObject != 0 )
+    {
+//        eglMakeCurrent( gDisplay, gAuxSurface, gAuxSurface, gShareContext );
+//        return true;
+        UninitTex();
+    }
+
+    EGLContext curContext = eglGetCurrentContext();
+    EGLDisplay curDisplay = eglGetCurrentDisplay();
+    EGLSurface curSurfaceRead = eglGetCurrentSurface(EGL_READ);
+
+    EGLSurface curSurfaceDraw = eglGetCurrentSurface(EGL_DRAW);
+    createSharedContext();
+    eglMakeCurrent( gDisplay, gAuxSurface, gAuxSurface, gShareContext );
     char * vShaderStr[] = {
             R"glsl(#version 300 es
                     layout(location = 0) in vec4 a_position;
@@ -267,14 +330,27 @@ int InitTex( UserData *userData, int index)
 
     InitData();
 
+    eglMakeCurrent(curDisplay, curSurfaceDraw, curSurfaceRead, curContext);
+
     return true;
 }
 
+void UninitTex()
+{
+    glDeleteBuffers(1, &gUserData.vboID);
+    glDeleteBuffers(1, &gUserData.iboID);
+    glDeleteTextures ( 1, &gUserData.textureId );
+    glDeleteProgram ( gUserData.programObject );
+    gUserData.samplerLoc = 0;
+    gUserData.programObject = 0;
+    CheckGLError("UninitTex");
+}
 
 
 void DrawTex( UserData *userData)
 {
     CheckGLError("drawtex begin");
+    LOGE("drawtex begin");
 
 //    glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
@@ -292,8 +368,10 @@ void DrawTex( UserData *userData)
 
     // Load the vertex position
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    LOGE("glbindbuffer end, vboID=%d, iboID=%d", gUserData.vboID, gUserData.iboID);
 
     glEnableVertexAttribArray ( 0 );
     glEnableVertexAttribArray ( 1 );
@@ -301,25 +379,26 @@ void DrawTex( UserData *userData)
     glBindTexture ( GL_TEXTURE_2D, userData->textureId );
     glUniform1i ( userData->samplerLoc, 0 );
 
-    static GLfloat vVertices[] = {
-            -0.5f,  0.5f, -0.5f, 0.0f,  0.0f,
-            -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,
-            0.5f, -0.5f, -0.5f, 1.0f,  1.0f,
-            0.5f,  0.5f, -0.5f, 1.0f,  0.0f
-    };
-    static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
-    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
-    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
-    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
+//    static GLfloat vVertices[] = {
+//            -0.05f,  0.05f, -0.5f, 0.0f,  0.0f,
+//            -0.05f, -0.05f, -0.5f, 0.0f,  1.0f,
+//            0.05f, -0.05f, -0.5f, 1.0f,  1.0f,
+//            0.05f,  0.05f, -0.5f, 1.0f,  0.0f
+//    };
+//    static GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+//    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
+//    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
+//    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
 
-//    glBindBuffer(GL_ARRAY_BUFFER, gUserData.vboID);
-//    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), 0 );
-//    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), (void*)(3 * sizeof(GLfloat)) );
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gUserData.iboID);
-//    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0 );
-//    glBindBuffer(GL_ARRAY_BUFFER, 0);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+    glBindBuffer(GL_ARRAY_BUFFER, gUserData.vboID);
+//    glEnableVertexAttribArray ( 0 );
+//    glEnableVertexAttribArray ( 1 );
+    glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), 0 );
+    glVertexAttribPointer ( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof ( GLfloat ), (void*)(3 * sizeof(GLfloat)) );
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gUserData.iboID);
+    glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0 );
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glDisableVertexAttribArray ( 0 );
     glDisableVertexAttribArray ( 1 );
@@ -327,6 +406,7 @@ void DrawTex( UserData *userData)
     glEnable(GL_CULL_FACE);
 
     CheckGLError("drawtex");
+    LOGE("drawtex end");
 
 //    glDrawArrays ( GL_POINTS, 0, 6 );
 }

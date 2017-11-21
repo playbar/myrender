@@ -20,6 +20,7 @@ typedef struct
 GLuint createTexture( );
 void InitData();
 int InitTex ( UserData *userData, int index = 0);
+void UninitTex();
 void DrawTex ( UserData *userData);
 void ShutDownTex ( UserData *userData );
 

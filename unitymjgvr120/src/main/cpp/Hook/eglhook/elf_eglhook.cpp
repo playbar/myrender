@@ -160,11 +160,15 @@ void mj_glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
 void  (*old_glBindBuffer) (GLenum target, GLuint buffer) = NULL;
 void mj_glBindBuffer (GLenum target, GLuint buffer)
 {
-    static int count = 0;
-    if( count < 20)
     LOGE("mj_glBindBuffer, target=%d, bufferid=%d, tid=%d", target, buffer, gettid());
-    ++count;
     return old_glBindBuffer(target, buffer);
+}
+
+void (*old_glBindTexture)(GLenum target, GLuint texture) = NULL;
+void  mj_glBindTexture(GLenum target, GLuint texture)
+{
+    LOGE("mj_glBindTexture, target=%d, texture=%d, tid=%d", target, texture, gettid());
+    return old_glBindTexture(target, texture);
 }
 
 extern double m_dRotateSpeed;
@@ -313,8 +317,9 @@ void hookEglGetProcAddress()
 
 void hookGLFun()
 {
-    hook((uint32_t) glViewport, (uint32_t)mj_glViewport, (uint32_t **) &old_glViewport);
-    hook((uint32_t) glBindBuffer, (uint32_t)mj_glBindBuffer, (uint32_t **)&old_glBindBuffer);
+//    hook((uint32_t) glViewport, (uint32_t)mj_glViewport, (uint32_t **) &old_glViewport);
+//    hook((uint32_t) glBindBuffer, (uint32_t)mj_glBindBuffer, (uint32_t **)&old_glBindBuffer);
+//    hook((uint32_t) glBindTexture, (uint32_t)mj_glBindTexture, (uint32_t **)&old_glBindTexture);
     return;
 }
 

@@ -20,6 +20,7 @@ extern "C" {
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_VrFuncInit(JNIEnv *jEnv, jclass, jboolean isdd);
 	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_ReprojFuncInit(JNIEnv *jEnv, jclass);
     JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_NativeUnityFuncInit(JNIEnv *jEnv, jclass);
+	JNIEXPORT void JNICALL Java_com_baofeng_mojing_MojingSDK_nativeEnableShowTip(JNIEnv *jEnv, jclass, jboolean benble);
 	/*
 	* Class:     com_baofeng_mojing_MojingSDK
 	* Method:    Init
