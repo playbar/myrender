@@ -277,8 +277,13 @@ char*  my_strncpy(char* __restrict dest, const char* __restrict src, size_t s){
 //    LOGE("my_strncpy, dest=%s, src=%s, size=%d", dest, src, s);
     if(strcmp("cardboard",src)==0){
         LOGI("my_strncpy,src:cardboard,new src daydream");
-        return old_strncpy(dest,"daydream",s);
+        return old_strncpy(dest,"daydream",s-1);
     }
+
+//    if(strcmp("cardboard",src)==0){
+//        LOGI("my_strncpy,src:cardboard,new src daydream");
+//        return old_strncpy(dest,"daydream",s);
+//    }
 
     return old_strncpy(dest,src,s);
 }

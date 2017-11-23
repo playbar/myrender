@@ -187,11 +187,11 @@ public class MojingVrActivity extends Activity implements MojingInputCallback {
         getWindow().setFormat(PixelFormat.RGBX_8888); // <--- This makes xperia play happy
         mActivity = this;
         MojingSDK.mContext = getApplicationContext();
-//        if(isDDAPP())
-//        {
-//            MojingSDK.setsDaydreamPhoneOverrideForTesting();
-//            MojingSDK.setsFingerprint();
-//        }
+        if(isDDAPP())
+        {
+            MojingSDK.setsDaydreamPhoneOverrideForTesting();
+            MojingSDK.setsFingerprint();
+        }
 
         try {
             Class<?> c = Class.forName("com.unity3d.player.UnityPlayer");

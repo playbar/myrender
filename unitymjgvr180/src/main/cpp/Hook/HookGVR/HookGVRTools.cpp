@@ -489,7 +489,7 @@ void HookGVRTools::HOOK_gvr_initialize_gl(gvr_context* gvr)
     LOGE("HOOK_gvr_initialize_gl");
 	if( m_fp_gvr_initialize_gl)
 		m_fp_gvr_initialize_gl(gvr);
-	InitTex(&gUserData, 1);
+	InitTex(&gUserData, 0);
 	gvr_sizei size = m_fp_gvr_get_maximum_effective_render_target_size(gvr);
     gvpwidth = (7 * size.width) / 20;
     LOGE("w=%d, h=%d, wid=%d", size.width, size.height, gvpwidth);
