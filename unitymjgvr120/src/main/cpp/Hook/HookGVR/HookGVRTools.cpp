@@ -557,6 +557,7 @@ gvr_frame *HookGVRTools::HOOK_gvr_swap_chain_acquire_frame(gvr_swap_chain* swap_
 	return m_fp_gvr_swap_chain_acquire_frame(swap_chain);
 }
 
+
 gvr_buffer_viewport_list *HookGVRTools::HOOK_gvr_buffer_viewport_list_create(const gvr_context* gvr)
 {
 	LOGE("HOOK_gvr_buffer_viewport_list_create, tid=%d", gettid());
